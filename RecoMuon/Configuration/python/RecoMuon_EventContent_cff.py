@@ -48,7 +48,9 @@ RecoMuonAOD = cms.PSet(
                                            # Additional tracks
                                            'keep recoTracks_refittedStandAloneMuons_*_*', 
                                            'keep recoTrackExtras_refittedStandAloneMuons_*_*', 
-                                           'keep TrackingRecHitsOwned_refittedStandAloneMuons_*_*' 
+                                           'keep TrackingRecHitsOwned_refittedStandAloneMuons_*_*',
+                                           # trackerGEM
+                                           'keep recoMuons_trackerGEM_*_*'
                                            )
 )
 # RECO content
@@ -78,7 +80,9 @@ RecoMuonRECO = cms.PSet(
                                            'keep recoTracks_globalSETMuons_*_*',
                                            'keep recoTrackExtras_globalSETMuons_*_*',
                                            'keep TrackingRecHitsOwned_globalSETMuons_*_*',
-                                           'keep recoMuons_muonsWithSET_*_*')
+                                           'keep recoMuons_muonsWithSET_*_*',
+                                           # trackerGEM
+                                           'keep recoMuons_trackerGEM_*_*')
 )
 # Full Event content 
 RecoMuonFEVT = cms.PSet(

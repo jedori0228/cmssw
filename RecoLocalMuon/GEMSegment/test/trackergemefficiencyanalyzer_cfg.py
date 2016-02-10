@@ -21,9 +21,9 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         #open('Sh_trackerGEM_path.txt').readlines()
         #open('HGC_trackerGEM_path.txt').readlines()
-        #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_gem_into_tracker/src/work/condor/MuonGun_RECO_gem_into_tracker/out_reco_0.root'
-        open('filelist_MuonGun.txt').readlines()
-        #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_gem_into_tracker/src/work/out_reco.root'
+        #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/out_reco.root'
+        #open('filelist_MuonGun.txt').readlines()
+        'file:/xrootd/store/user/jskim/condor/MuonGun_20_jobs_500_events_trackerGEM_trackerMuon/out_reco_0.root'
     ),
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     skipBadFiles = cms.untracked.bool(True),
@@ -33,7 +33,8 @@ process.trackergem = cms.EDAnalyzer('TrackerGEMEfficiencyAnalyzer',
                               # ----------------------------------------------------------------------
                               #RootFileName = cms.untracked.string("Sh_efficiency_0p1_matching.root"),
                               #RootFileName = cms.untracked.string("HGC_efficiency_0p1_matching.root"),
-                              RootFileName = cms.untracked.string('eff.root'),
+                              #RootFileName = cms.untracked.string('eff.root'),
+                              RootFileName = cms.untracked.string('temp.root'),
                               # ----------------------------------------------------------------------
                               printSegmntInfo = cms.untracked.bool(False),
                               # ----------------------------------------------------------------------

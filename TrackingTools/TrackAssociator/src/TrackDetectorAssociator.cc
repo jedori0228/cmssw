@@ -752,38 +752,43 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
          float halfWidthAtYPrime = 0.5*narrowWidth+yPrime*tangent;
          distanceX = fabs(localPoint.x()) - halfWidthAtYPrime;
          distanceY = fabs(localPoint.y()-yCOWPOffset) - 0.5*length;
-	 sigmaX = distanceX/sqrt(localError.xx());
+	       sigmaX = distanceX/sqrt(localError.xx());
          sigmaY = distanceY/sqrt(localError.yy());     
-      } else {
+      }
+	    else if(const GEMChamber* gemChamber = dynamic_cast<const GEMChamber*>(geomDet) ) {
+	      if(gemChamber) {
+	        // gem width and length are interchanged - need to fix
+	        //distanceX = fabs(localPoint.x()) - geomDet->surface().bounds().width();
+       	  distanceY = fabs(localPoint.y()) - geomDet->surface().bounds().length()*4;
+	        sigmaX = distanceX/sqrt(localError.xx());
+	        sigmaY = distanceY/sqrt(localError.yy());
+	        //std::cout<<"getTAMuonChamberMatches::GEM distanceX="<< distanceX <<", distanceY="<< distanceY <<std::endl;
+	        // std::cout<<"GEMChamber width="<< geomDet->surface().bounds().width() <<", length="<< geomDet->surface().bounds().length() <<std::endl;
+    	    // auto& rolls(gemChamber->etaPartitions());
+	        // for (auto roll : rolls){
+          //   //const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll->topology())));
+	        //   auto& parameters(roll->specs()->parameters());
+   	      //   double bottomLength(parameters[0]); bottomLength = 2*bottomLength; // bottom is largest length, so furtest away from beamline
+	        //   double topLength(parameters[1]);    topLength    = 2*topLength;    // top is shortest length, so closest to beamline
+	        //   double height(parameters[2]);       height       = 2*height;
+	        //   std::cout<<"GEM roll bottomLength="<< bottomLength <<", topLength="<< topLength <<", height="<< height <<std::endl;
+	        //   std::cout<<"GEM roll width="<< roll->surface().bounds().width() <<", length="<< roll->surface().bounds().length()<<std::endl;
+	        // }
+          std::cout << std::endl
+          << "distanceX = " << distanceX << ", muonMaxdistanceX = " << parameters.muonMaxDistanceX << std::endl
+          << "distanceY = " << distanceY << ", muonMaxdistanceY = " << parameters.muonMaxDistanceY << std::endl
+          << "sigmaX = " << sigmaX << ", muonMaxDistanceSigmaX = " <<  parameters.muonMaxDistanceSigmaX << std::endl
+          << "sigmaY = " << sigmaY << ", muonMaxDistanceSigmaY = " <<  parameters.muonMaxDistanceSigmaY << std::endl;
+
+	      }
+	    }
+      else{
          distanceX = fabs(localPoint.x()) - geomDet->surface().bounds().width()/2.;
          distanceY = fabs(localPoint.y()) - geomDet->surface().bounds().length()/2.;
-	 sigmaX = distanceX/sqrt(localError.xx());
+         sigmaX = distanceX/sqrt(localError.xx());
          sigmaY = distanceY/sqrt(localError.yy());
-	 
-	 if(const GEMChamber* gemChamber = dynamic_cast<const GEMChamber*>(geomDet) ) {
-	   if(gemChamber) {
-	     // gem width and length are interchanged - need to fix
-	     //distanceX = fabs(localPoint.x()) - geomDet->surface().bounds().width();
-	     distanceY = fabs(localPoint.y()) - geomDet->surface().bounds().length()*4;
-	     sigmaX = distanceX/sqrt(localError.xx());
-	     sigmaY = distanceY/sqrt(localError.yy());
-	     //std::cout<<"getTAMuonChamberMatches::GEM distanceX="<< distanceX <<", distanceY="<< distanceY <<std::endl;
-	     // std::cout<<"GEMChamber width="<< geomDet->surface().bounds().width() <<", length="<< geomDet->surface().bounds().length() <<std::endl;
-	     // auto& rolls(gemChamber->etaPartitions());
-	     // for (auto roll : rolls){
-	     //   //const TrapezoidalStripTopology* top_(dynamic_cast<const TrapezoidalStripTopology*>(&(roll->topology())));
-	     //   auto& parameters(roll->specs()->parameters());
-	     //   double bottomLength(parameters[0]); bottomLength = 2*bottomLength; // bottom is largest length, so furtest away from beamline
-	     //   double topLength(parameters[1]);    topLength    = 2*topLength;    // top is shortest length, so closest to beamline
-	     //   double height(parameters[2]);       height       = 2*height;
-	     //   std::cout<<"GEM roll bottomLength="<< bottomLength <<", topLength="<< topLength <<", height="<< height <<std::endl;
-	      
-	     //   std::cout<<"GEM roll width="<< roll->surface().bounds().width() <<", length="<< roll->surface().bounds().length()<<std::endl;
-	     // }
-	   }
-	 }
-	 
       }
+
       // timers.pop_and_push("MuonDetIdAssociator::getTrajectoryInMuonDetector::matching::checking",TimerStack::FastMonitoring);
       if ( (distanceX < parameters.muonMaxDistanceX && distanceY < parameters.muonMaxDistanceY) ||
 	   (sigmaX < parameters.muonMaxDistanceSigmaX && sigmaY < parameters.muonMaxDistanceSigmaY) ) {

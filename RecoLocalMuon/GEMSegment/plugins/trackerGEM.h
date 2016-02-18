@@ -33,6 +33,9 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 
+#include "TFile.h"
+#include "TH2F.h"
+
 class FreeTrajectoryState;
 class MagneticField;
 class SteppingHelixPropagator;
@@ -63,6 +66,12 @@ class trackerGEM : public edm::EDProducer {
 		  GlobalVector& , GlobalVector& , 
 		  int& , AlgebraicSymMatrix66& );
 
+  TFile* file;
+  TH2F* hist_GE11_global_xy;
+  TH2F* hist_GE11_local_xy;
+  TH2F* hist_GE21_global_xy;
+  TH2F* hist_GE21_local_xy;
+
  private:
 
 
@@ -72,7 +81,7 @@ class trackerGEM : public edm::EDProducer {
     maxDiffPhiDirection_;
   edm::EDGetTokenT<GEMSegmentCollection> gemSegmentsToken_;
   edm::EDGetTokenT<reco::TrackCollection> generalTracksToken_;
-
+  bool printinfo_;
   float ntracks, nmatch, nmatch_ge11, nmatch_ge21;
 };
 

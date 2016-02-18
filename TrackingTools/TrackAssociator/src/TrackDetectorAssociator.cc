@@ -109,11 +109,20 @@ TrackDetectorAssociator::TrackDetectorAssociator()
   ivProp_ = 0;
   defProp_ = 0;
   useDefaultPropagator_ = false;
+  outputfile = new TFile("/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/hist.root", "RECREATE");
+  hist_x = new TH1D("hist_x","",800,-400,400);
+  hist_y = new TH1D("hist_y","",800,-400,400);
+  hist_xy = new TH2D("hist_xy","",800,-400,400,800,-400,400);
 }
 
 TrackDetectorAssociator::~TrackDetectorAssociator()
 {
   if (defProp_) delete defProp_;
+  outputfile->cd();
+  hist_x->Write();
+  hist_y->Write();
+  hist_xy->Write();
+  outputfile->Close();
 }
 
 void TrackDetectorAssociator::setPropagator( const Propagator* ptr)
@@ -761,12 +770,13 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
 	      distanceY = fabs(localPoint.y()) - geomDet->surface().bounds().length()/2.;
 	      sigmaX = distanceX/sqrt(localError.xx());
 	      sigmaY = distanceY/sqrt(localError.yy());
-
+/*
 	      if(detId->subdetId() == 3) {
 	        RPCDetId Rsid = RPCDetId(detId->rawId());
 	        std::cout<< Rsid <<std::endl;
 	        std::cout<<"RPCChamber width="<< geomDet->surface().bounds().width() <<", length="<< geomDet->surface().bounds().length() <<std::endl;
 	      }
+*/
 	      if(const GEMChamber* gemChamber = dynamic_cast<const GEMChamber*>(geomDet) ) {
 	        if(gemChamber) {
 	          // gem width and length are interchanged - need to fix
@@ -786,6 +796,20 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
       	    //   std::cout<<"GEM roll bottomLength="<< bottomLength <<", topLength="<< topLength <<", height="<< height <<std::endl;    
 	          //   std::cout<<"GEM roll width="<< roll->surface().bounds().width() <<", length="<< roll->surface().bounds().length()<<std::endl;
 	          // }
+
+          hist_x->Fill(localPoint.x());
+          hist_y->Fill(localPoint.y());
+          hist_xy->Fill(localPoint.x(), localPoint.y());
+          std::cout << "===TrackDetectorAssociator.cc===" << std::endl
+          << "localPoint.x() = " << localPoint.x() << ", geomDet->surface().bounds().width() = " << geomDet->surface().bounds().width() << std::endl
+          << "localPoint.y() = " << localPoint.y() << ", geomDet->surface().bounds().length() = " << geomDet->surface().bounds().length() << std::endl
+          << "distanceX = " << distanceX << ", muonMaxdistanceX = " << parameters.muonMaxDistanceX << std::endl
+          << "distanceY = " << distanceY << ", muonMaxdistanceY = " << parameters.muonMaxDistanceY << std::endl
+          << "localError.xx() = " << localError.xx() << std::endl
+          << "localError.yy() = " << localError.yy() << std::endl
+          << "sigmaX = " << sigmaX << ", muonMaxDistanceSigmaX = " <<  parameters.muonMaxDistanceSigmaX << std::endl
+          << "sigmaY = " << sigmaY << ", muonMaxDistanceSigmaY = " <<  parameters.muonMaxDistanceSigmaY << std::endl;
+
 	        }
 	      }
       }

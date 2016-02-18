@@ -47,11 +47,29 @@ trackerGEM::trackerGEM(const edm::ParameterSet& iConfig) {
   maxPullYGE21_   = iConfig.getParameter<double>("maxPullYGE21");
   maxDiffYGE21_   = iConfig.getParameter<double>("maxDiffYGE21");
   maxDiffPhiDirection_ = iConfig.getParameter<double>("maxDiffPhiDirection");
+  printinfo_ = iConfig.getParameter<bool>("printinfo_");
 
   produces<std::vector<reco::Muon> >();
+
+  if(printinfo_){
+    file = new TFile("/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/local.root", "RECREATE");
+    hist_GE11_global_xy = new TH2F("hist_GE11_global_xy", "", 400./5., -200., 200., 400./5., -200., 200.);
+    hist_GE11_local_xy = new TH2F("hist_GE11_local_xy", "", 100./5., -50., 50., 200./5., -200., 0.);
+    hist_GE21_global_xy = new TH2F("hist_GE21_global_xy", "", 400./5., -200., 200., 400./5., -200., 200.);
+    hist_GE21_local_xy = new TH2F("hist_GE21_local_xy", "", 100./5., -50., 50., 200./5., -200., 0.);
+  }
 }
 
-trackerGEM::~trackerGEM() {}
+trackerGEM::~trackerGEM() {
+  if(printinfo_){
+    file->cd();
+    hist_GE11_global_xy->Write();
+    hist_GE11_local_xy->Write();
+    hist_GE21_global_xy->Write();
+    hist_GE21_local_xy->Write();
+    file->Close();
+  }
+}
 
 void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   using namespace edm;
@@ -77,7 +95,7 @@ void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
     //Initializing gem plane
     //Remove later
     if (thisTrack->pt() < 1.5) continue;
-    if (std::abs(thisTrack->eta()) < 1.5) continue;
+    if (std::fabs(thisTrack->eta()) < 1.5) continue;
 
     ++ntracks;
     edm::LogVerbatim("trackerGEM") << "**********************************************************"<<std::endl;
@@ -215,8 +233,20 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     LocalPoint thisPosition(thisSegment->localPosition());
     LocalVector thisDirection(thisSegment->localDirection());
 
+
     auto chamber = gemGeom->chamber(id);
     GlobalPoint SegPos(chamber->toGlobal(thisPosition));
+
+    if(printinfo_){
+      if(station == 1){
+        hist_GE11_global_xy->Fill(SegPos.x(), SegPos.y());
+        hist_GE11_local_xy->Fill(thisPosition.x(), thisPosition.y());
+      }
+      if(station == 3){
+        hist_GE21_global_xy->Fill(SegPos.x(), SegPos.y());
+        hist_GE21_local_xy->Fill(thisPosition.x(), thisPosition.y());
+      }
+    }
 
     edm::LogVerbatim("trackerGEM") <<" segment = "<< id.station()
     	      <<" chamber = "<< id.chamber()
@@ -225,7 +255,14 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     	      <<", "<< SegPos.y()
     	      <<", "<< SegPos.z()
       	      << std::endl;
-    
+/*
+    std::cout <<" station = "<< id.station() << std::endl
+              <<" chamber = "<< id.chamber() << std::endl
+              <<" roll = "<< id.roll() << std::endl
+							<<" Global x,y,z = "<< SegPos.x() << ", " << SegPos.y() << ", " << SegPos.z() << std::endl
+							<<" Local x,y,z = "<< thisPosition.x() << ", " << thisPosition.y() << ", " << thisPosition.z() << std::endl;
+ */
+
     //      if ( zSign * chamber->toGlobal(thisSegment->localPosition()).z() < 0 ) continue;
     // add in deltaR cut
       
@@ -297,26 +334,30 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
 
     Double_t sigmax = sqrt(C[3][3]+thisSegment->localPositionError().xx() );      
     Double_t sigmay = sqrt(C[4][4]+thisSegment->localPositionError().yy() );
+    std::cout
+    << "===trackerGEM.cc===" << std::endl
+    << "std::fabs(thisPosition.x()-r3FinalReco.x()) = " << std::fabs(thisPosition.x()-r3FinalReco.x()) << std::endl
+    << "std::fabs(thisPosition.y()-r3FinalReco.y()) = " << std::fabs(thisPosition.y()-r3FinalReco.y()) << std::endl;
 
     bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
     
     if (station == 1){
-      if ( (std::abs(thisPosition.x()-r3FinalReco.x()) < (maxPullXGE11_ * sigmax)) &&
-	   (std::abs(thisPosition.x()-r3FinalReco.x()) < maxDiffXGE11_ ) ) X_MatchFound = true;
-      if ( (std::abs(thisPosition.y()-r3FinalReco.y()) < (maxPullYGE11_ * sigmay)) &&
-	   (std::abs(thisPosition.y()-r3FinalReco.y()) < maxDiffYGE11_ ) ) Y_MatchFound = true;
+      if ( (std::fabs(thisPosition.x()-r3FinalReco.x()) < (maxPullXGE11_ * sigmax)) &&
+	   (std::fabs(thisPosition.x()-r3FinalReco.x()) < maxDiffXGE11_ ) ) X_MatchFound = true;
+      if ( (std::fabs(thisPosition.y()-r3FinalReco.y()) < (maxPullYGE11_ * sigmay)) &&
+	   (std::fabs(thisPosition.y()-r3FinalReco.y()) < maxDiffYGE11_ ) ) Y_MatchFound = true;
     }
     if (station == 3){
-      if ( (std::abs(thisPosition.x()-r3FinalReco.x()) < (maxPullXGE21_ * sigmax)) &&
-	   (std::abs(thisPosition.x()-r3FinalReco.x()) < maxDiffXGE21_ ) ) X_MatchFound = true;
-      if ( (std::abs(thisPosition.y()-r3FinalReco.y()) < (maxPullYGE21_ * sigmay)) &&
-	   (std::abs(thisPosition.y()-r3FinalReco.y()) < maxDiffYGE21_ ) ) Y_MatchFound = true;
+      if ( (std::fabs(thisPosition.x()-r3FinalReco.x()) < (maxPullXGE21_ * sigmax)) &&
+	   (std::fabs(thisPosition.x()-r3FinalReco.x()) < maxDiffXGE21_ ) ) X_MatchFound = true;
+      if ( (std::fabs(thisPosition.y()-r3FinalReco.y()) < (maxPullYGE21_ * sigmay)) &&
+	   (std::fabs(thisPosition.y()-r3FinalReco.y()) < maxDiffYGE21_ ) ) Y_MatchFound = true;
     }
     double segLocalPhi = thisDirection.phi();
     //-M_PI/2;
     //if (segLocalPhi < 0) segLocalPhi += M_PI;
     
-    if (std::abs(reco::deltaPhi(p3FinalReco.phi(),segLocalPhi))  < maxDiffPhiDirection_) Dir_MatchFound = true;
+    if (std::fabs(reco::deltaPhi(p3FinalReco.phi(),segLocalPhi))  < maxDiffPhiDirection_) Dir_MatchFound = true;
 
     edm::LogVerbatim("trackerGEM") <<" station = "<< station
 				   <<" track phi = "<< p3FinalReco.phi() 

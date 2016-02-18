@@ -50,7 +50,9 @@
 #include "Geometry/GEMGeometry/interface/GEMGeometry.h"
 #include "DataFormats/GEMRecHit/interface/GEMSegmentCollection.h"
 #include "Geometry/RPCGeometry/interface/RPCGeometry.h"
-
+#include "TFile.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 class TrackDetectorAssociator {
  public:
@@ -206,5 +208,9 @@ class TrackDetectorAssociator {
    edm::ESHandle<GEMGeometry> gemGeom;
    
    edm::ESWatcher<IdealMagneticFieldRecord>     theMagneticFeildWatcher_;
+   TFile* outputfile;
+   TH1D* hist_x;
+   TH1D* hist_y;
+   TH2D* hist_xy;
 };
 #endif

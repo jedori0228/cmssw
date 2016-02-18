@@ -10,8 +10,8 @@ import FWCore.ParameterSet.Config as cms
 # 
 TrackAssociatorParameterBlock = cms.PSet(
     TrackAssociatorParameters = cms.PSet(
-        muonMaxDistanceSigmaX = cms.double(1.0), #default is 0.0
-        muonMaxDistanceSigmaY = cms.double(0.0), #default is 0.0
+        muonMaxDistanceSigmaX = cms.double(200.0), #default is 0.0
+        muonMaxDistanceSigmaY = cms.double(0.0),
         CSCSegmentCollectionLabel = cms.InputTag("cscSegments"),
         GEMSegmentCollectionLabel = cms.InputTag("gemSegments"),
         dRHcal = cms.double(9999.0),
@@ -21,10 +21,10 @@ TrackAssociatorParameterBlock = cms.PSet(
         dREcalPreselection = cms.double(0.05),
         HORecHitCollectionLabel = cms.InputTag("horeco"),
         dRMuon = cms.double(9999.0),
-	      trajectoryUncertaintyTolerance = cms.double(10.0), #default if -1.0
+	      trajectoryUncertaintyTolerance = cms.double(200.0), #default if -1.0
         propagateAllDirections = cms.bool(True),
         muonMaxDistanceX = cms.double(5.0), #default is 5.0
-        muonMaxDistanceY = cms.double(12.0), #default is 5.0
+        muonMaxDistanceY = cms.double(5.0), #default is 5.0
         useHO = cms.bool(True),
         accountForTrajectoryChangeCalo = cms.bool(False),
         DTRecSegment4DCollectionLabel = cms.InputTag("dt4DSegments"),

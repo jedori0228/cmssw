@@ -79,5 +79,10 @@ class TrackAssociatorParameters {
    // to account for. Negative numbers are ignored
    // and trajectory is assumed to be known perfectly
    double trajectoryUncertaintyTolerance;
+
+   double maxPullXGE11_, maxDiffXGE11_, maxPullYGE11_, maxDiffYGE11_,
+    maxPullXGE21_, maxDiffXGE21_, maxPullYGE21_, maxDiffYGE21_,
+    maxDiffPhiDirection_;
+
 };
 #endif

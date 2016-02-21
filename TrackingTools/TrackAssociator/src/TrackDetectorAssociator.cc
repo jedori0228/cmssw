@@ -800,6 +800,7 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
           hist_x->Fill(localPoint.x());
           hist_y->Fill(localPoint.y());
           hist_xy->Fill(localPoint.x(), localPoint.y());
+/*
           std::cout << "===TrackDetectorAssociator.cc===" << std::endl
           << "localPoint.x() = " << localPoint.x() << ", geomDet->surface().bounds().width() = " << geomDet->surface().bounds().width() << std::endl
           << "localPoint.y() = " << localPoint.y() << ", geomDet->surface().bounds().length() = " << geomDet->surface().bounds().length() << std::endl
@@ -809,7 +810,7 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
           << "localError.yy() = " << localError.yy() << std::endl
           << "sigmaX = " << sigmaX << ", muonMaxDistanceSigmaX = " <<  parameters.muonMaxDistanceSigmaX << std::endl
           << "sigmaY = " << sigmaY << ", muonMaxDistanceSigmaY = " <<  parameters.muonMaxDistanceSigmaY << std::endl;
-
+*/
 	        }
 	      }
       }
@@ -941,7 +942,7 @@ bool TrackDetectorAssociator::addTAMuonSegmentMatch(TAMuonChamberMatch& matchedC
   LogTrace("TrackAssociator")
     << "Segment local position: " << segment->localPosition() << "\n"
     << std::hex << segment->geographicalId().rawId() << "\n";
-   
+
   const GeomDet* chamber = muonDetIdAssociator_->getGeomDet(matchedChamber.id);
   TrajectoryStateOnSurface trajectoryStateOnSurface = matchedChamber.tState;
   GlobalPoint segmentGlobalPosition = chamber->toGlobal(segment->localPosition());
@@ -968,6 +969,44 @@ bool TrackDetectorAssociator::addTAMuonSegmentMatch(TAMuonChamberMatch& matchedC
     isGood = deltaPhi < parameters.dRMuon;
     // Be in chamber
     isGood &= fabs(segmentGlobalPosition.eta()-trajectoryStateOnSurface.freeState()->position().eta()) < .3;
+  }
+  else if(const GEMChamber* gemchamber = dynamic_cast<const GEMChamber*>(chamber) ) {
+    const GEMSegment* gemsegment = dynamic_cast<const GEMSegment*>(segment);
+    int station = gemsegment->specificRecHits()[0].gemId().station();
+    // segment hit
+    LocalPoint thisPosition(segment->localPosition());
+    LocalVector thisDirection(segment->localDirection());
+    // track
+    GlobalPoint r3FinalReco_glob(trajectoryStateOnSurface.freeState()->position().x(), 
+                                 trajectoryStateOnSurface.freeState()->position().y(), 
+                                 trajectoryStateOnSurface.freeState()->position().z()   );
+    GlobalVector p3FinalReco_glob(trajectoryStateOnSurface.freeState()->momentum().x(), 
+                                  trajectoryStateOnSurface.freeState()->momentum().y(),
+                                  trajectoryStateOnSurface.freeState()->momentum().z()  );
+    LocalPoint r3FinalReco = gemchamber->toLocal(r3FinalReco_glob);
+    LocalVector p3FinalReco= gemchamber->toLocal(p3FinalReco_glob);
+    // error : FIXME only segment error now.
+    Double_t sigmax = sqrt(segment->localPositionError().xx() ),
+             sigmay = sqrt(segment->localPositionError().yy() );
+
+    bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
+    
+    if (station == 1){
+      if ( (std::abs(thisPosition.x()-r3FinalReco.x()) < (parameters.maxPullXGE11_ * sigmax)) &&
+	   (std::abs(thisPosition.x()-r3FinalReco.x()) < parameters.maxDiffXGE11_ ) ) X_MatchFound = true;
+      if ( (std::abs(thisPosition.y()-r3FinalReco.y()) < (parameters.maxPullYGE11_ * sigmay)) &&
+	   (std::abs(thisPosition.y()-r3FinalReco.y()) < parameters.maxDiffYGE11_ ) ) Y_MatchFound = true;
+    }
+    if (station == 3){
+      if ( (std::abs(thisPosition.x()-r3FinalReco.x()) < (parameters.maxPullXGE21_ * sigmax)) &&
+	   (std::abs(thisPosition.x()-r3FinalReco.x()) < parameters.maxDiffXGE21_ ) ) X_MatchFound = true;
+      if ( (std::abs(thisPosition.y()-r3FinalReco.y()) < (parameters.maxPullYGE21_ * sigmay)) &&
+	   (std::abs(thisPosition.y()-r3FinalReco.y()) < parameters.maxDiffYGE21_ ) ) Y_MatchFound = true;
+    }
+    double segLocalPhi = thisDirection.phi();
+    if (std::abs(reco::deltaPhi(p3FinalReco.phi(),segLocalPhi)) < parameters.maxDiffPhiDirection_) Dir_MatchFound = true;
+
+    isGood = X_MatchFound && Y_MatchFound && Dir_MatchFound;
   }
   else isGood = sqrt( pow(segmentGlobalPosition.eta()-trajectoryStateOnSurface.freeState()->position().eta(),2) + 
 		      deltaPhi*deltaPhi) < parameters.dRMuon;

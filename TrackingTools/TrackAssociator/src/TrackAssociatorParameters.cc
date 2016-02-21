@@ -54,6 +54,18 @@ void TrackAssociatorParameters::loadParameters( const edm::ParameterSet& iConfig
    
    truthMatch = iConfig.getParameter<bool>("truthMatch");
    muonMaxDistanceSigmaY = iConfig.getParameter<double>("trajectoryUncertaintyTolerance");
+
+
+   maxPullXGE11_   = iConfig.getParameter<double>("maxPullXGE11");
+   maxDiffXGE11_   = iConfig.getParameter<double>("maxDiffXGE11");
+   maxPullYGE11_   = iConfig.getParameter<double>("maxPullYGE11");
+   maxDiffYGE11_   = iConfig.getParameter<double>("maxDiffYGE11");
+   maxPullXGE21_   = iConfig.getParameter<double>("maxPullXGE21");
+   maxDiffXGE21_   = iConfig.getParameter<double>("maxDiffXGE21");
+   maxPullYGE21_   = iConfig.getParameter<double>("maxPullYGE21");
+   maxDiffYGE21_   = iConfig.getParameter<double>("maxDiffYGE21");
+   maxDiffPhiDirection_ = iConfig.getParameter<double>("maxDiffPhiDirection");
+
 }
 
 TrackAssociatorParameters::TrackAssociatorParameters( const edm::ParameterSet& iConfig )

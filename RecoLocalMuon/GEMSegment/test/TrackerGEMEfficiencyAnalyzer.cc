@@ -182,16 +182,16 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
     cout << endl << "[gen]" << endl; igenP4.Print();
 
     /// loop over trackerGEMMuon ///
-    bool trackerGEMMuon_isMatched = false;
-    double deltaR_trackerGEMMuon_temp = matching_deltaR;
+    bool standalone_trackerGEM_isMatched = false;
+    double deltaR_standalone_trackerGEM_temp = matching_deltaR;
     const reco::Muon* matched_trackerGEMMuon = NULL;
     for(reco::MuonCollection::const_iterator trackerGEMMuon=trackerGEMMuons->begin(); trackerGEMMuon != trackerGEMMuons->end(); ++trackerGEMMuon){
       TLorentzVector itrkgemP4;
       itrkgemP4.SetPtEtaPhiM(trackerGEMMuon->pt(), trackerGEMMuon->eta(), trackerGEMMuon->phi(), trackerGEMMuon->mass());
-      if( igenP4.DeltaR(itrkgemP4) < deltaR_trackerGEMMuon_temp ){
-        trackerGEMMuon_isMatched = true;
+      if( igenP4.DeltaR(itrkgemP4) < deltaR_standalone_trackerGEM_temp ){
+        standalone_trackerGEM_isMatched = true;
         matched_trackerGEMMuon = &(*trackerGEMMuon);
-        deltaR_trackerGEMMuon_temp = igenP4.DeltaR(itrkgemP4);
+        deltaR_standalone_trackerGEM_temp = igenP4.DeltaR(itrkgemP4);
       }
       int this_eta_bin = FindWhichBin(abs( igenP4.Eta() ), eta_bin, n_eta_bin);
       FillHist("y_err_"+TString::Itoa(this_eta_bin, 10), trackerGEMMuon->matches().at(0).yErr, 40 ,-20, 20);
@@ -263,7 +263,7 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
     }
   
     
-    if( trackerGEMMuon_isMatched && (RecoMuon_isMatched && RecoMuon_isGEMMuon) ){
+    if( standalone_trackerGEM_isMatched && (RecoMuon_isMatched && RecoMuon_isGEMMuon) ){
       // matched_trackerGEMMuon, matched_recoMuon //
       FillHist("unmatched_eta", fabs( matched_trackerGEMMuon->eta() ), n_eta_bin, eta_bin);
       FillHist("unmatched_pt", matched_trackerGEMMuon->pt(), n_pt_bin, pt_bin); 
@@ -317,7 +317,7 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
       FillEfficiency("TMLastStationTight_eff_onebin", RecoMuon_isMatched && RecoMuon_isTMLastStationTight, 0, 1, 0, 1);
       FillEfficiency("TMLastStationAngLoose_eff_onebin", RecoMuon_isMatched && RecoMuon_isTMLastStationAngLoose, 0, 1, 0, 1);
       FillEfficiency("TMLastStationAngTight_eff_onebin", RecoMuon_isMatched && RecoMuon_isTMLastStationAngTight, 0, 1, 0, 1);
-      FillEfficiency("trackerGEMMuon_eff_onebin", trackerGEMMuon_isMatched, 0, 1, 0, 1);
+      FillEfficiency("standalone_trackerGEM_eff_onebin", standalone_trackerGEM_isMatched, 0, 1, 0, 1);
       FillEfficiency("GEMMuon_eff_onebin", RecoMuon_isMatched && RecoMuon_isGEMMuon, 0, 1, 0, 1);
       FillEfficiency("TrackerMuon_eff_onebin", RecoMuon_isMatched && RecoMuon_isTrackerMuon, 0, 1, 0, 1);
       FillEfficiency("GEMMuon_or_TrackerMuon_eff_onebin", RecoMuon_isMatched && RecoMuon_isGEMMuon_or_isTrackerMuon, 0, 1, 0, 1);
@@ -350,7 +350,7 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
       FillEfficiency("TMLastStationTight_eff_pt", RecoMuon_isMatched && RecoMuon_isTMLastStationTight, igenP4.Pt(), n_pt_bin, pt_bin);
       FillEfficiency("TMLastStationAngLoose_eff_pt", RecoMuon_isMatched && RecoMuon_isTMLastStationAngLoose, igenP4.Pt(), n_pt_bin, pt_bin);
       FillEfficiency("TMLastStationAngTight_eff_pt", RecoMuon_isMatched && RecoMuon_isTMLastStationAngTight, igenP4.Pt(), n_pt_bin, pt_bin);
-      FillEfficiency("trackerGEMMuon_eff_pt", trackerGEMMuon_isMatched, igenP4.Pt(), n_pt_bin, pt_bin);
+      FillEfficiency("standalone_trackerGEM_eff_pt", standalone_trackerGEM_isMatched, igenP4.Pt(), n_pt_bin, pt_bin);
       FillEfficiency("GEMMuon_eff_pt", RecoMuon_isMatched && RecoMuon_isGEMMuon, igenP4.Pt(), n_pt_bin, pt_bin);
       FillEfficiency("TrackerMuon_eff_pt", RecoMuon_isMatched && RecoMuon_isTrackerMuon, igenP4.Pt(), n_pt_bin, pt_bin);
       FillEfficiency("GEMMuon_or_TrackerMuon_eff_pt", RecoMuon_isMatched && RecoMuon_isGEMMuon_or_isTrackerMuon, igenP4.Pt(), n_pt_bin, pt_bin);
@@ -382,7 +382,7 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
       FillEfficiency("TMLastStationTight_eff_eta", RecoMuon_isMatched && RecoMuon_isTMLastStationTight, igenP4.Eta(), n_eta_bin, eta_bin);
       FillEfficiency("TMLastStationAngLoose_eff_eta", RecoMuon_isMatched && RecoMuon_isTMLastStationAngLoose, igenP4.Eta(), n_eta_bin, eta_bin);
       FillEfficiency("TMLastStationAngTight_eff_eta", RecoMuon_isMatched && RecoMuon_isTMLastStationAngTight, igenP4.Eta(), n_eta_bin, eta_bin);
-      FillEfficiency("trackerGEMMuon_eff_eta", trackerGEMMuon_isMatched, igenP4.Eta(), n_eta_bin, eta_bin);
+      FillEfficiency("standalone_trackerGEM_eff_eta", standalone_trackerGEM_isMatched, igenP4.Eta(), n_eta_bin, eta_bin);
       FillEfficiency("GEMMuon_eff_eta", RecoMuon_isMatched && RecoMuon_isGEMMuon, igenP4.Eta(), n_eta_bin, eta_bin);
       FillEfficiency("TrackerMuon_eff_eta", RecoMuon_isMatched && RecoMuon_isTrackerMuon, igenP4.Eta(), n_eta_bin, eta_bin);
       FillEfficiency("GEMMuon_or_TrackerMuon_eff_eta", RecoMuon_isMatched && RecoMuon_isGEMMuon_or_isTrackerMuon, igenP4.Eta(), n_eta_bin, eta_bin);

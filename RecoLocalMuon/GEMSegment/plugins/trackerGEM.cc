@@ -334,11 +334,12 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
 
     Double_t sigmax = sqrt(C[3][3]+thisSegment->localPositionError().xx() );      
     Double_t sigmay = sqrt(C[4][4]+thisSegment->localPositionError().yy() );
+/*
     std::cout
     << "===trackerGEM.cc===" << std::endl
     << "std::fabs(thisPosition.x()-r3FinalReco.x()) = " << std::fabs(thisPosition.x()-r3FinalReco.x()) << std::endl
     << "std::fabs(thisPosition.y()-r3FinalReco.y()) = " << std::fabs(thisPosition.y()-r3FinalReco.y()) << std::endl;
-
+*/
     bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
     
     if (station == 1){

@@ -597,7 +597,7 @@ void MuonIdProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    if (trackerMuon.isEnergyValid()) muon->setCalEnergy( trackerMuon.calEnergy() );
 	    if (goodTrackerMuon) muon->setType( muon->type() | reco::Muon::TrackerMuon );
 	    if (goodRPCMuon) muon->setType( muon->type() | reco::Muon::RPCMuon );
-	    if ( isGEMMuon(*muon) ) muon->setType( trackerMuon.type() | reco::Muon::GEMMuon );
+	    if ( isGEMMuon(*muon) ) muon->setType( muon->type() | reco::Muon::GEMMuon );
 	    LogTrace("MuonIdentification") << "Found a corresponding global muon. Set energy, matches and move on";
 	    break;
 	  }

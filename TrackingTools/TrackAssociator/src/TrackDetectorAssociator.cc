@@ -779,9 +779,26 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
 */
 	      if(const GEMChamber* gemChamber = dynamic_cast<const GEMChamber*>(geomDet) ) {
 	        if(gemChamber) {
+	          int station = gemChamber->id().station(), nEtaPartitons = gemChamber->nEtaPartitions();
+            double length = geomDet->surface().bounds().length();
+            if(station == 1 && nEtaPartitons == 9){
+              length = 106.0844;
+            }
+            else if(station == 1 && nEtaPartitons == 10){
+              length = 120.9;
+            }
+            else if(station == 2 && nEtaPartitons == 8){
+              length = 183.67;
+            }
+            else if(station == 3 && nEtaPartitons == 12){
+              length = 183.67;
+            }
+            else{
+              std::cout << "this should not happen" << std::endl;
+            }
 	          // gem width and length are interchanged - need to fix
 	          //distanceX = fabs(localPoint.x()) - geomDet->surface().bounds().width();
-	          distanceY = fabs(localPoint.y()) - geomDet->surface().bounds().length()*6;
+	          distanceY = fabs(localPoint.y()) - length;
 	          sigmaX = distanceX/sqrt(localError.xx());
 	          sigmaY = distanceY/sqrt(localError.yy());
 	          // std::cout<<"getTAMuonChamberMatches::GEM distanceX="<< distanceX <<", distanceY="<< distanceY <<std::endl;

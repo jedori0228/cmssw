@@ -109,20 +109,20 @@ TrackDetectorAssociator::TrackDetectorAssociator()
   ivProp_ = 0;
   defProp_ = 0;
   useDefaultPropagator_ = false;
-  outputfile = new TFile("/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/hist.root", "RECREATE");
-  hist_x = new TH1D("hist_x","",800,-400,400);
-  hist_y = new TH1D("hist_y","",800,-400,400);
-  hist_xy = new TH2D("hist_xy","",800,-400,400,800,-400,400);
+  //outputfile = new TFile("/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/hist.root", "RECREATE");
+  //hist_x = new TH1D("hist_x","",800,-400,400);
+  //hist_y = new TH1D("hist_y","",800,-400,400);
+  //hist_xy = new TH2D("hist_xy","",800,-400,400,800,-400,400);
 }
 
 TrackDetectorAssociator::~TrackDetectorAssociator()
 {
   if (defProp_) delete defProp_;
-  outputfile->cd();
-  hist_x->Write();
-  hist_y->Write();
-  hist_xy->Write();
-  outputfile->Close();
+  //outputfile->cd();
+  //hist_x->Write();
+  //hist_y->Write();
+  //hist_xy->Write();
+  //outputfile->Close();
 }
 
 void TrackDetectorAssociator::setPropagator( const Propagator* ptr)
@@ -814,9 +814,9 @@ void TrackDetectorAssociator::getTAMuonChamberMatches(std::vector<TAMuonChamberM
 	          //   std::cout<<"GEM roll width="<< roll->surface().bounds().width() <<", length="<< roll->surface().bounds().length()<<std::endl;
 	          // }
 
-          hist_x->Fill(localPoint.x());
-          hist_y->Fill(localPoint.y());
-          hist_xy->Fill(localPoint.x(), localPoint.y());
+          //hist_x->Fill(localPoint.x());
+          //hist_y->Fill(localPoint.y());
+          //hist_xy->Fill(localPoint.x(), localPoint.y());
 /*
           std::cout << "===TrackDetectorAssociator.cc===" << std::endl
           << "localPoint.x() = " << localPoint.x() << ", geomDet->surface().bounds().width() = " << geomDet->surface().bounds().width() << std::endl

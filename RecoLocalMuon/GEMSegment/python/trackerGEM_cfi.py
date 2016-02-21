@@ -22,5 +22,5 @@ trackerGEM = cms.EDProducer("trackerGEM",
     #maxDiffPhiDirection = cms.double (50),
     gemSegmentsToken = cms.InputTag("gemSegments"),
     generalTracksToken = cms.InputTag("generalTracks"),
-    printinfo_ = cms.bool (True),
+    printinfo_ = cms.bool (False),
 )

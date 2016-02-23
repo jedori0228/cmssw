@@ -35,6 +35,7 @@
 #include <DataFormats/GeometrySurface/interface/SimpleDiskBounds.h>
 
 trackerGEM::trackerGEM(const edm::ParameterSet& iConfig) {
+  gemRecHitsToken_ = consumes<GEMRecHitCollection >(iConfig.getParameter<edm::InputTag>("gemRecHitsToken"));
   gemSegmentsToken_ = consumes<GEMSegmentCollection >(iConfig.getParameter<edm::InputTag>("gemSegmentsToken"));
   generalTracksToken_ = consumes<reco::TrackCollection >(iConfig.getParameter<edm::InputTag>("generalTracksToken"));
 
@@ -52,22 +53,30 @@ trackerGEM::trackerGEM(const edm::ParameterSet& iConfig) {
   produces<std::vector<reco::Muon> >();
 
   if(printinfo_){
-    file = new TFile("/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/local.root", "RECREATE");
-    hist_GE11_global_xy = new TH2F("hist_GE11_global_xy", "", 400./5., -200., 200., 400./5., -200., 200.);
-    hist_GE11_local_xy = new TH2F("hist_GE11_local_xy", "", 100./5., -50., 50., 200./5., -200., 0.);
-    hist_GE21_global_xy = new TH2F("hist_GE21_global_xy", "", 400./5., -200., 200., 400./5., -200., 200.);
-    hist_GE21_local_xy = new TH2F("hist_GE21_local_xy", "", 100./5., -50., 50., 200./5., -200., 0.);
+    outputfile = new TFile("/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/matching_var.root", "RECREATE");
+    tree[0] = new TTree("tree_GE11", "");
+    tree[0]->Branch("SmallestDelX_GE11", delX, "SmallestDelX_GE11/D");
+    tree[0]->Branch("SmallestDelY_GE11", delY, "SmallestDelY_GE11/D");
+    tree[0]->Branch("SmallestDelPhi_GE11", delPhi, "SmallestDelPhi_GE11/D");
+    tree[0]->Branch("SmallestDelX_over_sigma_GE11", delXoversigma, "SmallestDelX_over_sigma_GE11/D");
+    tree[0]->Branch("SmallestDelY_over_sigma_GE11", delYoversigma, "SmallestDelY_over_sigma_GE11/D");
+    tree[0]->Branch("TrackEta_GE11", trackEta, "TrackEta_GE11/D");
+    tree[1] = new TTree("tree_GE21", "");
+    tree[1]->Branch("SmallestDelX_GE21", delX+1, "SmallestDelX_GE21/D");
+    tree[1]->Branch("SmallestDelY_GE21", delY+1, "SmallestDelY_GE21/D");
+    tree[1]->Branch("SmallestDelPhi_GE21", delPhi+1, "SmallestDelPhi_GE21/D");
+    tree[1]->Branch("SmallestDelX_over_sigma_GE21", delXoversigma+1, "SmallestDelX_over_sigma_GE21/D");
+    tree[1]->Branch("SmallestDelY_over_sigma_GE21", delYoversigma+1, "SmallestDelY_over_sigma_GE21/D");
+    tree[1]->Branch("TrackEta_GE21", trackEta+1, "TrackEta_GE21/D");
   }
 }
 
 trackerGEM::~trackerGEM() {
   if(printinfo_){
-    file->cd();
-    hist_GE11_global_xy->Write();
-    hist_GE11_local_xy->Write();
-    hist_GE21_global_xy->Write();
-    hist_GE21_local_xy->Write();
-    file->Close();
+    outputfile->cd();
+    tree[0]->Write();
+    tree[1]->Write();
+    outputfile->Close();
   }
 }
 
@@ -81,6 +90,9 @@ void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   const SteppingHelixPropagator* ThisshProp;
   ThisshProp = new SteppingHelixPropagator(&*bField,alongMomentum);
 
+  Handle<GEMRecHitCollection> gemRecHits;
+  ev.getByToken(gemRecHitsToken_,gemRecHits);
+
   Handle<GEMSegmentCollection> gemSegments;
   ev.getByToken(gemSegmentsToken_,gemSegments);
 
@@ -88,6 +100,22 @@ void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   ev.getByToken(generalTracksToken_,generalTracks);
 
   std::auto_ptr<std::vector<Muon> > muons( new std::vector<Muon> ); 
+
+
+  for (auto thisRecHit = gemRecHits->begin(); thisRecHit != gemRecHits->end();
+       ++thisRecHit){
+    //std::cout << "RecHit station = " << thisRecHit->gemId().station() << std::endl;
+    n_rechit_st[thisRecHit->gemId().station()-1]++;
+  }
+
+  for (auto thisSegment = gemSegments->begin(); thisSegment != gemSegments->end();
+       ++thisSegment){
+    //std::cout << "A Segment with :" << std::endl;
+    for(unsigned int i=0; i<thisSegment->specificRecHits().size(); i++){
+      //std::cout << " station = " << thisSegment->specificRecHits()[i].gemId().station() << std::endl;
+      n_segment_st[thisSegment->specificRecHits()[i].gemId().station()-1]++;
+    }
+  }
 
   int TrackNumber = 0;
   for (std::vector<Track>::const_iterator thisTrack = generalTracks->begin();
@@ -199,11 +227,17 @@ void trackerGEM::getFromFTS(const FreeTrajectoryState& fts,
 void trackerGEM::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 {
   iSetup.get<MuonGeometryRecord>().get(gemGeom);
+  n_rechit_st[0] = 0; n_rechit_st[1] = 0; n_rechit_st[2] = 0;
+  n_segment_st[0] = 0; n_segment_st[1] = 0; n_segment_st[2] = 0;
   ntracks = 0; nmatch = 0; nmatch_ge11 = 0; nmatch_ge21 = 0;
 
 }
 void trackerGEM::endJob()
 {
+  std::cout << "[GEMRecHit]" << std::endl;
+  for(int i=0; i<3; i++) std::cout << " station " << i+1 << " : " << n_rechit_st[i] << std::endl;
+  std::cout << "[GEMSegment]" << std::endl;
+  for(int i=0; i<3; i++) std::cout << " station " << i+1 << " : " << n_segment_st[i] << std::endl;
   std::cout << "ntracks  = "<< ntracks <<std::endl;
   std::cout << "eff      = "<< nmatch/ntracks <<std::endl;
   std::cout << "eff ge11 = "<< nmatch_ge11/ntracks <<std::endl;
@@ -214,6 +248,8 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
 {
   int SegmentNumber = 0;
   double ClosestDelR2 = 500.;
+  double SmallestDelX = 999., SmallestDelY = 999., SmallestDelPhi = 999., SmallestDelX_over_sigma = 999., SmallestDelY_over_sigma = 999.;
+  int array_index = station == 1 ? 0 : 1;
 
   const GEMSegment* matchedGEMSegment = NULL;
   
@@ -222,7 +258,6 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     //GEMDetId id = thisSegment->gemDetId();
     // should be segment det ID, but not working currently
     GEMDetId id = thisSegment->specificRecHits()[0].gemId();
-
     if (id.station() != station) continue;
     float zSign = track.pz() > 0 ? 1.0f : -1.0f;
     if ( zSign * id.region() < 0 ) continue;
@@ -236,17 +271,7 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
 
     auto chamber = gemGeom->chamber(id);
     GlobalPoint SegPos(chamber->toGlobal(thisPosition));
-
-    if(printinfo_){
-      if(station == 1){
-        hist_GE11_global_xy->Fill(SegPos.x(), SegPos.y());
-        hist_GE11_local_xy->Fill(thisPosition.x(), thisPosition.y());
-      }
-      if(station == 3){
-        hist_GE21_global_xy->Fill(SegPos.x(), SegPos.y());
-        hist_GE21_local_xy->Fill(thisPosition.x(), thisPosition.y());
-      }
-    }
+    GlobalVector SegDir(chamber->toGlobal(thisDirection));
 
     edm::LogVerbatim("trackerGEM") <<" segment = "<< id.station()
     	      <<" chamber = "<< id.chamber()
@@ -335,10 +360,20 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     Double_t sigmax = sqrt(C[3][3]+thisSegment->localPositionError().xx() );      
     Double_t sigmay = sqrt(C[4][4]+thisSegment->localPositionError().yy() );
 /*
-    std::cout
-    << "===trackerGEM.cc===" << std::endl
-    << "std::fabs(thisPosition.x()-r3FinalReco.x()) = " << std::fabs(thisPosition.x()-r3FinalReco.x()) << std::endl
-    << "std::fabs(thisPosition.y()-r3FinalReco.y()) = " << std::fabs(thisPosition.y()-r3FinalReco.y()) << std::endl;
+    std::cout <<"=================trackerGEM==================" << std::endl;
+    std::cout <<"station = "<< id.station() << std::endl
+              <<"chamber = "<< id.chamber() << std::endl
+              <<"roll = "<< id.roll() << std::endl
+    << "track r3 global : (" << r3FinalReco_glob.x() << ", " << r3FinalReco_glob.y() << ", " << r3FinalReco_glob.z() << ")" << std::endl
+    << "track p3 global : (" << p3FinalReco_glob.x() << ", " << p3FinalReco_glob.y() << ", " << p3FinalReco_glob.z() << ")" << std::endl
+    << "track r3 local : (" << r3FinalReco.x() << ", " << r3FinalReco.y() << ", " << r3FinalReco.z() << ")" << std::endl
+    << "track p3 local : (" << p3FinalReco.x() << ", " << p3FinalReco.y() << ", " << p3FinalReco.z() << ")" << std::endl
+    << "hit r3 global : (" << SegPos.x() << ", " << SegPos.y() << ", " << SegPos.z() << ")" << std::endl
+    << "hit p3 global : (" << SegDir.x() << ", " << SegDir.y() << ", " << SegDir.z() << ")" << std::endl
+    << "hit r3 local : (" << thisPosition.x() << ", " << thisPosition.y() << ", " << thisPosition.z() << ")" << std::endl
+    << "hit p3 local : (" << thisDirection.x() << ", " << thisDirection.y() << ", " << thisDirection.z() << ")" << std::endl
+    << "sigmax2 = " << C[3][3] << ", " << thisSegment->localPositionError().xx() << std::endl
+    << "sigmay2 = " << C[4][4] << ", " << thisSegment->localPositionError().yy() << std::endl;
 */
     bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
     
@@ -359,6 +394,27 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     //if (segLocalPhi < 0) segLocalPhi += M_PI;
     
     if (std::fabs(reco::deltaPhi(p3FinalReco.phi(),segLocalPhi))  < maxDiffPhiDirection_) Dir_MatchFound = true;
+
+    double DelX   = std::abs(thisPosition.x()-r3FinalReco.x());
+    if(DelX < SmallestDelX) SmallestDelX = DelX;
+    if(DelX/sigmax < SmallestDelX_over_sigma) SmallestDelX_over_sigma = DelX/sigmax;
+    double DelY   = std::abs(thisPosition.y()-r3FinalReco.y());
+    if(DelY < SmallestDelY) SmallestDelY = DelY;
+    if(DelY/sigmay < SmallestDelY_over_sigma) SmallestDelY_over_sigma = DelY/sigmay;
+    double DelPhi = std::abs(reco::deltaPhi(p3FinalReco.phi(),segLocalPhi));
+    if(DelPhi < SmallestDelPhi) SmallestDelPhi = DelPhi;
+
+  if(printinfo_){
+    delX[array_index] = DelX;
+    delY[array_index]  = DelY;
+    delPhi[array_index]  = DelPhi,
+    delXoversigma[array_index]  = DelX/sigmax;
+    delYoversigma[array_index]  = DelY/sigmay;
+    trackEta[array_index]  = track.eta();
+    tree[array_index]->Fill();
+  }
+ 
+    //if(X_MatchFound && Y_MatchFound && Dir_MatchFound) std::cout << "+++++++++++++++> pass" << std::endl;
 
     edm::LogVerbatim("trackerGEM") <<" station = "<< station
 				   <<" track phi = "<< p3FinalReco.phi() 
@@ -392,11 +448,25 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
       GlobalPoint TkPos(r3FinalReco_globv.x(),r3FinalReco_globv.y(),r3FinalReco_globv.z());
       double thisDelR2 = reco::deltaR2(SegPos,TkPos);
       if (thisDelR2 < ClosestDelR2){
-	ClosestDelR2 = thisDelR2;
-	matchedGEMSegment = &(*thisSegment);
+	      ClosestDelR2 = thisDelR2;
+	      matchedGEMSegment = &(*thisSegment);
       }
     }
+
   }
+
+/*
+  if(printinfo_){
+    delX[array_index] = SmallestDelX;
+    delY[array_index]  = SmallestDelY;
+    delPhi[array_index]  = SmallestDelPhi,
+    delXoversigma[array_index]  = SmallestDelX_over_sigma;
+    delYoversigma[array_index]  = SmallestDelY_over_sigma;
+    trackEta[array_index]  = track.eta();
+    tree[array_index]->Fill();
+  }
+*/
+
   if (matchedGEMSegment){
     reco::MuonChamberMatch* matchedChamber = new reco::MuonChamberMatch();
     matchedChamber->id = matchedGEMSegment->specificRecHits()[0].gemId();

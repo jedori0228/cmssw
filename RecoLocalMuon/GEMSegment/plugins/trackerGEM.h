@@ -25,6 +25,7 @@
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
+#include <DataFormats/GEMRecHit/interface/GEMRecHitCollection.h>
 #include <DataFormats/GEMRecHit/interface/GEMSegmentCollection.h>
 #include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
 
@@ -34,7 +35,8 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 
 #include "TFile.h"
-#include "TH2F.h"
+#include "TTree.h"
+#include "TBranch.h"
 
 class FreeTrajectoryState;
 class MagneticField;
@@ -66,11 +68,9 @@ class trackerGEM : public edm::EDProducer {
 		  GlobalVector& , GlobalVector& , 
 		  int& , AlgebraicSymMatrix66& );
 
-  TFile* file;
-  TH2F* hist_GE11_global_xy;
-  TH2F* hist_GE11_local_xy;
-  TH2F* hist_GE21_global_xy;
-  TH2F* hist_GE21_local_xy;
+  TFile* outputfile;
+  TTree* tree[2];
+  double delX[2], delY[2], delPhi[2], delXoversigma[2], delYoversigma[2], trackEta[2];
 
  private:
 
@@ -79,10 +79,12 @@ class trackerGEM : public edm::EDProducer {
   double maxPullXGE11_, maxDiffXGE11_, maxPullYGE11_, maxDiffYGE11_,
     maxPullXGE21_, maxDiffXGE21_, maxPullYGE21_, maxDiffYGE21_,
     maxDiffPhiDirection_;
+  edm::EDGetTokenT<GEMRecHitCollection> gemRecHitsToken_;
   edm::EDGetTokenT<GEMSegmentCollection> gemSegmentsToken_;
   edm::EDGetTokenT<reco::TrackCollection> generalTracksToken_;
   bool printinfo_;
   float ntracks, nmatch, nmatch_ge11, nmatch_ge21;
+  int n_rechit_st[3], n_segment_st[3];
 };
 
 #endif

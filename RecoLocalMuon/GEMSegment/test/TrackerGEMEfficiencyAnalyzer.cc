@@ -179,7 +179,7 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
 
     TLorentzVector igenP4;
     igenP4.SetPtEtaPhiM(genpart->pt(), genpart->eta(), genpart->phi(), genpart->mass());
-    cout << endl << "[gen]" << endl; igenP4.Print();
+    //cout << endl << "[gen]" << endl; igenP4.Print();
 
     /// loop over trackerGEMMuon ///
     bool standalone_trackerGEM_isMatched = false;
@@ -206,14 +206,14 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
          RecoMuon_isGEMMuon = false, RecoMuon_isTrackerMuon = false,
          RecoMuon_isGEMMuon_or_isTrackerMuon = false, RecoMuon_isGEMMuon_and_isTrackerMuon = false; 
     double deltaR_reco_temp = matching_deltaR;
-    const reco::Muon* matched_recoMuon = NULL;
+    //const reco::Muon* matched_recoMuon = NULL;
     for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) { 
       TLorentzVector irecoP4;
       irecoP4.SetPtEtaPhiM(recomuon->pt(), recomuon->eta(), recomuon->phi(), recomuon->mass());
       //cout << "[reco]" << endl; irecoP4.Print();
       if( igenP4.DeltaR(irecoP4) < deltaR_reco_temp ){
         RecoMuon_isMatched = true;
-        matched_recoMuon = &(*recomuon);
+        //matched_recoMuon = &(*recomuon);
         if( recomuon->globalTrack().isNonnull() ){
           RecoMuon_isSAMuon = (recomuon->isStandAloneMuon())
                               //& (recomuon->numberOfMatchedStations() >= 1) 
@@ -236,54 +236,23 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
         RecoMuon_isTMLastStationTight = muon::isGoodMuon(*recomuon, muon::TMLastStationTight);
         RecoMuon_isTMLastStationAngLoose = muon::isGoodMuon(*recomuon, muon::TMLastStationAngLoose);
         RecoMuon_isTMLastStationAngTight = muon::isGoodMuon(*recomuon, muon::TMLastStationAngTight);
+        RecoMuon_isTrackerMuon = recomuon->isTrackerMuon();
 
         RecoMuon_isGEMMuon = recomuon->isGEMMuon();        
-        RecoMuon_isTrackerMuon = recomuon->isTrackerMuon();
         RecoMuon_isGEMMuon_or_isTrackerMuon = recomuon->isGEMMuon() || recomuon->isTrackerMuon();
         RecoMuon_isGEMMuon_and_isTrackerMuon = recomuon->isGEMMuon() && recomuon->isTrackerMuon();
-
-        std::vector<reco::MuonChamberMatch> chambers = recomuon->matches();
-        int this_eta_bin = FindWhichBin(abs( igenP4.Eta() ), eta_bin, n_eta_bin);
-        int n_matched_gem_chamber = 0;
-        for( std::vector<reco::MuonChamberMatch>::const_iterator chamber = chambers.begin(); chamber != chambers.end(); chamber++ ){
-          if(chamber->id.subdetId() != 4) continue;
-          n_matched_gem_chamber++;
-          FillHist("n_matched_gem_seg", chamber->segmentMatches.size(), 5, 0, 5);
-          for( std::vector<reco::MuonSegmentMatch>::const_iterator segment = chamber->segmentMatches.begin(); segment != chamber->segmentMatches.end(); segment++ ){
-            //cout << "y = " << abs(segment->y) << ", dy = " << sqrt(segment->yErr) << " => y/dy = " << abs(segment->y/sqrt(segment->yErr)) << endl;
-            //cout << "Eta = " << abs(igenP4.Eta()) << ", eta_bin = " << this_eta_bin << endl;
-            FillHist("eta", abs(igenP4.Eta()), n_eta_bin, eta_bin);
-            FillHist("y_pull_"+TString::Itoa(this_eta_bin, 10), abs(segment->y/sqrt(segment->yErr)), 20, 0, 20);
-          }
-        }
-        FillHist("n_matched_gem_chamber", n_matched_gem_chamber, 5, 0, 5);
 
         deltaR_reco_temp = igenP4.DeltaR(irecoP4);
       }
     }
   
-    
-    if( standalone_trackerGEM_isMatched && (RecoMuon_isMatched && RecoMuon_isGEMMuon) ){
-      // matched_trackerGEMMuon, matched_recoMuon //
-      FillHist("unmatched_eta", fabs( matched_trackerGEMMuon->eta() ), n_eta_bin, eta_bin);
-      FillHist("unmatched_pt", matched_trackerGEMMuon->pt(), n_pt_bin, pt_bin); 
+    bool Eta_1p6_2p4 = abs(igenP4.Eta()) > 1.6 && abs(igenP4.Eta()) < 2.4,
+         Pt_5 = igenP4.Pt() > 5; 
 
-      std::vector<reco::MuonChamberMatch> chambers = matched_recoMuon->matches();
-      for( std::vector<reco::MuonChamberMatch>::const_iterator chamber = chambers.begin(); chamber != chambers.end(); chamber++ ){
-        if(chamber->id.subdetId() != 4) continue;
-        for( std::vector<reco::MuonSegmentMatch>::const_iterator segment = chamber->segmentMatches.begin(); segment != chamber->segmentMatches.end(); segment++ ){
-          if( fabs(segment->y - matched_trackerGEMMuon->matches().at(0).y) < 0.01 ){
-            cout
-            << "recomuon yErr : " << segment->yErr << endl
-            << "trkgem   yErr : " << sqrt(matched_trackerGEMMuon->matches().at(0).yErr) << endl
-            << "==> ratio = " << sqrt(matched_trackerGEMMuon->matches().at(0).yErr)/segment->yErr << endl;
-          }
-        }
-      } 
-
-    
+    if(!RecoMuon_isGEMMuon && standalone_trackerGEM_isMatched){
+      cout << "Not GEMMuon : (" << matched_trackerGEMMuon->px() << ", " << matched_trackerGEMMuon->py() << ", " << matched_trackerGEMMuon->pz() << ")" << endl;
+      
     }
-
 
     /// loop over GEMSegment ///
     bool GEMSegment_isMatched = false;
@@ -301,9 +270,6 @@ TrackerGEMEfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::Event
       }
     } // end of GEMSegment loop
 
-    bool Eta_1p6_2p4 = abs(igenP4.Eta()) > 1.6 && abs(igenP4.Eta()) < 2.4,
-                Pt_5 = igenP4.Pt() > 5;
-   
     //onebin//
     if(Eta_1p6_2p4 && Pt_5){
       FillEfficiency("SAMuon_eff_onebin", RecoMuon_isMatched && RecoMuon_isSAMuon, 0, 1, 0, 1);

@@ -233,8 +233,11 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     reco::RecoToGenCollection recSimColl;
     reco::GenToRecoCollection simRecColl;
 
-    std::auto_ptr<reco::TrackCollection> selectedTracks(new reco::TrackCollection);
+    //reco::TrackCollection *selectedTracks(new reco::TrackCollection);
+    edm::Handle<View<Track> > trackCollection;
+    iEvent.getByLabel("generalTracks", trackCollection); //FIXME we need GEMMuon's track, not all of the tracks..
 
+/*
     for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
       if( !recomuon->isGEMMuon() ) continue;
       reco::TrackRef trackref;  
@@ -244,16 +247,16 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       //reco::Track* newTrk = new reco::Track(*trk);
       selectedTracks->push_back( *trk );
     }
-
+*/
     // How to get edm::Handle<View<Track> > from selectedTracks ? //
 
-    unsigned int trackCollectionSize = 0; //trackCollection->size();
+    unsigned int trackCollectionSize = trackCollection->size();
 
-	  recSimColl=associatorByChi2->associateRecoToGen(selectedTracks,
+	  recSimColl=associatorByChi2->associateRecoToGen(trackCollection,
 		  		                                          genParticles,
 			 		                                          &iEvent,
 					                                          &iSetup);
-	  simRecColl=associatorByChi2->associateGenToReco(selectedTracks,
+	  simRecColl=associatorByChi2->associateGenToReco(trackCollection,
 					                                          genParticles,
 					                                          &iEvent,
 					                                          &iSetup);

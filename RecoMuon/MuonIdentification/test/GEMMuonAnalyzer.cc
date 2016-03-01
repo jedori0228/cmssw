@@ -233,14 +233,27 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     reco::RecoToGenCollection recSimColl;
     reco::GenToRecoCollection simRecColl;
 
-    edm::Handle<View<Track> > trackCollection;
-    iEvent.getByLabel( , trackCollection) // FIXME
+    std::auto_ptr<reco::TrackCollection> selectedTracks(new reco::TrackCollection);
 
-	  recSimColl=associatorByChi2->associateRecoToGen(trackCollection,
+    for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
+      if( !recomuon->isGEMMuon() ) continue;
+      reco::TrackRef trackref;  
+      if (recomuon->innerTrack().isNonnull()) trackref = recomuon->innerTrack();
+      const reco::Track* trk = &(*trackref);
+      // pointer to old track:
+      //reco::Track* newTrk = new reco::Track(*trk);
+      selectedTracks->push_back( *trk );
+    }
+
+    // How to get edm::Handle<View<Track> > from selectedTracks ? //
+
+    unsigned int trackCollectionSize = 0; //trackCollection->size();
+
+	  recSimColl=associatorByChi2->associateRecoToGen(selectedTracks,
 		  		                                          genParticles,
 			 		                                          &iEvent,
 					                                          &iSetup);
-	  simRecColl=associatorByChi2->associateGenToReco(trackCollection,
+	  simRecColl=associatorByChi2->associateGenToReco(selectedTracks,
 					                                          genParticles,
 					                                          &iEvent,
 					                                          &iSetup);

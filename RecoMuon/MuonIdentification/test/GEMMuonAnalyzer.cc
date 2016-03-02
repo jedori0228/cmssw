@@ -1,4 +1,5 @@
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 
 #include <FWCore/PluginManager/interface/ModuleDef.h>
 #include <FWCore/Framework/interface/MakerMacros.h>
@@ -22,22 +23,18 @@
 #include "TLorentzVector.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
+#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
+
 #include "DataFormats/TrackReco/interface/Track.h"
 
 #include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
-
 #include "DataFormats/GeometrySurface/interface/Plane.h"
 #include "TrackPropagation/SteppingHelixPropagator/interface/SteppingHelixPropagator.h"
 #include "TrackPropagation/SteppingHelixPropagator/interface/SteppingHelixStateInfo.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
-
 #include <DataFormats/GEMRecHit/interface/GEMSegmentCollection.h>
 
-#include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
-#include "DataFormats/RecoCandidate/interface/RecoChargedCandidateFwd.h"
-
-//Associator for chi2: Including header files
 #include "SimTracker/TrackAssociation/interface/TrackAssociatorByChi2.h"
 #include "SimTracker/TrackAssociation/interface/TrackAssociatorByHits.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
@@ -111,11 +108,18 @@ public:
   private:
   //Associator for chi2: objects
   //edm::InputTag associatormap;
+  //
+
+  edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
+  edm::EDGetTokenT<TrackingParticleCollection> trackingParticlesToken_;
+  edm::EDGetTokenT<reco::TrackCollection > generalTracksToken_;
+
+  edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
+
   bool UseAssociators;
-  const TrackAssociatorByChi2* associatorByChi2;
+
   std::vector<std::string> associators;
   std::vector<const TrackAssociatorBase*> associator;
-  edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
   GenParticleCustomSelector gpSelector;
   //std::string parametersDefiner;
 
@@ -131,8 +135,6 @@ public:
   map<TString, TH1*> maphist;
 
   double  FakeRatePtCut, MatchingWindowDelR;
-
-  double Nevents;
 
 };
 
@@ -158,14 +160,18 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
            iConfig.getParameter<int>("statusGP"),
            iConfig.getParameter<std::vector<int> >("pdgIdGP"));
   //parametersDefiner =iConfig.getParameter<std::string>("parametersDefiner");
+
+  genParticlesToken_ = consumes<reco::GenParticleCollection>(edm::InputTag("genParticles"));
+  edm::InputTag trackingParticlesTag ("mix", "MergedTrackTruth");
+  trackingParticlesToken_ = consumes<TrackingParticleCollection>(trackingParticlesTag);
+  generalTracksToken_ = consumes<reco::TrackCollection>(edm::InputTag("generalTracks"));
+
   RecoMuon_Token = consumes<reco::MuonCollection>(edm::InputTag("muons"));
 
 }
 
 void GEMMuonAnalyzer::beginJob()
 {
-
-  Nevents=0;
 
 
 }
@@ -188,167 +194,180 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   using namespace edm;
   using namespace reco;
 
+  if (UseAssociators) {
+    edm::ESHandle<TrackAssociatorBase> theAssociator;
+    for (unsigned int w=0;w<associators.size();w++) {
+      iSetup.get<TrackAssociatorRecord>().get(associators[w],theAssociator);
+      associator.push_back( theAssociator.product() );
+    }
+  }
+
+  Handle<reco::GenParticleCollection> genParticles;
+  iEvent.getByToken(genParticlesToken_, genParticles);
+  Handle<TrackingParticleCollection> trackingParticles;
+  iEvent.getByToken(trackingParticlesToken_, trackingParticles);
+  Handle <reco::TrackCollection> generalTracks;
+  iEvent.getByToken (generalTracksToken_, generalTracks);
   edm::Handle<reco::MuonCollection> recoMuons;
   iEvent.getByToken(RecoMuon_Token, recoMuons);
-  Handle<GenParticleCollection> genParticles;
-  iEvent.getByLabel<GenParticleCollection>("genParticles", genParticles);
-  const GenParticleCollection genParticlesForChi2 = *(genParticles.product());
 
-  Nevents++;
-
-  Handle <TrackCollection > generalTracks;
-  iEvent.getByLabel <TrackCollection> ("generalTracks", generalTracks);
-
-  Handle<GEMSegmentCollection> OurSegments;
-  iEvent.getByLabel("gemSegments","",OurSegments);
+  //vector<reco::Track> GEMMuonBestTracks;
+  //for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
+  //  if(recomuon->isGEMMuon()) GEMMuonBestTracks->push_back(recoMuons->);
+  //}
 
   ESHandle<MagneticField> bField;
   iSetup.get<IdealMagneticFieldRecord>().get(bField);
   ESHandle<Propagator> shProp;
   iSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAlong", shProp);
 
-  //For Track Association:
+  //Track Association by hits:
 
-  //std::cout<<"ON BEGIN JOB:"<<std::endl;
   if (UseAssociators) {
-    //std::cout<<"Inside if:"<<std::endl;
-    edm::ESHandle<TrackAssociatorBase> theAssociator;
-    //std::cout<<"associators size = "<<associators.size()<<std::endl;
-    for (unsigned int w=0;w<associators.size();w++) {
-      //std::cout<<"On step "<<w<<std::endl;
-      iSetup.get<TrackAssociatorRecord>().get(associators[w],theAssociator);
-      //std::cout<<"On step "<<w<<std::endl;
-      associator.push_back( theAssociator.product() );
-      //std::cout<<"On step "<<w<<std::endl;
-    }
-    //std::cout<<"Got this many associators: "<<associator.size()<<std::endl;
-  }
+    for (unsigned int ww=0;ww<associators.size();ww++){
+    
 
-  for (unsigned int ww=0;ww<associators.size();ww++){
-  
-    associatorByChi2 = dynamic_cast<const TrackAssociatorByChi2*>(associator[ww]);
+      reco::RecoToSimCollection recSimColl;
+	    reco::SimToRecoCollection simRecColl;
+	    edm::Handle<View<Track> >  trackCollection;
 
-    if (associatorByChi2==0) continue;
+      unsigned int trackCollectionSize = 0;
 
-    reco::RecoToGenCollection recSimColl;
-    reco::GenToRecoCollection simRecColl;
-
-    //reco::TrackCollection *selectedTracks(new reco::TrackCollection);
-    edm::Handle<View<Track> > trackCollection;
-    iEvent.getByLabel("generalTracks", trackCollection); //FIXME we need GEMMuon's track, not all of the tracks..
-
-/*
-    for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
-      if( !recomuon->isGEMMuon() ) continue;
-      reco::TrackRef trackref;  
-      if (recomuon->innerTrack().isNonnull()) trackref = recomuon->innerTrack();
-      const reco::Track* trk = &(*trackref);
-      // pointer to old track:
-      //reco::Track* newTrk = new reco::Track(*trk);
-      selectedTracks->push_back( *trk );
-    }
-*/
-    // How to get edm::Handle<View<Track> > from selectedTracks ? //
-
-    unsigned int trackCollectionSize = trackCollection->size();
-
-	  recSimColl=associatorByChi2->associateRecoToGen(trackCollection,
-		  		                                          genParticles,
-			 		                                          &iEvent,
-					                                          &iSetup);
-	  simRecColl=associatorByChi2->associateGenToReco(trackCollection,
-					                                          genParticles,
-					                                          &iEvent,
-					                                          &iSetup);
-    for (GenParticleCollection::size_type i=0; i<genParticlesForChi2.size(); i++){
-
-      double quality = 0.;
-
-	    GenParticleRef tpr(genParticles, i);
-	    GenParticle* tp=const_cast<GenParticle*>(tpr.get());
-	    TrackingParticle::Vector momentumTP; 
-	    TrackingParticle::Point vertexTP;
-
-	    //Collision like particle
-	    if(! gpSelector(*tp)) continue;
-	    momentumTP = tp->momentum();
-	    vertexTP = tp->vertex();
-
-      std::vector<std::pair<RefToBase<Track>, double> > rt;
-
-	    //Check if the gen particle has been associated to any reco track
-	    if(simRecColl.find(tpr) != simRecColl.end()){
-        rt = (std::vector<std::pair<RefToBase<Track>, double> >) simRecColl[tpr];
-        //It has, so we check that the pair TrackRef/double pair collection (vector of pairs) is not empty
-        if (rt.size()!=0) {
-	        //It is not empty, so there is at least one real track that the gen particle is matched to
-	    
-	        //We take the first element of the vector, .begin(), and the trackRef from it, ->first, this is our best possible track match
-	        RefToBase<Track> assoc_recoTrack = rt.begin()->first;
-	        std::cout<<"-----------------------------associated Track #"<<assoc_recoTrack.key()<<std::endl;
-
-	        quality = rt.begin()->second;
-	        std::cout
-          << "TrackingParticle #" <<tpr.key() << " with pt=" << sqrt(momentumTP.perp2()) << " associated with quality:" << quality <<std::endl;
-
-    	    //Also, seeing as we have found a gen particle that is matched to a track, it is efficient, so we put it in the numerator of the efficiency plot
-	        //if (( sqrt(momentumTP.perp2()) > FakeRatePtCut) && (TMath::Abs(tp->eta()) < 2.8) )Chi2MatchedME0Muon_Eta->Fill(tp->eta());
-	        //if ( ( assoc_recoTrack->pt() > FakeRatePtCut) && (TMath::Abs(tp->eta()) < 2.8) )Chi2MatchedME0Muon_Eta->Fill(tp->eta());
-        }
-	    }//END if(simRecColl.find(tpr) != simRecColl.end())
-    }//END for (GenParticleCollection::size_type i=0; i<genParticlesForChi2.size(); i++)
-
-    for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
-	    //bool Track_is_matched = false; 
-	    RefToBase<Track> track(trackCollection, i);
-
-      bool Eta_1p6_2p4 = abs(track->eta()) > 1.6 && abs(track->eta()) < 2.4,
-           Pt_5 = track->pt() > 5; 
-
-	    //std::vector<std::pair<TrackingParticleRef, double> > tp;
-	    std::vector<std::pair<GenParticleRef, double> > tp;
-	    std::vector<std::pair<GenParticleRef, double> > tpforfake;
-	    //TrackingParticleRef tpr;
-	    GenParticleRef tpr;
-	    GenParticleRef tprforfake;
-
-	    //Check if the track is associated to any gen particle
-	    if(recSimColl.find(track) != recSimColl.end()){
+	    if( iEvent.getByLabel("generalTracks", trackCollection)  ){ //FIXME getbylabel
+	      recSimColl.post_insert();
+	      simRecColl.post_insert();
 	  
-	      tp = recSimColl[track];
-	      if (tp.size()!=0) {
-	        //Track_is_matched = true;
-	        tpr = tp.begin()->first;
-
-	        double assocChi2 = -(tp.begin()->second);
-	   
-	        //So this track is matched to a gen particle, lets get that gen particle now
-	        if (  (simRecColl.find(tpr) != simRecColl.end())    ){
-	          std::vector<std::pair<RefToBase<Track>, double> > rt;
-	          std::cout<<"Comparing gen and reco tracks"<<std::endl;
-	          if  (simRecColl[tpr].size() > 0){
-		          rt=simRecColl[tpr];
-		          RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
-		          //Only fill the efficiency histo if the track found matches up to a gen particle's best choice
-		          if (bestrecotrackforeff == track) {
-		            if ( Eta_1p6_2p4 && Pt_5 )FillHist("Chi2MatchedME0Muon_Eta", fabs(tpr->eta()), 9, 1.5, 2.4)  ;
-		            if ( Eta_1p6_2p4 && Pt_5 )FillHist("AssociatedChi2_h", assocChi2,50,0,50);
-		            if ( Eta_1p6_2p4 && Pt_5 )FillHist("AssociatedChi2_Prob_h", TMath::Prob((assocChi2)*5,5), 50, 0, 1);
-		            std::cout<<"assocChi2 = "<<assocChi2<<std::endl;
-		          }
-	          }
-	        }
-	      }
 	    }
-    }
-      
+	    else {
+	      trackCollectionSize = trackCollection->size();
+
+	      recSimColl = associator[ww]->associateRecoToSim(trackCollection, trackingParticles, &iEvent, &iSetup);
+	      simRecColl = associator[ww]->associateSimToReco(trackCollection, trackingParticles, &iEvent, &iSetup);
+
+	    }
+
+      // denominators for efficiencies
+      for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
+
+	      TrackingParticleRef tpr(trackingParticles, i);
+	      TrackingParticle* tp=const_cast<TrackingParticle*>(tpr.get()); 
+	      TrackingParticle::Vector momentumTP; 
+	      TrackingParticle::Point vertexTP;
+	  
+	      if (abs(tp->pdgId()) != 13) continue;
+
+        bool Eta_1p6_2p4 = abs(tp->eta()) > 1.6 && abs(tp->eta()) < 2.4,
+             Pt_5 = tp->pt() > 5;
+
+        if( Eta_1p6_2p4 && Pt_5 ){
+          bool SignalMuon = false;
+
+          if(tp->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+	          int motherid=-1;
+	          if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
+		          if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
+		            motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+		          }
+            }  
+            std::cout<<"Mother ID = "<<motherid<<std::endl;
+
+  	        if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
+  		           ( (tp->status()==1) )      )    SignalMuon=true;
+	    
+          } // END if(tp->status() != -99)	      
+
+          if(SignalMuon){
+            FillHist("TPMuon_Eta", fabs(tp->eta()), 9, 1.5, 2.4);
+          }
+
+        } // END if( Eta_1p6_2p4 && Pt_5 )
 
 
+      } // END for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++)
 
+
+      // loop over our tracks
+      for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
+        RefToBase<Track> track(trackCollection, i);
+
+        std::vector<std::pair<TrackingParticleRef, double> > tp;
+        std::vector<std::pair<TrackingParticleRef, double> > tpforfake;
+        TrackingParticleRef tpr;
+        TrackingParticleRef tprforfake;
+
+        //Check if the track is associated to any gen particle
+        bool TrackIsEfficient = false;
+
+        if(recSimColl.find(track) != recSimColl.end()){
+          tp = recSimColl[track];
+          if (tp.size()!=0) {
+  	        tpr = tp.begin()->first;
+
+  	        //double assocChi2 = -(tp.begin()->second);
  
+            //So this track is matched to a gen particle, lets get that gen particle now
 
-  } // associators loop
+            if ( (simRecColl.find(tpr) != simRecColl.end()) ){
+              std::vector<std::pair<RefToBase<Track>, double> > rt;
+              if(simRecColl[tpr].size() > 0){
+                rt=simRecColl[tpr];
+  		          RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
+                //Only fill the efficiency histo if the track found matches up to a gen particle's best choice
+                if ( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) ) {
+                  TrackIsEfficient=true;
+                  //This section fills the numerator of the efficiency calculation...
+                  
+                  bool Eta_1p6_2p4 = abs(tpr->eta()) > 1.6 && abs(tpr->eta()) < 2.4,
+                       Pt_5 = tpr->pt() > 5;
+                  if( Eta_1p6_2p4 && Pt_5 ){
+                   
+                    bool SignalMuon=false;
+                    
+  		              if (tpr->status() !=-99){
+  			              int motherid=-1;
+  			              if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+  			                if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+  			                  motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+  			                }
+  			              }
+                      std::cout<<"Mother ID = "<<motherid<<std::endl;
+  			              if ( 
+  			                  ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+  			                  ( (tpr->status()==1)  ) ) SignalMuon=true;
 
+  		              } // END if (tpr->status() !=-99)
+                    if(SignalMuon){
+                      FillHist("Chi2MatchedME0Muon_Eta", fabs(tpr->eta()), 9, 1.5, 2.4 );
+
+                    } // END if(SignalMuon)
+
+                  } // END if( Eta_1p6_2p4 && Pt_5 )            
+
+                } // END if ( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) )
+              } // END if(simRecColl[tpr].size() > 0) 
+            } // END  if ( (simRecColl.find(tpr) != simRecColl.end()) )
+
+          } // END if (tp.size()!=0)
+        } // END if(recSimColl.find(track) != recSimColl.end())
+
+        // A simple way of measuring fake rate
+        if (!TrackIsEfficient) {
+
+          bool Eta_1p6_2p4 = abs(tpr->eta()) > 1.6 && abs(tpr->eta()) < 2.4,
+               Pt_5 = tpr->pt() > 5;
+          if( Eta_1p6_2p4 && Pt_5 ){
+            FillHist("Chi2UnmatchedME0Muon_Eta", fabs(track->eta()), 9, 1.5,2.4 );
+          } 
+
+        } // END if (!TrackIsEfficient)
+
+      } // END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
+
+
+
+
+    } // END for (unsigned int ww=0;ww<associators.size();ww++)
+  } // END if (UseAssociators)
 }
 
 void GEMMuonAnalyzer::endJob()

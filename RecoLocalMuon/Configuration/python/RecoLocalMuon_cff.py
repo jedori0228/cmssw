@@ -24,13 +24,6 @@ from CalibMuon.CSCCalibration.CSCIndexer_cfi import *
 #------------------------------------ RPC -----------------------------------------------
 # 1D RecHits
 from RecoLocalMuon.RPCRecHit.rpcRecHits_cfi import *
-#------------------------------------ GEM -----------------------------------------------
-# 2D RecHits
-from RecoLocalMuon.GEMRecHit.gemRecHits_cfi import *
-# Segments
-from RecoLocalMuon.GEMSegment.gemSegments_cfi import *
-# trackerGEM
-#from RecoLocalMuon.GEMSegment.trackerGEM_cfi import *
 #----------------------------------------------------------------------------------------
 # DT sequence for the standard reconstruction chain 
 # The reconstruction of the 2D segments are not required for the 4D segments reconstruction, they are used
@@ -41,11 +34,7 @@ dtlocalreco_with_2DSegments = cms.Sequence(dt1DRecHits*dt2DSegments*dt4DSegments
 # DT sequence with T0seg correction
 # CSC sequence
 csclocalreco = cms.Sequence(csc2DRecHits*cscSegments)
-# GEM sequence
-gemlocalreco = cms.Sequence(gemRecHits*gemSegments)
-# trackerGEM sequence
-#trackergemreco = cms.Sequence(trackerGEM)
-# DT, CSC, RPC and GEM together + trackerGEM
-muonlocalreco_with_2DSegments = cms.Sequence(dtlocalreco_with_2DSegments+csclocalreco+rpcRecHits+gemlocalreco)#+trackerGEM)
-# DT, CSC, RPC and GEM together (correct sequence for the standard path) + trackerGEM
-muonlocalreco = cms.Sequence(dtlocalreco+csclocalreco+rpcRecHits+gemlocalreco)#+trackerGEM)
+# DT, CSC and RPC together
+muonlocalreco_with_2DSegments = cms.Sequence(dtlocalreco_with_2DSegments+csclocalreco+rpcRecHits)
+# DT, CSC and RPC together (correct sequence for the standard path)
+muonlocalreco = cms.Sequence(dtlocalreco+csclocalreco+rpcRecHits)

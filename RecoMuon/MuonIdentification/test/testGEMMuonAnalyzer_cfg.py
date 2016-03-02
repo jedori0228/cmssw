@@ -27,16 +27,17 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'PH2_1K_FB_V6::All', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(50)
+    input = cms.untracked.int32(-1)
 )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
       #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/assohits/out_sim.root'
       'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/out_reco_newGEO.root'
-
-    ) ##/somewhere/simevent.root" }
-
+      #open('filelist_MuonGun_modify_TrackDetectorAssociator.txt').readlines()
+    ), ##/somewhere/simevent.root" }
+    duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
+    skipBadFiles = cms.untracked.bool(True), 
 
 )
 

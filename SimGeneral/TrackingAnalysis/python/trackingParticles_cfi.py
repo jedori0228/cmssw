@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-mergedtruth = cms.EDProducer("TrackingTruthProducer",
+#mergedtruth = cms.EDProducer("TrackingTruthProducer",
+mergedtruth = cms.EDProducer("ckingTruthAccumulator",
 
     mixLabel = cms.string('mix'),
     simHitLabel = cms.string('g4SimHits'),

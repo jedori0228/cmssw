@@ -29,9 +29,6 @@ from RecoMuon.MuonIdentification.muonSelectionTypeValueMapProducer_cff import *
 # Muon Isolation sequence
 from RecoMuon.MuonIsolationProducers.muIsolation_cff import *
 
-# trackerGEM
-from RecoLocalMuon.GEMSegment.trackerGEM_cfi import *
-
 # ---------------------------------------------------- #
 ################## Make the sequences ##################
 # ---------------------------------------------------- #
@@ -50,9 +47,6 @@ muonreco_plus_isolation_plus_SET = cms.Sequence(muonreco_plus_isolation*muonreco
 
 muonrecoComplete = cms.Sequence(muonreco_plus_isolation_plus_SET*muonSelectionTypeSequence)
 
-# trackerGEM sequence
-trackergemreco = cms.Sequence(trackerGEM)
-
 # _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- #
 # -_-_-_- Special Sequences for Iterative tracking -_-_-_- #
 # -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ #
@@ -62,7 +56,7 @@ trackergemreco = cms.Sequence(trackerGEM)
 
 #from RecoMuon.MuonIdentification.earlyMuons_cfi import earlyMuons
 
-muonGlobalReco = cms.Sequence(globalmuontracking*muonIdProducerSequence*muonSelectionTypeSequence*muIsolation*muonreco_with_SET*trackergemreco)
+muonGlobalReco = cms.Sequence(globalmuontracking*muonIdProducerSequence*muonSelectionTypeSequence*muIsolation*muonreco_with_SET)
 
 # ... instead, the sequences will be run in the following order:
 # 1st - standalonemuontracking

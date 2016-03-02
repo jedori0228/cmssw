@@ -521,6 +521,7 @@ def cust_2023HGCalPandoraNoExtPix_common(process):
 def cust_2023HGCalPandoraMuonNoExtPix(process):
     process = cust_2023HGCalPandoraNoExtPix_common(process)
     process = customise_me0(process)
+    precess = customise_gem2023(process)
     return process
 
 def cust_2023HGCal_common(process):

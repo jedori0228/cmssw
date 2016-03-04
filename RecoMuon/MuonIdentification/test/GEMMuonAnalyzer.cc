@@ -238,37 +238,37 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 for (unsigned int www=0;www<label.size();www++){     
 
       reco::RecoToSimCollection recSimColl;
-	    reco::SimToRecoCollection simRecColl;
-	    edm::Handle<View<Track> >  trackCollection;
+      reco::SimToRecoCollection simRecColl;
+      edm::Handle<View<Track> >  trackCollection;
 
       unsigned int trackCollectionSize = 0;
 
-	    if( !iEvent.getByToken(track_Collection_Token[www], trackCollection) ){ //FIXME we should replace this to GEMMuons
-	      recSimColl.post_insert();
-	      simRecColl.post_insert();
+      if( !iEvent.getByToken(track_Collection_Token[www], trackCollection) ){ //FIXME we should replace this to GEMMuons
+        recSimColl.post_insert();
+        simRecColl.post_insert();
         std::cout << "failed to get trackCollection" << std::endl;
-	  
-	    }
-	    else {
-	      trackCollectionSize = trackCollection->size();
+    
+      }
+      else {
+        trackCollectionSize = trackCollection->size();
         std::cout << "trackCollectionSize = " << trackCollectionSize << std::endl;
 
-	      recSimColl = associator[ww]->associateRecoToSim(trackCollection, trackingParticles, &iEvent, &iSetup);
-	      simRecColl = associator[ww]->associateSimToReco(trackCollection, trackingParticles, &iEvent, &iSetup);
+        recSimColl = associator[ww]->associateRecoToSim(trackCollection, trackingParticles, &iEvent, &iSetup);
+        simRecColl = associator[ww]->associateSimToReco(trackCollection, trackingParticles, &iEvent, &iSetup);
 
-	    }
+      }
 
 
 
       // denominators for efficiencies
       for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
 
-	      TrackingParticleRef tpr(trackingParticles, i);
-	      TrackingParticle* tp=const_cast<TrackingParticle*>(tpr.get()); 
-	      TrackingParticle::Vector momentumTP; 
-	      TrackingParticle::Point vertexTP;
-	  
-	      if (abs(tp->pdgId()) != 13) continue;
+        TrackingParticleRef tpr(trackingParticles, i);
+        TrackingParticle* tp=const_cast<TrackingParticle*>(tpr.get()); 
+        TrackingParticle::Vector momentumTP; 
+        TrackingParticle::Point vertexTP;
+    
+        if (abs(tp->pdgId()) != 13) continue;
 
         bool Eta_1p6_2p4 = abs(tp->eta()) > 1.6 && abs(tp->eta()) < 2.4,
              Pt_5 = tp->pt() > 5;
@@ -277,18 +277,18 @@ for (unsigned int www=0;www<label.size();www++){
           bool SignalMuon = false;
 
           if(tp->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
-	          int motherid=-1;
-	          if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
-		          if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
-		            motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
-		          }
+            int motherid=-1;
+            if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
+              if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
+                motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+              }
             }  
             std::cout<<"Mother ID = "<<motherid<<std::endl;
 
-  	        if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
-  		           ( (tp->status()==1) )      )    SignalMuon=true;
-	    
-          } // END if(tp->status() != -99)	      
+            if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                 ( (tp->status()==1) )      )    SignalMuon=true;
+      
+          } // END if(tp->status() != -99)        
 
           if(SignalMuon){
             FillHist("TPMuon_Eta", fabs(tp->eta()), 9, 1.5, 2.4);
@@ -315,9 +315,9 @@ for (unsigned int www=0;www<label.size();www++){
         if(recSimColl.find(track) != recSimColl.end()){
           tp = recSimColl[track];
           if (tp.size()!=0) {
-  	        tpr = tp.begin()->first;
+            tpr = tp.begin()->first;
 
-  	        //double assocChi2 = -(tp.begin()->second);
+            //double assocChi2 = -(tp.begin()->second);
  
             //So this track is matched to a gen particle, lets get that gen particle now
 
@@ -325,7 +325,7 @@ for (unsigned int www=0;www<label.size();www++){
               std::vector<std::pair<RefToBase<Track>, double> > rt;
               if(simRecColl[tpr].size() > 0){
                 rt=simRecColl[tpr];
-  		          RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
+                RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
                 //Only fill the efficiency histo if the track found matches up to a gen particle's best choice
                 if ( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) ) {
                   TrackIsEfficient=true;
@@ -337,19 +337,19 @@ for (unsigned int www=0;www<label.size();www++){
                    
                     bool SignalMuon=false;
                     
-  		              if (tpr->status() !=-99){
-  			              int motherid=-1;
-  			              if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
-  			                if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
-  			                  motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
-  			                }
-  			              }
+                    if (tpr->status() !=-99){
+                      int motherid=-1;
+                      if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+                        if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+                          motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+                        }
+                      }
                       std::cout<<"Mother ID = "<<motherid<<std::endl;
-  			              if ( 
-  			                  ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
-  			                  ( (tpr->status()==1)  ) ) SignalMuon=true;
+                      if ( 
+                          ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                          ( (tpr->status()==1)  ) ) SignalMuon=true;
 
-  		              } // END if (tpr->status() !=-99)
+                    } // END if (tpr->status() !=-99)
                     if(SignalMuon){
                       FillHist("Chi2MatchedME0Muon_Eta", fabs(tpr->eta()), 9, 1.5, 2.4 );
 

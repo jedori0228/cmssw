@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process("Test")
+process = cms.Process("GEMMuonAnalyzer")
 
 process.load('Configuration.Geometry.GeometryExtended2023HGCalMuonReco_cff')
 process.load('Configuration.Geometry.GeometryExtended2023HGCalMuon_cff')
@@ -33,7 +33,8 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
       #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/assohits/out_sim.root'
-      'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/out_reco_newGEO.root'
+      #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/out_reco_newGEO_pdigi_valid.root'
+      open('filelist_MuonGun_modify_TrackDetectorAssociator_newGEO_pdigi_valid.txt').readlines()
       #open('filelist_MuonGun_modify_TrackDetectorAssociator.txt').readlines()
     ), ##/somewhere/simevent.root" }
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
@@ -56,15 +57,27 @@ from Validation.RecoMuon.RecoMuonValidator_cfi import *
 from SimMuon.MCTruth.MuonAssociatorByHitsESProducer_NoSimHits_cfi import *
 from SimMuon.MCTruth.MuonAssociatorByHits_cfi import muonAssociatorByHitsCommonParameters
 
-process.TrackAssociatorByChi2ESProducer = Validation.RecoMuon.associators_cff.TrackAssociatorByChi2ESProducer.clone(chi2cut = 6.0,ComponentName = 'TrackAssociatorByChi2')
+#process.TrackAssociatorByChi2ESProducer = Validation.RecoMuon.associators_cff.TrackAssociatorByChi2ESProducer.clone(chi2cut = 6.0,ComponentName = 'TrackAssociatorByChi2')
 
-process.Test = cms.EDAnalyzer("GEMMuonAnalyzer",
+###  Thsi is for association by hits
+import SimMuon.MCTruth.MuonAssociatorByHitsESProducer_cfi
+
+process.muonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHitsESProducer_cfi.muonAssociatorByHitsESProducer.clone(ComponentName = 'muonAssociatorByHits',
+ #tpTag = 'mix:MergedTrackTruth',
+ UseTracker = True, 
+ UseMuon = False,
+ EfficiencyCut_track = cms.double(0.0),   
+ PurityCut_track = cms.double(0.0)       
+ )
+
+
+process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
                               HistoFile = cms.string('GEMMuonAnalyzerOutput.root'),
                               FakeRatePtCut = cms.double(5.0),
                               MatchingWindowDelR = cms.double (.15),
                               UseAssociators = cms.bool(True),
-                              associators = cms.vstring('TrackAssociatorByChi2'),
-                              #label = cms.VInputTag('bestMuon'),
+                              associators = cms.vstring('muonAssociatorByHits'),
+                              label = cms.VInputTag('gemMuonSel'),
                               #associatormap = cms.InputTag("tpToMuonTrackAssociation"),
 
                               # selection of GP for evaluation of efficiency
@@ -80,4 +93,10 @@ process.Test = cms.EDAnalyzer("GEMMuonAnalyzer",
 
 )
 
-process.p = cms.Path(process.Test)
+process.p = cms.Path(process.GEMMuonAnalyzer)
+
+from CommonTools.RecoAlgos.gemAssociator import *
+
+process.gemMuonSel = gemmuon
+
+process.p = cms.Path(process.gemMuonSel*process.GEMMuonAnalyzer)

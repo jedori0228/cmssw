@@ -23,5 +23,5 @@ trackerGEM = cms.EDProducer("trackerGEM",
     gemRecHitsToken = cms.InputTag("gemRecHits"),
     gemSegmentsToken = cms.InputTag("gemSegments"),
     generalTracksToken = cms.InputTag("generalTracks"),
-    printinfo_ = cms.bool (True),
+    printinfo_ = cms.bool (False),
 )

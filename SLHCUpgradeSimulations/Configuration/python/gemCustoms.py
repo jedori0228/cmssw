@@ -28,9 +28,6 @@ def customise2023(process):
     return process
 
 def customise_Digi(process):
-    process.load('SimGeneral.TrackingAnalysis.trackingParticles_cfi')
-    process.pdigi += process.mergedtruth
-
     process.RandomNumberGeneratorService.simMuonGEMDigis = cms.PSet(
         initialSeed = cms.untracked.uint32(1234567),
         engineName = cms.untracked.string('HepJamesRandom')
@@ -121,8 +118,6 @@ def outputCustoms(process):
             getattr(process,b).outputCommands.append('keep *_simMuonGEMCSCPadDigis_*_*')
             getattr(process,b).outputCommands.append('keep *_gemRecHits_*_*')
             getattr(process,b).outputCommands.append('keep *_gemSegments_*_*')
-            getattr(process,b).outputCommands.append('keep *_mix_MergedTrackTruth_*')
-            getattr(process,b).outputCommands.append('keep *_mergedtruth_*_*')
             getattr(process,b).outputCommands.append('keep *_trackerGEM_*_*')
     return process
 

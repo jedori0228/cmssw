@@ -115,6 +115,7 @@ public:
   edm::EDGetTokenT<reco::TrackCollection > generalTracksToken_;
 
   edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
+  std::vector<edm::EDGetTokenT<edm::View<reco::Track> > > track_Collection_Token;
 
   bool UseAssociators;
 
@@ -122,6 +123,8 @@ public:
   std::vector<const TrackAssociatorBase*> associator;
   GenParticleCustomSelector gpSelector;
   //std::string parametersDefiner;
+  
+  std::vector<edm::InputTag> label;
 
   virtual void MakeHistograms(TString hname, int nbins, double xbins[]);
   virtual void MakeHistograms(TString hname, int nbins, double xmin, double xmax);
@@ -161,12 +164,18 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
            iConfig.getParameter<std::vector<int> >("pdgIdGP"));
   //parametersDefiner =iConfig.getParameter<std::string>("parametersDefiner");
 
+  label = iConfig.getParameter< std::vector<edm::InputTag> >("label");
+
   genParticlesToken_ = consumes<reco::GenParticleCollection>(edm::InputTag("genParticles"));
   edm::InputTag trackingParticlesTag ("mix", "MergedTrackTruth");
   trackingParticlesToken_ = consumes<TrackingParticleCollection>(trackingParticlesTag);
   generalTracksToken_ = consumes<reco::TrackCollection>(edm::InputTag("generalTracks"));
 
   RecoMuon_Token = consumes<reco::MuonCollection>(edm::InputTag("muons"));
+
+  for (unsigned int www=0;www<label.size();www++){
+    track_Collection_Token.push_back(consumes<edm::View<reco::Track> >(label[www]));
+  }
 
 }
 
@@ -211,6 +220,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<reco::MuonCollection> recoMuons;
   iEvent.getByToken(RecoMuon_Token, recoMuons);
 
+
   //vector<reco::Track> GEMMuonBestTracks;
   //for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
   //  if(recomuon->isGEMMuon()) GEMMuonBestTracks->push_back(recoMuons->);
@@ -225,7 +235,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   if (UseAssociators) {
     for (unsigned int ww=0;ww<associators.size();ww++){
-    
+for (unsigned int www=0;www<label.size();www++){     
 
       reco::RecoToSimCollection recSimColl;
 	    reco::SimToRecoCollection simRecColl;
@@ -233,18 +243,22 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
       unsigned int trackCollectionSize = 0;
 
-	    if( iEvent.getByLabel("generalTracks", trackCollection)  ){ //FIXME getbylabel
+	    if( !iEvent.getByToken(track_Collection_Token[www], trackCollection) ){ //FIXME we should replace this to GEMMuons
 	      recSimColl.post_insert();
 	      simRecColl.post_insert();
+        std::cout << "failed to get trackCollection" << std::endl;
 	  
 	    }
 	    else {
 	      trackCollectionSize = trackCollection->size();
+        std::cout << "trackCollectionSize = " << trackCollectionSize << std::endl;
 
 	      recSimColl = associator[ww]->associateRecoToSim(trackCollection, trackingParticles, &iEvent, &iSetup);
 	      simRecColl = associator[ww]->associateSimToReco(trackCollection, trackingParticles, &iEvent, &iSetup);
 
 	    }
+
+
 
       // denominators for efficiencies
       for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
@@ -364,7 +378,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       } // END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
 
 
-
+}// END for (unsigned int www=0;www<label.size();www++)
 
     } // END for (unsigned int ww=0;ww<associators.size();ww++)
   } // END if (UseAssociators)

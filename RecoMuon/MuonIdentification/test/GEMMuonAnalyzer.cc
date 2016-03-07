@@ -79,6 +79,10 @@
 
 using namespace std;
 
+const int n_pt_bin = 19, n_eta_bin = 9;
+double pt_bin[n_pt_bin+1] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+double eta_bin[n_eta_bin+1] = {1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4};
+
 class GEMMuonAnalyzer : public edm::EDAnalyzer {
 public:
   explicit GEMMuonAnalyzer(const edm::ParameterSet&);
@@ -291,7 +295,8 @@ for (unsigned int www=0;www<label.size();www++){
           } // END if(tp->status() != -99)        
 
           if(SignalMuon){
-            FillHist("TPMuon_Eta", fabs(tp->eta()), 9, 1.5, 2.4);
+            FillHist("TPMuon_Eta", fabs(tp->eta()), n_eta_bin, eta_bin);
+            FillHist("TPMuon_Pt", tp->pt(), n_pt_bin, pt_bin);
           }
 
         } // END if( Eta_1p6_2p4 && Pt_5 )
@@ -302,6 +307,7 @@ for (unsigned int www=0;www<label.size();www++){
 
       // loop over our tracks
       for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
+        std::cout << i << "th trackCollection iterator" << std::endl;
         RefToBase<Track> track(trackCollection, i);
 
         std::vector<std::pair<TrackingParticleRef, double> > tp;
@@ -315,6 +321,8 @@ for (unsigned int www=0;www<label.size();www++){
         if(recSimColl.find(track) != recSimColl.end()){
           tp = recSimColl[track];
           if (tp.size()!=0) {
+            std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
+            FillHist("recSimColl_size", tp.size(), 5, 0, 5);
             tpr = tp.begin()->first;
 
             //double assocChi2 = -(tp.begin()->second);
@@ -324,6 +332,8 @@ for (unsigned int www=0;www<label.size();www++){
             if ( (simRecColl.find(tpr) != simRecColl.end()) ){
               std::vector<std::pair<RefToBase<Track>, double> > rt;
               if(simRecColl[tpr].size() > 0){
+                std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
+                FillHist("simRecColl_size", simRecColl[tpr].size(), 5, 0, 5);
                 rt=simRecColl[tpr];
                 RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
                 //Only fill the efficiency histo if the track found matches up to a gen particle's best choice
@@ -351,7 +361,8 @@ for (unsigned int www=0;www<label.size();www++){
 
                     } // END if (tpr->status() !=-99)
                     if(SignalMuon){
-                      FillHist("Chi2MatchedME0Muon_Eta", fabs(tpr->eta()), 9, 1.5, 2.4 );
+                      FillHist("Chi2MatchedME0Muon_Eta", fabs(tpr->eta()), n_eta_bin, eta_bin );
+                      FillHist("Chi2MatchedME0Muon_Pt", tpr->pt(), n_pt_bin, pt_bin );
 
                     } // END if(SignalMuon)
 
@@ -370,7 +381,8 @@ for (unsigned int www=0;www<label.size();www++){
           bool Eta_1p6_2p4 = abs(tpr->eta()) > 1.6 && abs(tpr->eta()) < 2.4,
                Pt_5 = tpr->pt() > 5;
           if( Eta_1p6_2p4 && Pt_5 ){
-            FillHist("Chi2UnmatchedME0Muon_Eta", fabs(track->eta()), 9, 1.5,2.4 );
+            FillHist("Chi2UnmatchedME0Muon_Eta", fabs(track->eta()), n_eta_bin, eta_bin );
+            FillHist("Chi2UnmatchedME0Muon_Pt", track->pt(), n_pt_bin, pt_bin );
           } 
 
         } // END if (!TrackIsEfficient)

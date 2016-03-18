@@ -128,6 +128,8 @@ class TrackDetectorAssociator {
    
    static bool                crossedIP(const reco::Track& track);
 
+   void findGEMSegment(TAMuonChamberMatch& matchedChamber, const GEMSuperChamber* chamber, const GEMSegmentCollection& gemSegments, int station);
+
  private:
    DetIdAssociator::MapRange getMapRange( const std::pair<float,float>& delta,
 					  const float dR ) dso_internal;

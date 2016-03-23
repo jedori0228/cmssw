@@ -60,7 +60,7 @@ void GEMMuonTrackCollProducer::produce(edm::Event& iEvent, const edm::EventSetup
 
 
   for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
-    if (!recomuon->isGEMMuon()) continue;
+    if ( !(recomuon->isGEMMuon() && recomuon->isTrackerMuon()) ) continue;
     reco::TrackRef trackref;    
 
     if (recomuon->innerTrack().isNonnull()) trackref = recomuon->innerTrack();

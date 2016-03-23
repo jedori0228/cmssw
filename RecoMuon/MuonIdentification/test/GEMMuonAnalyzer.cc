@@ -239,7 +239,9 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   if (UseAssociators) {
     for (unsigned int ww=0;ww<associators.size();ww++){
+std::cout << "label size = " << label.size() << std::endl;
 for (unsigned int www=0;www<label.size();www++){     
+std::cout << "label = " << label[www] << std::endl;
 
       reco::RecoToSimCollection recSimColl;
       reco::SimToRecoCollection simRecColl;
@@ -247,7 +249,7 @@ for (unsigned int www=0;www<label.size();www++){
 
       unsigned int trackCollectionSize = 0;
 
-      if( !iEvent.getByToken(track_Collection_Token[www], trackCollection) ){ //FIXME we should replace this to GEMMuons
+      if( !iEvent.getByToken(track_Collection_Token[www], trackCollection) ){
         recSimColl.post_insert();
         simRecColl.post_insert();
         std::cout << "failed to get trackCollection" << std::endl;
@@ -261,7 +263,6 @@ for (unsigned int www=0;www<label.size();www++){
         simRecColl = associator[ww]->associateSimToReco(trackCollection, trackingParticles, &iEvent, &iSetup);
 
       }
-
 
 
       // denominators for efficiencies
@@ -306,6 +307,7 @@ for (unsigned int www=0;www<label.size();www++){
 
 
       // loop over our tracks
+      std::cout << "trackCollectionSize = " << trackCollectionSize << std::endl;
       for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
         std::cout << i << "th trackCollection iterator" << std::endl;
         RefToBase<Track> track(trackCollection, i);
@@ -321,7 +323,7 @@ for (unsigned int www=0;www<label.size();www++){
         if(recSimColl.find(track) != recSimColl.end()){
           tp = recSimColl[track];
           if (tp.size()!=0) {
-            std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
+            //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
             FillHist("recSimColl_size", tp.size(), 5, 0, 5);
             tpr = tp.begin()->first;
 
@@ -332,7 +334,7 @@ for (unsigned int www=0;www<label.size();www++){
             if ( (simRecColl.find(tpr) != simRecColl.end()) ){
               std::vector<std::pair<RefToBase<Track>, double> > rt;
               if(simRecColl[tpr].size() > 0){
-                std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
+                //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
                 FillHist("simRecColl_size", simRecColl[tpr].size(), 5, 0, 5);
                 rt=simRecColl[tpr];
                 RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
@@ -361,8 +363,8 @@ for (unsigned int www=0;www<label.size();www++){
 
                     } // END if (tpr->status() !=-99)
                     if(SignalMuon){
-                      FillHist("Chi2MatchedME0Muon_Eta", fabs(tpr->eta()), n_eta_bin, eta_bin );
-                      FillHist("Chi2MatchedME0Muon_Pt", tpr->pt(), n_pt_bin, pt_bin );
+                      FillHist("MatchedGEMMuon_Eta", fabs(tpr->eta()), n_eta_bin, eta_bin );
+                      FillHist("MatchedGEMMuon_Pt", tpr->pt(), n_pt_bin, pt_bin );
 
                     } // END if(SignalMuon)
 
@@ -377,18 +379,15 @@ for (unsigned int www=0;www<label.size();www++){
 
         // A simple way of measuring fake rate
         if (!TrackIsEfficient) {
-
           bool Eta_1p6_2p4 = abs(tpr->eta()) > 1.6 && abs(tpr->eta()) < 2.4,
                Pt_5 = tpr->pt() > 5;
           if( Eta_1p6_2p4 && Pt_5 ){
-            FillHist("Chi2UnmatchedME0Muon_Eta", fabs(track->eta()), n_eta_bin, eta_bin );
-            FillHist("Chi2UnmatchedME0Muon_Pt", track->pt(), n_pt_bin, pt_bin );
+            FillHist("UnmatchedGEMMuon_Eta", fabs(track->eta()), n_eta_bin, eta_bin );
+            FillHist("UnmatchedGEMMuon_Pt", track->pt(), n_pt_bin, pt_bin );
           } 
 
         } // END if (!TrackIsEfficient)
-
       } // END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
-
 
 }// END for (unsigned int www=0;www<label.size();www++)
 

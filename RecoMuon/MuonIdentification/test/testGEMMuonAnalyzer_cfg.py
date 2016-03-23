@@ -34,8 +34,11 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
       #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/assohits/out_sim.root'
       #'file:/cms/home/jskim/cmssw/CMSSW_6_2_0_SLHC27_trackerGEM_trackerMuon/src/work/out_reco_newGEO_pdigi_valid.root'
-      open('filelist_MuonGun_modify_TrackDetectorAssociator_newGEO_pdigi_valid.txt').readlines()
+      #open('filelist_MuonGun_modify_TrackDetectorAssociator_newGEO_pdigi_valid.txt').readlines()
+      #'/store/user/jskim/MuonGun_100_jobs_100_events_modify_TrackDetectorAssociator_geofixed_newGEO/out_reco_newGEO_pdigi_valid_000.root'
       #open('filelist_MuonGun_modify_TrackDetectorAssociator.txt').readlines()
+      open('filelist_MuonGun_modify_TrackDetectorAssociator_geofixed_oldGEO.txt').readlines()
+      #open('filelist_MinBias_modify_TrackDetectorAssociator_geofixed_oldGEO.txt').readlines()
     ), ##/somewhere/simevent.root" }
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     skipBadFiles = cms.untracked.bool(True), 
@@ -72,12 +75,13 @@ process.muonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHitsESProducer_cf
 
 
 process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
-                              HistoFile = cms.string('GEMMuonAnalyzerOutput.root'),
+                              HistoFile = cms.string('GEMMuonAnalyzerOutput_MuonGun_old.root'),
                               FakeRatePtCut = cms.double(5.0),
                               MatchingWindowDelR = cms.double (.15),
                               UseAssociators = cms.bool(True),
                               associators = cms.vstring('muonAssociatorByHits'),
                               label = cms.VInputTag('gemMuonSel'),
+                              #label = cms.VInputTag(cms.InputTag("standAloneMuons", "")),
                               #associatormap = cms.InputTag("tpToMuonTrackAssociation"),
 
                               # selection of GP for evaluation of efficiency
@@ -93,10 +97,21 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
 
 )
 
-process.p = cms.Path(process.GEMMuonAnalyzer)
+#process.p = cms.Path(process.GEMMuonAnalyzer)
 
 from CommonTools.RecoAlgos.gemAssociator import *
 
 process.gemMuonSel = gemmuon
 
+#process.load('Configuration.StandardSequences.EndOfProcess_cff')
+#process.output = cms.OutputModule("PoolOutputModule",
+#    fileName = cms.untracked.string(
+#        'file:out_reco.root'
+#    ),
+#)
+#process.out_step = cms.EndPath(process.output)
+
 process.p = cms.Path(process.gemMuonSel*process.GEMMuonAnalyzer)
+
+#process.p = cms.Path(process.gemMuonSel)
+#process.Schedule = cms.Schedule( process.p, process.out_step)

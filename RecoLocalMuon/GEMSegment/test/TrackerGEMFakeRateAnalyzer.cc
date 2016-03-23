@@ -207,7 +207,7 @@ TrackerGEMFakeRateAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     bool isFake = true;
     /// loop over gen particles ///
     /// and check mathing       ///
-    cout << "# of GEN particles" << genParticles->size() << endl;
+    cout << "# of GEN particles = " << genParticles->size() << endl;
     for(reco::GenParticleCollection::const_iterator genpart=genParticles->begin(); genpart != genParticles->end(); ++genpart) {
       TLorentzVector igenP4;
       igenP4.SetPtEtaPhiM(genpart->pt(), genpart->eta(), genpart->phi(), genpart->mass());

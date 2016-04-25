@@ -64,6 +64,17 @@ muIsoExtractorCalo_(0),muIsoExtractorTrack_(0),muIsoExtractorJet_(0)
    writeIsoDeposits_        = iConfig.getParameter<bool>("writeIsoDeposits");
    fillGlobalTrackQuality_  = iConfig.getParameter<bool>("fillGlobalTrackQuality");
    fillGlobalTrackRefits_   = iConfig.getParameter<bool>("fillGlobalTrackRefits");
+
+   maxPullXGE11_   = iConfig.getParameter<double>("maxPullXGE11");
+   maxDiffXGE11_   = iConfig.getParameter<double>("maxDiffXGE11");
+   maxPullYGE11_   = iConfig.getParameter<double>("maxPullYGE11");
+   maxDiffYGE11_   = iConfig.getParameter<double>("maxDiffYGE11");
+   maxPullXGE21_   = iConfig.getParameter<double>("maxPullXGE21");
+   maxDiffXGE21_   = iConfig.getParameter<double>("maxDiffXGE21");
+   maxPullYGE21_   = iConfig.getParameter<double>("maxPullYGE21");
+   maxDiffYGE21_   = iConfig.getParameter<double>("maxDiffYGE21");
+   minDotDir_      = iConfig.getParameter<double>("minDotDir");
+
    //SK: (maybe temporary) run it only if the global is also run
    fillTrackerKink_         = false;
    if (fillGlobalTrackQuality_)  fillTrackerKink_ =  iConfig.getParameter<bool>("fillTrackerKink");
@@ -144,6 +155,9 @@ muIsoExtractorCalo_(0),muIsoExtractorTrack_(0),muIsoExtractorJet_(0)
 
    edm::InputTag rpcHitTag("rpcRecHits");
    rpcHitToken_ = consumes<RPCRecHitCollection>(rpcHitTag);
+
+   edm::InputTag gemSegmentsTag("gemSegments");
+   gemSegmentsToken_ = consumes<GEMSegmentCollection>(gemSegmentsTag);
    
 
    //Consumes... UGH
@@ -258,6 +272,7 @@ void MuonIdProducer::init(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    iEvent.getByToken(rpcHitToken_, rpcHitHandle_);
    if (fillGlobalTrackQuality_) iEvent.getByToken(glbQualToken_, glbQualHandle_);
+   iEvent.getByToken(gemSegmentsToken_, gemSegmentsHandle_);
 
 }
 
@@ -764,11 +779,46 @@ bool MuonIdProducer::isGoodRPCMuon( const reco::Muon& muon )
 
 bool MuonIdProducer::isGEMMuon( const reco::Muon& muon )
 {
-  //std::cout << "isGEMMuon called" << std::endl;
-  for(auto thischamber = muon.matches().begin(); thischamber != muon.matches().end(); ++thischamber){
-    //if(thischamber->id.subdetId() == 4) std::cout << " segmentMatches.size() = " << thischamber->segmentMatches.size() << std::endl;
-    if(thischamber->id.subdetId() == 4 && thischamber->segmentMatches.size() != 0) return true;
-  }
+  for(auto chmatch = muon.matches().begin(); chmatch != muon.matches().end(); ++chmatch){
+    if( chmatch->id.subdetId() != 4 ) continue;
+    if( chmatch->segmentMatches.size() != 0 ) continue;
+    
+    for(auto segmatch = chmatch->segmentMatches.begin(); segmatch != chmatch->segmentMatches.end(); ++segmatch){
+
+      int station = segmatch->gemSegmentRef->specificRecHits()[0].gemId().station();
+
+      Double_t sigmax = sqrt( chmatch->xErr*chmatch->xErr + segmatch->xErr*segmatch->xErr );
+      Double_t sigmay = sqrt( chmatch->yErr*chmatch->yErr + segmatch->yErr*segmatch->yErr );
+
+      bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
+      if (station == 1){
+        if( (std::abs(chmatch->x-segmatch->x) < (maxPullXGE11_ * sigmax) ) &&
+            (std::abs(chmatch->x-segmatch->x) < maxDiffXGE11_ )
+          ) X_MatchFound = true;
+        if( (std::abs(chmatch->y-segmatch->y) < (maxPullYGE11_ * sigmay) ) &&
+            (std::abs(chmatch->y-segmatch->y) < maxDiffYGE11_ )
+          ) Y_MatchFound = true;
+      }
+      if (station == 3){
+        if( (std::abs(chmatch->x-segmatch->x) < (maxPullXGE21_ * sigmax) ) &&
+            (std::abs(chmatch->x-segmatch->x) < maxDiffXGE21_ )
+          ) X_MatchFound = true;
+        if( (std::abs(chmatch->y-segmatch->y) < (maxPullYGE21_ * sigmay) ) &&
+            (std::abs(chmatch->y-segmatch->y) < maxDiffYGE21_ )
+          ) Y_MatchFound = true;
+      }
+
+      GlobalVector Dir_ch(chmatch->dXdZ, chmatch->dYdZ, 1);
+      GlobalVector Dir_seg(segmatch->dXdZ, segmatch->dYdZ, 1);
+      if( Dir_ch.unit().dot( Dir_seg.unit() ) > minDotDir_ ) Dir_MatchFound = true;
+
+      if(X_MatchFound && Y_MatchFound && Dir_MatchFound) return true;
+
+
+    } // END segment match loop
+  } // END chamber match loop
+
+
   return false;
 }
 
@@ -871,6 +921,7 @@ void MuonIdProducer::fillMuonId(edm::Event& iEvent, const edm::EventSetup& iSetu
        matchedSegment.mask = 0;
        matchedSegment.dtSegmentRef  = segment.dtSegmentRef;
        matchedSegment.cscSegmentRef = segment.cscSegmentRef;
+       matchedSegment.gemSegmentRef = segment.gemSegmentRef;
        matchedSegment.hasZed_ = segment.hasZed;
        matchedSegment.hasPhi_ = segment.hasPhi;
        // test segment

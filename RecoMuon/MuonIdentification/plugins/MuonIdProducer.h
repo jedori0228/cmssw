@@ -52,6 +52,7 @@
 #include "DataFormats/RPCRecHit/interface/RPCRecHitCollection.h"
 #include "DataFormats/RPCRecHit/interface/RPCRecHit.h"
 #include "DataFormats/MuonReco/interface/MuonRPCHitMatch.h"
+#include <DataFormats/GEMRecHit/interface/GEMSegmentCollection.h>
 
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/CaloMuon.h"
@@ -185,6 +186,12 @@ class MuonIdProducer : public edm::stream::EDProducer<> {
    bool writeIsoDeposits_;
    double ptThresholdToFillCandidateP4WithGlobalFit_;
    double sigmaThresholdToFillCandidateP4WithGlobalFit_;
+
+   // trackerGEM matching
+   double maxPullXGE11_, maxDiffXGE11_, maxPullYGE11_, maxDiffYGE11_,
+          maxPullXGE21_, maxDiffXGE21_, maxPullYGE21_, maxDiffYGE21_,
+          minDotDir_;
+
    
    bool debugWithTruthMatching_;
 
@@ -209,6 +216,9 @@ class MuonIdProducer : public edm::stream::EDProducer<> {
 
    edm::Handle<RPCRecHitCollection> rpcHitHandle_;
    edm::Handle<edm::ValueMap<reco::MuonQuality> > glbQualHandle_;
+
+   edm::EDGetTokenT<GEMSegmentCollection> gemSegmentsToken_;
+   edm::Handle<GEMSegmentCollection> gemSegmentsHandle_;
    
    MuonCaloCompatibility muonCaloCompatibility_;
    reco::isodeposit::IsoDepositExtractor* muIsoExtractorCalo_;

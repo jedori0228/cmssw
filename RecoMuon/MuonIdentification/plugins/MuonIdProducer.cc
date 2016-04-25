@@ -781,7 +781,7 @@ bool MuonIdProducer::isGEMMuon( const reco::Muon& muon )
 {
   for(auto chmatch = muon.matches().begin(); chmatch != muon.matches().end(); ++chmatch){
     if( chmatch->id.subdetId() != 4 ) continue;
-    if( chmatch->segmentMatches.size() != 0 ) continue;
+    if( chmatch->segmentMatches.size() == 0 ) continue;
     
     for(auto segmatch = chmatch->segmentMatches.begin(); segmatch != chmatch->segmentMatches.end(); ++segmatch){
 

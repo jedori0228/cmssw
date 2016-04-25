@@ -26,8 +26,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        open('filelist_MuonGun.txt').readlines()
-        #'file:../../../work/out_recodone.root'
+        #open('filelist_MuonGun.txt').readlines()
+        'file:../../../work/out_recodone.root'
     ),
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     skipBadFiles = cms.untracked.bool(True),
@@ -35,11 +35,8 @@ process.source = cms.Source("PoolSource",
 
 process.trackergem = cms.EDAnalyzer('TrackerGEMEfficiencyAnalyzer',
                               # ----------------------------------------------------------------------
-                              #RootFileName = cms.untracked.string("Sh_efficiency_0p1_matching.root"),
-                              #RootFileName = cms.untracked.string("HGC_efficiency_0p1_matching.root"),
-                              RootFileName = cms.untracked.string('eff.root'),
-                              #RootFileName = cms.untracked.string('eff_GE11_8and8.root'),
-                              #RootFileName = cms.untracked.string('eff_GE11_9and10.root'),
+                              #RootFileName = cms.untracked.string('eff.root'),
+                              RootFileName = cms.untracked.string('eff_test.root'),
                               # ----------------------------------------------------------------------
                               printSegmntInfo = cms.untracked.bool(False),
                               # ----------------------------------------------------------------------

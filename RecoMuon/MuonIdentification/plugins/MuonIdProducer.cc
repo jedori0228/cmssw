@@ -65,6 +65,7 @@ muIsoExtractorCalo_(0),muIsoExtractorTrack_(0),muIsoExtractorJet_(0)
    fillGlobalTrackQuality_  = iConfig.getParameter<bool>("fillGlobalTrackQuality");
    fillGlobalTrackRefits_   = iConfig.getParameter<bool>("fillGlobalTrackRefits");
 
+   trackerGEM_maxPull_ = iConfig.getParameter<double>("trackerGEM_maxPull");
    maxPullXGE11_   = iConfig.getParameter<double>("maxPullXGE11");
    maxDiffXGE11_   = iConfig.getParameter<double>("maxDiffXGE11");
    maxPullYGE11_   = iConfig.getParameter<double>("maxPullYGE11");
@@ -792,18 +793,18 @@ bool MuonIdProducer::isGEMMuon( const reco::Muon& muon )
 
       bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
       if (station == 1){
-        if( (std::abs(chmatch->x-segmatch->x) < (maxPullXGE11_ * sigmax) ) &&
+        if( (std::abs(chmatch->x-segmatch->x) < (trackerGEM_maxPull_ * sigmax) ) &&
             (std::abs(chmatch->x-segmatch->x) < maxDiffXGE11_ )
           ) X_MatchFound = true;
-        if( (std::abs(chmatch->y-segmatch->y) < (maxPullYGE11_ * sigmay) ) &&
+        if( (std::abs(chmatch->y-segmatch->y) < (trackerGEM_maxPull_ * sigmay) ) &&
             (std::abs(chmatch->y-segmatch->y) < maxDiffYGE11_ )
           ) Y_MatchFound = true;
       }
       if (station == 3){
-        if( (std::abs(chmatch->x-segmatch->x) < (maxPullXGE21_ * sigmax) ) &&
+        if( (std::abs(chmatch->x-segmatch->x) < (trackerGEM_maxPull_ * sigmax) ) &&
             (std::abs(chmatch->x-segmatch->x) < maxDiffXGE21_ )
           ) X_MatchFound = true;
-        if( (std::abs(chmatch->y-segmatch->y) < (maxPullYGE21_ * sigmay) ) &&
+        if( (std::abs(chmatch->y-segmatch->y) < (trackerGEM_maxPull_ * sigmay) ) &&
             (std::abs(chmatch->y-segmatch->y) < maxDiffYGE21_ )
           ) Y_MatchFound = true;
       }

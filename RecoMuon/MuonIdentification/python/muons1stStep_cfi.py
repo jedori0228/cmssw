@@ -18,13 +18,14 @@ muons1stStep = cms.EDProducer("MuonIdProducer",
     # Kink finder
     TrackerKinkFinderParametersBlock,
     # trackerGEM matching
+    trackerGEM_maxPull = cms.double (2.0),
     maxPullXGE11 = cms.double (1.0),
-    maxDiffXGE11 = cms.double (1.5),
     maxPullYGE11 = cms.double (2.0),
-    maxDiffYGE11 = cms.double (10.0),
     maxPullXGE21 = cms.double (2.0),
+    maxPullYGE21 = cms.double (2.0),    
+    maxDiffXGE11 = cms.double (1.5),
+    maxDiffYGE11 = cms.double (10.0),
     maxDiffXGE21 = cms.double (2.5),
-    maxPullYGE21 = cms.double (2.0),
     maxDiffYGE21 = cms.double (12.0),
     minDotDir    = cms.double (0.9),
 

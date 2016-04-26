@@ -188,6 +188,7 @@ class MuonIdProducer : public edm::stream::EDProducer<> {
    double sigmaThresholdToFillCandidateP4WithGlobalFit_;
 
    // trackerGEM matching
+   double trackerGEM_maxPull_;
    double maxPullXGE11_, maxDiffXGE11_, maxPullYGE11_, maxDiffYGE11_,
           maxPullXGE21_, maxDiffXGE21_, maxPullYGE21_, maxDiffYGE21_,
           minDotDir_;

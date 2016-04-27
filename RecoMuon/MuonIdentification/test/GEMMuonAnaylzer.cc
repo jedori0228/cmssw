@@ -101,6 +101,7 @@ public:
   edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
   edm::EDGetTokenT<GEMSegmentCollection> GEMSegment_Token;
   std::vector<edm::EDGetTokenT<edm::View<reco::Track> > > track_Collection_Token;
+  std::vector<edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator>> associators_Token; 
 
 
   bool UseAssociators;
@@ -160,11 +161,11 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
     track_Collection_Token.push_back(consumes<edm::View<reco::Track> >(label[www]));
   }
 
-  //if (UseAssociators) {
-  //  for (auto const& thisassociator :associators) {
-  //    consumes<reco::TrackToTrackingParticleAssociator>(edm::InputTag(thisassociator));
-  //  }
-  //}
+  if (UseAssociators) {
+    for (auto const& thisassociator :associators) {
+      associators_Token.push_back(consumes<reco::TrackToTrackingParticleAssociator>(edm::InputTag(thisassociator)));
+    }
+  }
 
 
   std::cout<<"Contructor end"<<std::endl;
@@ -202,7 +203,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     edm::Handle<reco::TrackToTrackingParticleAssociator> theAssociator;
     //edm::Handle<reco::MuonToTrackingParticleAssociator> theAssociator;
     for (unsigned int w=0;w<associators.size();w++) {
-      iEvent.getByLabel(associators[w],theAssociator);
+      iEvent.getByToken(associators_Token[w], theAssociator);
       associator.push_back( theAssociator.product() );
     }
   }

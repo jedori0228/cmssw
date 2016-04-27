@@ -9,7 +9,6 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h" 
-#include "RecoMuon/MuonIdentification/plugins/ME0MuonSelector.cc"
 #include "FWCore/Framework/interface/ESHandle.h"
 
 #include <sstream>

@@ -49,16 +49,22 @@ process.source = cms.Source("PoolSource",
 #process.TrackAssociatorByChi2ESProducer = Validation.RecoMuon.associators_cff.TrackAssociatorByChi2ESProducer.clone(chi2cut = 100.0,ComponentName = 'TrackAssociatorByChi2')
 
 
-import SimMuon.MCTruth.muonAssociatorByHitsHelper_cfi
+#import SimMuon.MCTruth.muonAssociatorByHitsHelper_cfi
+#process.muonAssociatorByHits = SimMuon.MCTruth.muonAssociatorByHitsHelper_cfi.muonAssociatorByHitsHelper.clone(#ComponentName = "muonAssociatorByHits",
+# #tpTag = 'mix:MergedTrackTruth',
+# UseTracker = True,
+# UseMuon = False,
+# EfficiencyCut_track = cms.double(0.0),
+# PurityCut_track = cms.double(0.0)
+#)
 
-process.muonAssociatorByHits = SimMuon.MCTruth.muonAssociatorByHitsHelper_cfi.muonAssociatorByHitsHelper.clone(#ComponentName = "muonAssociatorByHits",
- #tpTag = 'mix:MergedTrackTruth',
+import SimMuon.MCTruth.MuonAssociatorByHits_cfi
+process.muonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
  UseTracker = True,
  UseMuon = False,
  EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0)
+ PurityCut_track = cms.double(0.0),
 )
-
 
 from CommonTools.RecoAlgos.gemAssociator import *
 
@@ -82,7 +88,7 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
                               
 )
 
-process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
+#process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
 #process.p = cms.Path(process.gemMuonSel*process.GEMMuonAnalyzer)
 
 
@@ -90,24 +96,24 @@ process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEM
 
 
 
-#process.load('Configuration.StandardSequences.Services_cff')
-#process.load('Configuration.EventContent.EventContent_cff')
-#process.load('Configuration.StandardSequences.EndOfProcess_cff')
-#process.output = cms.OutputModule("PoolOutputModule",
-#    fileName = cms.untracked.string(
-#        'file:out_test.root'
-#    ),
-#    outputCommands = cms.untracked.vstring(
-#        'keep  *_*_*_*',
-#    ),
-#)
-#process.out_step     = cms.EndPath(process.output)
-#
-#process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('Configuration.EventContent.EventContent_cff')
+process.load('Configuration.StandardSequences.EndOfProcess_cff')
+process.output = cms.OutputModule("PoolOutputModule",
+    fileName = cms.untracked.string(
+        'file:out_test.root'
+    ),
+    outputCommands = cms.untracked.vstring(
+        'keep  *_*_*_*',
+    ),
+)
+process.out_step     = cms.EndPath(process.output)
+
+process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
 #process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits)
-#process.out_step = cms.EndPath(process.output)
-#
-#process.schedule = cms.Schedule(
-#    process.p,
-#    process.out_step
-#)
+process.out_step = cms.EndPath(process.output)
+
+process.schedule = cms.Schedule(
+    process.p,
+    process.out_step
+)

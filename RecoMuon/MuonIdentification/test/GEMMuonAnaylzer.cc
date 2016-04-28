@@ -39,8 +39,6 @@
 //#include "SimMuon/MCTruth/interface/MuonAssociatorByHits.h"
 #include "SimTracker/TrackerHitAssociation/interface/TrackerHitAssociator.h"
 #include "SimTracker/Records/interface/TrackAssociatorRecord.h"
-#include "SimDataFormats/Associations/interface/TrackToTrackingParticleAssociator.h"
-//#include "SimDataFormats/Associations/interface/MuonToTrackingParticleAssociator.h"
 #include "DataFormats/RecoCandidate/interface/TrackAssociation.h"
 
 #include "DataFormats/MuonReco/interface/Muon.h"
@@ -101,7 +99,6 @@ public:
   edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
   edm::EDGetTokenT<GEMSegmentCollection> GEMSegment_Token;
   std::vector<edm::EDGetTokenT<edm::View<reco::Track> > > track_Collection_Token;
-  std::vector<edm::EDGetTokenT<reco::TrackToTrackingParticleAssociator>> associators_Token; 
 
 
   bool UseAssociators;
@@ -112,8 +109,6 @@ public:
 
   std::vector<std::string> associators;
   std::vector<edm::InputTag> label;
-  std::vector<const reco::TrackToTrackingParticleAssociator*> associator;
-  //std::vector<const reco::MuonToTrackingParticleAssociator*> associator;
 
   //Histos for plotting
   TString histoFolder;
@@ -126,9 +121,10 @@ public:
   TH1F* Nevents_h;
 
   TH1F *GenMuon_Eta; TH1F *GenMuon_Pt; TH1F* MatchedGEMMuon_Eta; TH1F* MatchedGEMMuon_Pt;
-  TH1F *VertexDiff_h;
-  TH2F *PtDiff_s; TProfile *PtDiff_p; TH1F *PtDiff_h; TH1F *QOverPtDiff_h;
-  TH2F *PDiff_s; TProfile *PDiff_p; TH1F *PDiff_h;
+  TH1F *TPMuon_Eta; TH1F *TPMuon_Pt;
+  TH1F *HitsMatchedGEMMuon_Eta; TH1F *HitsMatchedGEMMuon_Pt;
+  TH1F *HitsUnmatchedGEMMuon_Eta; TH1F* HitsUnmatchedGEMMuon_Pt;
+
 
 };
 
@@ -163,7 +159,8 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
 
   if (UseAssociators) {
     for (auto const& thisassociator :associators) {
-      associators_Token.push_back(consumes<reco::TrackToTrackingParticleAssociator>(edm::InputTag(thisassociator)));
+      consumes<reco::RecoToSimCollection>(edm::InputTag(thisassociator));
+      consumes<reco::SimToRecoCollection>(edm::InputTag(thisassociator));
     }
   }
 
@@ -176,10 +173,21 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
 void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
 
   //Making the directory to write plot pngs to
-  mkdir(histoFolder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  //mkdir(histoFolder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   //Histos for plotting
-  Nevents_h = new TH1F("Nevents_h"      , "Nevents"   , 2, 0, 2 );
+  Nevents_h = new TH1F("Nevents_h", "Nevents", 2, 0, 2 );
+  GenMuon_Eta = new TH1F("GenMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
+  GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", 100, 0., 100. );
+  MatchedGEMMuon_Eta = new TH1F("MatchedGEMMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
+  MatchedGEMMuon_Pt =  new TH1F("MatchedGEMMuon_Pt", "Muon p_{T}", 100, 0., 100. );
+  TPMuon_Eta = new TH1F("TPMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
+  TPMuon_Pt = new TH1F("TPMuon_Pt", "Muon p_{T}", 100, 0. , 100. );
+  HitsMatchedGEMMuon_Eta = new TH1F("HitsMatchedGEMMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
+  HitsMatchedGEMMuon_Pt  = new TH1F("HitsMatchedGEMMuon_Pt", "Muon p_{T}", 100,0 , 100. );
+  HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
+  HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "Muon p_{T}", 100,0 , 100. );
+
 
   Nevents=0;
 
@@ -197,18 +205,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   Nevents_h->Fill(1);
   using namespace edm;
-
-
-  if (UseAssociators) {
-    edm::Handle<reco::TrackToTrackingParticleAssociator> theAssociator;
-    //edm::Handle<reco::MuonToTrackingParticleAssociator> theAssociator;
-    for (unsigned int w=0;w<associators.size();w++) {
-      iEvent.getByToken(associators_Token[w], theAssociator);
-      associator.push_back( theAssociator.product() );
-    }
-  }
-
-
   using namespace reco;
   Handle<GenParticleCollection> genParticles;
   iEvent.getByToken(genParticlesToken_, genParticles);
@@ -225,7 +221,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     for(unsigned int i=0; i<gensize; ++i) {
       const reco::GenParticle& CurrentParticle=(*genParticles)[i];
       if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){  
-	      if ( fabs( CurrentParticle.eta() ) < 1.5 || fabs( CurrentParticle.eta() ) > 2.4 ) {
+	      if ( fabs( CurrentParticle.eta() ) < 1.6 || fabs( CurrentParticle.eta() ) > 2.4 ) {
 	      return;
 	      }
       }
@@ -275,8 +271,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       double thisDelR = 9999;
       int MatchedID = -1;
       int GEMMuonID = 0;
-      double VertexDiff=-1,PtDiff=-1,QOverPtDiff=-1,PDiff=-1;
-
       for(reco::MuonCollection::const_iterator gemmuon = GEMMuonColl.begin(); gemmuon != GEMMuonColl.end(); ++gemmuon){
         TrackRef tkRef = gemmuon->innerTrack();
         thisDelR = reco::deltaR(CurrentParticle,*tkRef);
@@ -286,10 +280,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             if( thisDelR < LowestDelR ){
               LowestDelR = thisDelR;
               MatchedID = GEMMuonID;
-              VertexDiff = fabs(tkRef->vz()-CurrentParticle.vz());
-              QOverPtDiff = ( (tkRef->charge() /tkRef->pt()) - (CurrentParticle.charge()/CurrentParticle.pt() ) )/  (CurrentParticle.charge()/CurrentParticle.pt() );
-              PtDiff = (tkRef->pt() - CurrentParticle.pt())/CurrentParticle.pt();
-              PDiff = (tkRef->p() - CurrentParticle.p())/CurrentParticle.p();
             }
           }
         }
@@ -305,24 +295,15 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         if ((CurrentParticle.pt() >FakeRatePtCut) ){
           MatchedGEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.5) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
             MatchedGEMMuon_Pt->Fill(CurrentParticle.pt());
           }
         }
-
-        VertexDiff_h->Fill(VertexDiff);
-        PtDiff_h->Fill(PtDiff);
-        QOverPtDiff_h->Fill(QOverPtDiff);
-        PtDiff_s->Fill(CurrentParticle.eta(),PtDiff);
-        PDiff_h->Fill(PDiff);
-        PDiff_s->Fill(CurrentParticle.eta(),PDiff);
-        PDiff_p->Fill(CurrentParticle.eta(),PDiff);
-      
       }
 
       if ( (CurrentParticle.pt() >FakeRatePtCut) ){
         GenMuon_Eta->Fill(fabs(CurrentParticle.eta()));
-        if ( (fabs(CurrentParticle.eta()) > 1.5) && (fabs(CurrentParticle.eta()) < 2.4) ) {
+        if ( (fabs(CurrentParticle.eta()) > 1.6) && (fabs(CurrentParticle.eta()) < 2.4) ) {
           GenMuon_Pt->Fill(CurrentParticle.pt());
         }
       }
@@ -332,8 +313,144 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     } // END prompt muons selection
   } // END gen particle loop
   
+  
+  if (UseAssociators) {
+
+    reco::RecoToSimCollection recSimColl;
+    reco::SimToRecoCollection simRecColl;
+    edm::Handle<View<Track> >  trackCollection;
+
+	  Handle<reco::SimToRecoCollection > simtorecoCollectionH;
+	  iEvent.getByLabel(associators[0],simtorecoCollectionH);
+	  simRecColl= *(simtorecoCollectionH.product()); 
+	
+	  Handle<reco::RecoToSimCollection > recotosimCollectionH;
+	  iEvent.getByLabel(associators[0],recotosimCollectionH);
+	  recSimColl= *(recotosimCollectionH.product());
+
+    unsigned int trackCollectionSize = 0;
+    iEvent.getByToken(track_Collection_Token[0], trackCollection);
+    trackCollectionSize = trackCollection->size();
+
+    // denominators for efficiencies
+    for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
+      TrackingParticleRef tpr(trackingParticles, i);
+      TrackingParticle* tp=const_cast<TrackingParticle*>(tpr.get()); 
+      TrackingParticle::Vector momentumTP; 
+      TrackingParticle::Point vertexTP;
+    
+      if (abs(tp->pdgId()) != 13) continue;
+
+      bool Eta_1p6_2p4 = fabs(tp->eta()) > 1.6 && fabs(tp->eta()) < 2.4,
+           Pt_5 = tp->pt() > 5;
+      if( Eta_1p6_2p4 && Pt_5 ){
+        bool SignalMuon = false;
+        if(tp->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+          //int motherid=-1;
+          if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
+            if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
+              //motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+            }
+          }  
+          //std::cout<<"Mother ID = "<<motherid<<std::endl;
+
+          if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
+               ( (tp->status()==1) )      )    SignalMuon=true;
+      
+        } // END if(tp->status() != -99)        
+
+        if(SignalMuon){
+          TPMuon_Eta->Fill(fabs(tp->eta()));
+          TPMuon_Pt->Fill(tp->pt());
+        }
+
+      } // END if( Eta_1p6_2p4 && Pt_5 )
 
 
+    } // END for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++)
+
+
+    // loop over our tracks
+    //std::cout << "trackCollectionSize = " << trackCollectionSize << std::endl;
+    for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
+      //std::cout << i << "th trackCollection iterator" << std::endl;
+      RefToBase<Track> track(trackCollection, i);
+
+      std::vector<std::pair<TrackingParticleRef, double> > tp;
+      std::vector<std::pair<TrackingParticleRef, double> > tpforfake;
+      TrackingParticleRef tpr;
+      TrackingParticleRef tprforfake;
+
+      //Check if the track is associated to any gen particle
+      bool TrackIsEfficient = false;
+
+      if(recSimColl.find(track) != recSimColl.end()){
+        tp = recSimColl[track];
+        if (tp.size()!=0) {
+          //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
+          tpr = tp.begin()->first;
+
+          //double assocChi2 = -(tp.begin()->second);
+ 
+          //So this track is matched to a gen particle, lets get that gen particle now
+
+          if ( (simRecColl.find(tpr) != simRecColl.end()) ){
+            std::vector<std::pair<RefToBase<Track>, double> > rt;
+            if(simRecColl[tpr].size() > 0){
+              //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
+              rt=simRecColl[tpr];
+              RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
+              //Only fill the efficiency histo if the track found matches up to a gen particle's best choice
+              if ( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) ) {
+                TrackIsEfficient=true;
+                //This section fills the numerator of the efficiency calculation...
+
+                bool Eta_1p6_2p4 = fabs(tpr->eta()) > 1.6 && fabs(tpr->eta()) < 2.4,
+                     Pt_5 = tpr->pt() > 5;
+                if( Eta_1p6_2p4 && Pt_5 ){
+                 
+                  bool SignalMuon=false;
+                  
+                  if (tpr->status() !=-99){
+                    //int motherid=-1;
+                    if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+                      if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+                        //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+                      }
+                    }
+                    //std::cout<<"Mother ID = "<<motherid<<std::endl;
+                    if( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                        ( (tpr->status()==1) )
+                    ) SignalMuon=true;
+                  } // END if (tpr->status() !=-99)
+                  if(SignalMuon){
+                    HitsMatchedGEMMuon_Eta->Fill(fabs(tpr->eta()));
+                    HitsMatchedGEMMuon_Pt->Fill(tpr->pt());
+
+                  } // END if(SignalMuon)
+
+                } // END if( Eta_1p6_2p4 && Pt_5 )            
+
+              } // END if ( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) )
+            } // END if(simRecColl[tpr].size() > 0) 
+          } // END  if ( (simRecColl.find(tpr) != simRecColl.end()) )
+
+        } // END if (tp.size()!=0)
+      } // END if(recSimColl.find(track) != recSimColl.end())
+
+      // A simple way of measuring fake rate
+      if (!TrackIsEfficient) {
+        bool Eta_1p6_2p4 = fabs(tpr->eta()) > 1.6 && fabs(tpr->eta()) < 2.4,
+             Pt_5 = tpr->pt() > 5;
+        if( Eta_1p6_2p4 && Pt_5 ){
+          HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
+          HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
+        } 
+
+      } // END if (!TrackIsEfficient)
+    } // END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
+
+  } // END if (UseAssociators)
 
 }
 
@@ -341,6 +458,20 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&) 
 
 {
+
+  histoFile->cd();
+
+  Nevents_h->Write();
+  GenMuon_Eta->Write();
+  GenMuon_Pt->Write();
+  MatchedGEMMuon_Eta->Write();
+  MatchedGEMMuon_Pt->Write();
+  TPMuon_Eta->Write();
+  TPMuon_Pt->Write();
+  HitsMatchedGEMMuon_Eta->Write();
+  HitsMatchedGEMMuon_Pt->Write();
+  HitsUnmatchedGEMMuon_Eta->Write();
+  HitsUnmatchedGEMMuon_Pt->Write();
   
 }
 

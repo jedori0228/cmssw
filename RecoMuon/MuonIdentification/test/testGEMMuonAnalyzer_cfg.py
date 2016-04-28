@@ -1,32 +1,26 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process("GEMMuonAnalyzer")
+from Configuration.StandardSequences.Eras import eras
+process = cms.Process("GEMMuonAnalyzer", eras.phase2_muon)
 
 
 process.load('Configuration.Geometry.GeometryExtended2015MuonGEMDevReco_cff')
 process.load('Configuration.Geometry.GeometryExtended2015MuonGEMDev_cff')
-
-
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
-
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
-
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
-
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
-
 process.load( "DQMServices/Core/DQMStore_cfg" )
-
 process.load('Validation.RecoMuon.associators_cff')
-
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(100)
 )
 
 
@@ -62,8 +56,10 @@ import SimMuon.MCTruth.MuonAssociatorByHits_cfi
 process.muonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
  UseTracker = True,
  UseMuon = False,
+ #useGEMs = cms.bool(False),
  EfficiencyCut_track = cms.double(0.0),
  PurityCut_track = cms.double(0.0),
+ tracksTag = cms.InputTag("gemMuonSel"),
 )
 
 from CommonTools.RecoAlgos.gemAssociator import *
@@ -88,32 +84,30 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
                               
 )
 
-#process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
-#process.p = cms.Path(process.gemMuonSel*process.GEMMuonAnalyzer)
-
-
-
-
-
-
-process.load('Configuration.StandardSequences.Services_cff')
-process.load('Configuration.EventContent.EventContent_cff')
-process.load('Configuration.StandardSequences.EndOfProcess_cff')
-process.output = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string(
-        'file:out_test.root'
-    ),
-    outputCommands = cms.untracked.vstring(
-        'keep  *_*_*_*',
-    ),
-)
-process.out_step     = cms.EndPath(process.output)
-
 process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
-#process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits)
-process.out_step = cms.EndPath(process.output)
 
-process.schedule = cms.Schedule(
-    process.p,
-    process.out_step
-)
+
+
+
+
+############## To make a output root file ###############
+
+#process.load('Configuration.StandardSequences.Services_cff')
+#process.load('Configuration.EventContent.EventContent_cff')
+#process.load('Configuration.StandardSequences.EndOfProcess_cff')
+#process.output = cms.OutputModule("PoolOutputModule",
+#    fileName = cms.untracked.string(
+#        'file:out_test.root'
+#    ),
+#    outputCommands = cms.untracked.vstring(
+#        'keep  *_*_*_*',
+#    ),
+#)
+#process.out_step     = cms.EndPath(process.output)
+#process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)
+##process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits)
+#process.out_step = cms.EndPath(process.output)
+#process.schedule = cms.Schedule(
+#    process.p,
+#    process.out_step
+#)

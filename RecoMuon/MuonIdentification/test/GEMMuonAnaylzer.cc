@@ -221,9 +221,9 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     for(unsigned int i=0; i<gensize; ++i) {
       const reco::GenParticle& CurrentParticle=(*genParticles)[i];
       if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){  
-	      if ( fabs( CurrentParticle.eta() ) < 1.6 || fabs( CurrentParticle.eta() ) > 2.4 ) {
-	      return;
-	      }
+       if ( fabs( CurrentParticle.eta() ) < 1.6 || fabs( CurrentParticle.eta() ) > 2.4 ) {
+       return;
+       }
       }
     }      
   }
@@ -320,13 +320,13 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     reco::SimToRecoCollection simRecColl;
     edm::Handle<View<Track> >  trackCollection;
 
-	  Handle<reco::SimToRecoCollection > simtorecoCollectionH;
-	  iEvent.getByLabel(associators[0],simtorecoCollectionH);
-	  simRecColl= *(simtorecoCollectionH.product()); 
-	
-	  Handle<reco::RecoToSimCollection > recotosimCollectionH;
-	  iEvent.getByLabel(associators[0],recotosimCollectionH);
-	  recSimColl= *(recotosimCollectionH.product());
+    Handle<reco::SimToRecoCollection > simtorecoCollectionH;
+    iEvent.getByLabel(associators[0],simtorecoCollectionH);
+    simRecColl= *(simtorecoCollectionH.product()); 
+  
+    Handle<reco::RecoToSimCollection > recotosimCollectionH;
+    iEvent.getByLabel(associators[0],recotosimCollectionH);
+    recSimColl= *(recotosimCollectionH.product());
 
     unsigned int trackCollectionSize = 0;
     iEvent.getByToken(track_Collection_Token[0], trackCollection);

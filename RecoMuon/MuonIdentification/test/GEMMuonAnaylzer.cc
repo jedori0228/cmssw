@@ -175,18 +175,22 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   //Making the directory to write plot pngs to
   //mkdir(histoFolder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
+  const int n_pt_bin = 19, n_eta_bin = 9;
+  double pt_bin[n_pt_bin+1] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+  double eta_bin[n_eta_bin+1] = {1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4};
+
   //Histos for plotting
   Nevents_h = new TH1F("Nevents_h", "Nevents", 2, 0, 2 );
-  GenMuon_Eta = new TH1F("GenMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
-  GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", 100, 0., 100. );
-  MatchedGEMMuon_Eta = new TH1F("MatchedGEMMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
-  MatchedGEMMuon_Pt =  new TH1F("MatchedGEMMuon_Pt", "Muon p_{T}", 100, 0., 100. );
-  TPMuon_Eta = new TH1F("TPMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
-  TPMuon_Pt = new TH1F("TPMuon_Pt", "Muon p_{T}", 100, 0. , 100. );
-  HitsMatchedGEMMuon_Eta = new TH1F("HitsMatchedGEMMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
-  HitsMatchedGEMMuon_Pt  = new TH1F("HitsMatchedGEMMuon_Pt", "Muon p_{T}", 100,0 , 100. );
-  HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "Muon #eta", 9, 1.5, 2.4 );
-  HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "Muon p_{T}", 100,0 , 100. );
+  GenMuon_Eta = new TH1F("GenMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMMuon_Eta = new TH1F("MatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  MatchedGEMMuon_Pt =  new TH1F("MatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  TPMuon_Eta = new TH1F("TPMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  TPMuon_Pt = new TH1F("TPMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  HitsMatchedGEMMuon_Eta = new TH1F("HitsMatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  HitsMatchedGEMMuon_Pt  = new TH1F("HitsMatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
 
 
   Nevents=0;
@@ -462,14 +466,37 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   histoFile->cd();
 
   Nevents_h->Write();
+
+  /* gen-reco delta R matching */
   GenMuon_Eta->Write();
   GenMuon_Pt->Write();
   MatchedGEMMuon_Eta->Write();
   MatchedGEMMuon_Pt->Write();
+  // Efficiecny
+  TH1F* Eff_Eta = (TH1F*)MatchedGEMMuon_Eta->Clone();
+  Eff_Eta->SetName("Eff_Eta");
+  Eff_Eta->Divide(GenMuon_Eta);
+  Eff_Eta->Write();
+  TH1F* Eff_Pt = (TH1F*)MatchedGEMMuon_Pt->Clone();
+  Eff_Pt->SetName("Eff_Pt");
+  Eff_Pt->Divide(GenMuon_Pt);
+  Eff_Pt->Write();
+  
+  /* Association by hits */
   TPMuon_Eta->Write();
   TPMuon_Pt->Write();
   HitsMatchedGEMMuon_Eta->Write();
   HitsMatchedGEMMuon_Pt->Write();
+  // Efficeicny
+  TH1F* HitsEff_Eta = (TH1F*)HitsMatchedGEMMuon_Eta->Clone();
+  HitsEff_Eta->Divide(TPMuon_Eta);
+  HitsEff_Eta->SetName("HitsEff_Eta");
+  HitsEff_Eta->Write();
+  TH1F* HitsEff_Pt = (TH1F*)HitsMatchedGEMMuon_Pt->Clone();
+  HitsEff_Pt->Divide(TPMuon_Pt);
+  HitsEff_Pt->SetName("HitsEff_Pt");
+  HitsEff_Pt->Write();
+  // Fake
   HitsUnmatchedGEMMuon_Eta->Write();
   HitsUnmatchedGEMMuon_Pt->Write();
   

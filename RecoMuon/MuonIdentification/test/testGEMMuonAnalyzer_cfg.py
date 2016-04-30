@@ -80,6 +80,8 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
                               associators = cms.vstring('muonAssociatorByHits'),
 
                               label = cms.VInputTag('gemMuonSel'),
+
+                              doMatchingStudy = cms.bool(False),
                               
                               
 )

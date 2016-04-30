@@ -85,6 +85,17 @@ public:
   explicit GEMMuonAnalyzer(const edm::ParameterSet&);
   ~GEMMuonAnalyzer();
 
+  FreeTrajectoryState getFTS(const GlobalVector& , const GlobalVector& ,
+                             int , const AlgebraicSymMatrix66& ,
+                             const MagneticField* );
+
+  FreeTrajectoryState getFTS(const GlobalVector& , const GlobalVector& ,
+                             int , const AlgebraicSymMatrix55& ,
+                             const MagneticField* );
+  void getFromFTS(const FreeTrajectoryState& ,
+                  GlobalVector& , GlobalVector& ,
+	                int& , AlgebraicSymMatrix66& );
+
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   void beginRun(edm::Run const&, edm::EventSetup const&);
   void endRun(edm::Run const&, edm::EventSetup const&);
@@ -103,6 +114,7 @@ public:
 
   bool UseAssociators;
   bool UseGEMEtaCoverageMuons;
+  bool doMatchingStudy;
   const TrackAssociatorByChi2Impl* associatorByChi2;
 
 
@@ -116,14 +128,15 @@ public:
 
   double  FakeRatePtCut, MatchingWindowDelR;
 
-  double Nevents;
-
   TH1F* Nevents_h;
 
   TH1F *GenMuon_Eta; TH1F *GenMuon_Pt; TH1F* MatchedGEMMuon_Eta; TH1F* MatchedGEMMuon_Pt;
   TH1F *TPMuon_Eta; TH1F *TPMuon_Pt;
   TH1F *HitsMatchedGEMMuon_Eta; TH1F *HitsMatchedGEMMuon_Pt;
   TH1F *HitsUnmatchedGEMMuon_Eta; TH1F* HitsUnmatchedGEMMuon_Pt;
+
+  TH1F *DelX_GE11, *DelX_over_sigma_GE11, *DelY_GE11, *DelY_over_sigma_GE11, *DotDir_GE11;
+  TH1F *DelX_GE21, *DelX_over_sigma_GE21, *DelY_GE21, *DelY_over_sigma_GE21, *DotDir_GE21;
 
 
 };
@@ -134,6 +147,7 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   histoFolder = iConfig.getParameter<std::string>("HistoFolder").c_str();
   UseGEMEtaCoverageMuons = iConfig.getParameter< bool >("UseGEMEtaCoverageMuons");
   UseAssociators = iConfig.getParameter< bool >("UseAssociators");
+  doMatchingStudy = iConfig.getParameter< bool >("doMatchingStudy");
 
   FakeRatePtCut   = iConfig.getParameter<double>("FakeRatePtCut");
   MatchingWindowDelR   = iConfig.getParameter<double>("MatchingWindowDelR");
@@ -147,10 +161,7 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   genParticlesToken_ = consumes<reco::GenParticleCollection>(genParticlesTag);
   edm::InputTag trackingParticlesTag ("mix","MergedTrackTruth");
   trackingParticlesToken_ = consumes<TrackingParticleCollection>(trackingParticlesTag);
-  edm::InputTag generalTracksTag ("generalTracks");
-  generalTracksToken_ = consumes<reco::TrackCollection>(generalTracksTag);
   RecoMuon_Token = consumes<reco::MuonCollection>(edm::InputTag("muons"));
-  GEMSegment_Token = consumes<GEMSegmentCollection>(edm::InputTag("gemSegments"));
 
   //Getting tokens and doing consumers for track associators
   for (unsigned int www=0;www<label.size();www++){
@@ -162,6 +173,11 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
       consumes<reco::RecoToSimCollection>(edm::InputTag(thisassociator));
       consumes<reco::SimToRecoCollection>(edm::InputTag(thisassociator));
     }
+  }
+
+  if(doMatchingStudy){
+    generalTracksToken_ = consumes<reco::TrackCollection>(edm::InputTag("generalTracks"));
+    GEMSegment_Token = consumes<GEMSegmentCollection>(edm::InputTag("gemSegments"));
   }
 
 
@@ -192,8 +208,17 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
 
+  DelX_GE11 = new TH1F("DelX_GE11", "DelX_GE11", 5./0.1, 0., 5.);
+  DelX_over_sigma_GE11 = new TH1F("DelX_over_sigma_GE11", "DelX_over_sigma_GE11", 5./0.1, 0., 5.);
+  DelY_GE11 = new TH1F("DelY_GE11", "DelY_GE11", 20./0.1, 0., 20.);
+  DelY_over_sigma_GE11 = new TH1F("DelY_over_sigma_GE11", "DelY_over_sigma_GE11", 5./0.1, 0., 5.);
+  DotDir_GE11 = new TH1F("DotDir_GE11", "DotDir_GE11", 1.5/0.01, 0., 1.5);
 
-  Nevents=0;
+  DelX_GE21 = new TH1F("DelX_GE21", "DelX_GE21", 5./0.1, 0., 5.);
+  DelX_over_sigma_GE21 = new TH1F("DelX_over_sigma_GE21", "DelX_over_sigma_GE21", 5./0.1, 0., 5.);
+  DelY_GE21 = new TH1F("DelY_GE21", "DelY_GE21", 20./0.1, 0., 20.);
+  DelY_over_sigma_GE21 = new TH1F("DelY_over_sigma_GE21", "DelY_over_sigma_GE21", 5./0.1, 0., 5.);
+  DotDir_GE21 = new TH1F("DotDir_GE21", "DotDir_GE21", 1.5/0.01, 0., 1.5);
 
 
 
@@ -219,7 +244,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   Handle<TrackingParticleCollection> trackingParticles;
   iEvent.getByToken(trackingParticlesToken_, trackingParticles);
 
-
   if (UseGEMEtaCoverageMuons){
     //Section to turn off signal muons in the endcaps, to approximate a nu gun
     for(unsigned int i=0; i<gensize; ++i) {
@@ -232,26 +256,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     }      
   }
 
-  Nevents++;
-
-
-  Handle <TrackCollection > generalTracks;
-  iEvent.getByToken (generalTracksToken_, generalTracks);
-
   edm::Handle<reco::MuonCollection> recoMuons;
   iEvent.getByToken(RecoMuon_Token, recoMuons);
-
-  edm::Handle<GEMSegmentCollection> gemSegmentCollection;
-  iEvent.getByToken(GEMSegment_Token, gemSegmentCollection);
-
-  edm::ESHandle<GEMGeometry> gemGeom;
-  iSetup.get<MuonGeometryRecord>().get(gemGeom);
-
-  ESHandle<MagneticField> bField;
-  iSetup.get<IdealMagneticFieldRecord>().get(bField);
-  ESHandle<Propagator> shProp;
-  iSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAlong", shProp);
-  
 
   //==== Make a vector of recoMuons whose isGEMMuon() and isTrackerMuon() is fired
   std::vector<bool> IsMatched;
@@ -456,6 +462,143 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   } // END if (UseAssociators)
 
+
+
+
+  //==== Matching Study
+  
+  if(doMatchingStudy){
+
+    Handle <TrackCollection > generalTracks;
+    iEvent.getByToken (generalTracksToken_, generalTracks);
+    edm::Handle<GEMSegmentCollection> gemSegmentCollection;
+    iEvent.getByToken(GEMSegment_Token, gemSegmentCollection);
+
+    edm::ESHandle<GEMGeometry> gemGeom;
+    iSetup.get<MuonGeometryRecord>().get(gemGeom);
+    ESHandle<MagneticField> bField;
+    iSetup.get<IdealMagneticFieldRecord>().get(bField);
+    const SteppingHelixPropagator* shPropagator;
+    shPropagator = new SteppingHelixPropagator(&*bField,alongMomentum);
+
+    for (std::vector<Track>::const_iterator thisTrack = generalTracks->begin();
+         thisTrack != generalTracks->end(); ++thisTrack){
+
+      if (thisTrack->pt() < 1.5) continue;
+      if (std::abs(thisTrack->eta()) < 1.5) continue;
+
+      for (auto thisSegment = gemSegmentCollection->begin(); thisSegment != gemSegmentCollection->end();
+           ++thisSegment){
+
+        GEMDetId id = thisSegment->specificRecHits()[0].gemId();
+        int station = id.station();
+        if (id.station() != station) continue;
+        float zSign = thisTrack->pz() > 0 ? 1.0f : -1.0f;
+        if ( zSign * id.region() < 0 ) continue;
+
+        LocalPoint thisPosition(thisSegment->localPosition());
+        LocalVector thisDirection(thisSegment->localDirection());
+
+        auto chamber = gemGeom->superChamber(id);
+        GlobalPoint SegPos(chamber->toGlobal(thisPosition));
+        GlobalVector SegDir(chamber->toGlobal(thisDirection));
+
+        const float zValue = SegPos.z();
+
+        Plane *plane = new Plane(Surface::PositionType(0,0,zValue),Surface::RotationType());
+
+        //Getting the initial variables for propagation
+
+        int chargeReco = thisTrack->charge();
+        GlobalVector p3reco, r3reco;
+
+        p3reco = GlobalVector(thisTrack->outerPx(), thisTrack->outerPy(), thisTrack->outerPz());
+        r3reco = GlobalVector(thisTrack->outerX(), thisTrack->outerY(), thisTrack->outerZ());
+
+        AlgebraicSymMatrix66 covReco;
+        //This is to fill the cov matrix correctly
+        AlgebraicSymMatrix55 covReco_curv;
+        covReco_curv = thisTrack->outerStateCovariance();
+        FreeTrajectoryState initrecostate = getFTS(p3reco, r3reco, chargeReco, covReco_curv, shPropagator->magneticField());
+        getFromFTS(initrecostate, p3reco, r3reco, chargeReco, covReco);
+
+        //Now we propagate and get the propagated variables from the propagated state
+        SteppingHelixStateInfo startrecostate(initrecostate);
+        SteppingHelixStateInfo lastrecostate;
+
+        //const SteppingHelixPropagator* shPropagator = 
+        //dynamic_cast<const SteppingHelixPropagator*>(&*shProp);
+        // for 62XSLHC
+        //lastrecostate = shPropagator->propagate(startrecostate, *plane);
+        //lastrecostate = shPropagator->propagateWithPath(startrecostate, *plane);
+        // for 76X
+        shPropagator->propagate(startrecostate, *plane,lastrecostate);
+
+        FreeTrajectoryState finalrecostate;
+        lastrecostate.getFreeState(finalrecostate);
+
+        AlgebraicSymMatrix66 covFinalReco;
+        GlobalVector p3FinalReco_glob, r3FinalReco_globv;
+        getFromFTS(finalrecostate, p3FinalReco_glob, r3FinalReco_globv, chargeReco, covFinalReco);
+
+        //To transform the global propagated track to local coordinates
+        GlobalPoint r3FinalReco_glob(r3FinalReco_globv.x(),r3FinalReco_globv.y(),r3FinalReco_globv.z());
+
+        LocalPoint r3FinalReco = chamber->toLocal(r3FinalReco_glob);
+        LocalVector p3FinalReco=chamber->toLocal(p3FinalReco_glob);
+
+        //The same goes for the error
+        AlgebraicMatrix thisCov(4,4,0);
+        for (int i = 1; i <=4; i++){
+          for (int j = 1; j <=4; j++){
+            thisCov(i,j) = thisSegment->parametersError()(i,j);
+          }
+        }
+
+        LocalTrajectoryParameters ltp(r3FinalReco,p3FinalReco,chargeReco);
+        JacobianCartesianToLocal jctl(chamber->surface(),ltp);
+        AlgebraicMatrix56 jacobGlbToLoc = jctl.jacobian();
+
+        AlgebraicMatrix55 Ctmp =  (jacobGlbToLoc * covFinalReco) * ROOT::Math::Transpose(jacobGlbToLoc);
+        AlgebraicSymMatrix55 C;  // I couldn't find any other way, so I resort to the brute force
+        for(int i=0; i<5; ++i) {
+          for(int j=0; j<5; ++j) {
+            C[i][j] = Ctmp[i][j];
+          }
+        }
+
+        Double_t sigmax = sqrt(C[3][3]+thisSegment->localPositionError().xx() );
+        Double_t sigmay = sqrt(C[4][4]+thisSegment->localPositionError().yy() );
+
+        Double_t DelX = std::abs(thisPosition.x()-r3FinalReco.x());
+        Double_t DelX_over_sigma = DelX/sigmax;
+        Double_t DelY = std::abs(thisPosition.y()-r3FinalReco.y());
+        Double_t DelY_over_sigma = DelY/sigmay;
+        Double_t DotDir = p3FinalReco.unit().dot(thisDirection);
+
+        if(station == 1){
+          DelX_GE11->Fill(DelX);
+          DelX_over_sigma_GE11->Fill(DelX_over_sigma);
+          DelY_GE11->Fill(DelY);
+          DelY_over_sigma_GE11->Fill(DelY_over_sigma);
+          DotDir_GE11->Fill(DotDir);
+        }
+        if(station == 3){
+          DelX_GE21->Fill(DelX);
+          DelX_over_sigma_GE21->Fill(DelX_over_sigma);
+          DelY_GE21->Fill(DelY);
+          DelY_over_sigma_GE21->Fill(DelY_over_sigma);
+          DotDir_GE21->Fill(DotDir);
+        }
+
+      } // END gemSegment loop
+
+
+    } // END general track loop
+
+
+  } // END if(doMatchingStudy)
+
 }
 
 
@@ -499,7 +642,65 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   // Fake
   HitsUnmatchedGEMMuon_Eta->Write();
   HitsUnmatchedGEMMuon_Pt->Write();
+
+  /* Matching Study */
+  DelX_GE11->Write();
+  DelX_over_sigma_GE11->Write();
+  DelY_GE11->Write();
+  DelY_over_sigma_GE11->Write();
+  DotDir_GE11->Write();
+  DelX_GE21->Write();
+  DelX_over_sigma_GE21->Write();
+  DelY_GE21->Write();
+  DelY_over_sigma_GE21->Write();
+  DotDir_GE21->Write();
   
+}
+
+FreeTrajectoryState
+GEMMuonAnalyzer::getFTS(const GlobalVector& p3, const GlobalVector& r3,
+         int charge, const AlgebraicSymMatrix55& cov,
+         const MagneticField* field){
+
+  GlobalVector p3GV(p3.x(), p3.y(), p3.z());
+  GlobalPoint r3GP(r3.x(), r3.y(), r3.z());
+  GlobalTrajectoryParameters tPars(r3GP, p3GV, charge, field);
+
+  CurvilinearTrajectoryError tCov(cov);
+
+  return cov.kRows == 5 ? FreeTrajectoryState(tPars, tCov) : FreeTrajectoryState(tPars) ;
+}
+
+FreeTrajectoryState
+GEMMuonAnalyzer::getFTS(const GlobalVector& p3, const GlobalVector& r3,
+         int charge, const AlgebraicSymMatrix66& cov,
+         const MagneticField* field){
+
+  GlobalVector p3GV(p3.x(), p3.y(), p3.z());
+  GlobalPoint r3GP(r3.x(), r3.y(), r3.z());
+  GlobalTrajectoryParameters tPars(r3GP, p3GV, charge, field);
+
+  CartesianTrajectoryError tCov(cov);
+
+  return cov.kRows == 6 ? FreeTrajectoryState(tPars, tCov) : FreeTrajectoryState(tPars) ;
+}
+
+void GEMMuonAnalyzer::getFromFTS(const FreeTrajectoryState& fts,
+            GlobalVector& p3, GlobalVector& r3,
+            int& charge, AlgebraicSymMatrix66& cov){
+  GlobalVector p3GV = fts.momentum();
+  GlobalPoint r3GP = fts.position();
+
+  GlobalVector p3T(p3GV.x(), p3GV.y(), p3GV.z());
+  GlobalVector r3T(r3GP.x(), r3GP.y(), r3GP.z());
+  p3 = p3T;
+  r3 = r3T;  //Yikes, was setting this to p3T instead of r3T!?!
+  // p3.set(p3GV.x(), p3GV.y(), p3GV.z());
+  // r3.set(r3GP.x(), r3GP.y(), r3GP.z());
+
+  charge = fts.charge();
+  cov = fts.hasError() ? fts.cartesianError().matrix() : AlgebraicSymMatrix66();
+
 }
 
 DEFINE_FWK_MODULE(GEMMuonAnalyzer);

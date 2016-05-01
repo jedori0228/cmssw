@@ -99,6 +99,7 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   void beginRun(edm::Run const&, edm::EventSetup const&);
   void endRun(edm::Run const&, edm::EventSetup const&);
+  std::string DoubleToString(std::string prefix, double dd);
 
   //protected:
   
@@ -123,7 +124,6 @@ public:
   std::vector<edm::InputTag> label;
 
   //Histos for plotting
-  TString histoFolder;
   TFile* histoFile; 
 
   double  FakeRatePtCut, MatchingWindowDelR;
@@ -138,13 +138,15 @@ public:
   TH1F *DelX_GE11, *DelX_over_sigma_GE11, *DelY_GE11, *DelY_over_sigma_GE11, *DotDir_GE11;
   TH1F *DelX_GE21, *DelX_over_sigma_GE21, *DelY_GE21, *DelY_over_sigma_GE21, *DotDir_GE21;
 
+  std::vector<double> maxPull, maxX_GE11, maxY_GE11, maxX_GE21, maxY_GE21, minDotDir;
+  TH1F *maxPull_values, *maxX_GE11_values, *maxY_GE11_values, *maxX_GE21_values, *maxY_GE21_values, *minDotDir_values;
+  std::map< std::string, TH1F* > map_maxXPull_GE11, map_maxYPull_GE11, map_maxXPull_GE21, map_maxYPull_GE21, map_maxX_GE11, map_maxY_GE11, map_maxX_GE21, map_maxY_GE21, map_minDotDir_GE11, map_minDotDir_GE21;
 
 };
 
 GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig) 
 {
   histoFile = new TFile(iConfig.getParameter<std::string>("HistoFile").c_str(), "recreate");
-  histoFolder = iConfig.getParameter<std::string>("HistoFolder").c_str();
   UseGEMEtaCoverageMuons = iConfig.getParameter< bool >("UseGEMEtaCoverageMuons");
   UseAssociators = iConfig.getParameter< bool >("UseAssociators");
   doMatchingStudy = iConfig.getParameter< bool >("doMatchingStudy");
@@ -178,6 +180,14 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   if(doMatchingStudy){
     generalTracksToken_ = consumes<reco::TrackCollection>(edm::InputTag("generalTracks"));
     GEMSegment_Token = consumes<GEMSegmentCollection>(edm::InputTag("gemSegments"));
+
+    maxPull = iConfig.getParameter< std::vector<double> >("maxPull");
+    maxX_GE11 = iConfig.getParameter< std::vector<double> >("maxX_GE11");
+    maxY_GE11 = iConfig.getParameter< std::vector<double> >("maxY_GE11");
+    maxX_GE21 = iConfig.getParameter< std::vector<double> >("maxX_GE21");
+    maxY_GE21 = iConfig.getParameter< std::vector<double> >("maxY_GE21");
+    minDotDir = iConfig.getParameter< std::vector<double> >("minDotDir");
+
   }
 
 
@@ -187,9 +197,6 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
 
 
 void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
-
-  //Making the directory to write plot pngs to
-  //mkdir(histoFolder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   const int n_pt_bin = 19, n_eta_bin = 9;
   double pt_bin[n_pt_bin+1] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -208,17 +215,60 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
 
-  DelX_GE11 = new TH1F("DelX_GE11", "DelX_GE11", 5./0.1, 0., 5.);
-  DelX_over_sigma_GE11 = new TH1F("DelX_over_sigma_GE11", "DelX_over_sigma_GE11", 5./0.1, 0., 5.);
-  DelY_GE11 = new TH1F("DelY_GE11", "DelY_GE11", 20./0.1, 0., 20.);
-  DelY_over_sigma_GE11 = new TH1F("DelY_over_sigma_GE11", "DelY_over_sigma_GE11", 5./0.1, 0., 5.);
-  DotDir_GE11 = new TH1F("DotDir_GE11", "DotDir_GE11", 1.5/0.01, 0., 1.5);
+  if(doMatchingStudy){
+    DelX_GE11 = new TH1F("DelX_GE11", "DelX_GE11", 5./0.1, 0., 5.);
+    DelX_over_sigma_GE11 = new TH1F("DelX_over_sigma_GE11", "DelX_over_sigma_GE11", 5./0.1, 0., 5.);
+    DelY_GE11 = new TH1F("DelY_GE11", "DelY_GE11", 20./0.1, 0., 20.);
+    DelY_over_sigma_GE11 = new TH1F("DelY_over_sigma_GE11", "DelY_over_sigma_GE11", 5./0.1, 0., 5.);
+    DotDir_GE11 = new TH1F("DotDir_GE11", "DotDir_GE11", 1.5/0.01, 0., 1.5);
 
-  DelX_GE21 = new TH1F("DelX_GE21", "DelX_GE21", 5./0.1, 0., 5.);
-  DelX_over_sigma_GE21 = new TH1F("DelX_over_sigma_GE21", "DelX_over_sigma_GE21", 5./0.1, 0., 5.);
-  DelY_GE21 = new TH1F("DelY_GE21", "DelY_GE21", 20./0.1, 0., 20.);
-  DelY_over_sigma_GE21 = new TH1F("DelY_over_sigma_GE21", "DelY_over_sigma_GE21", 5./0.1, 0., 5.);
-  DotDir_GE21 = new TH1F("DotDir_GE21", "DotDir_GE21", 1.5/0.01, 0., 1.5);
+    DelX_GE21 = new TH1F("DelX_GE21", "DelX_GE21", 5./0.1, 0., 5.);
+    DelX_over_sigma_GE21 = new TH1F("DelX_over_sigma_GE21", "DelX_over_sigma_GE21", 5./0.1, 0., 5.);
+    DelY_GE21 = new TH1F("DelY_GE21", "DelY_GE21", 20./0.1, 0., 20.);
+    DelY_over_sigma_GE21 = new TH1F("DelY_over_sigma_GE21", "DelY_over_sigma_GE21", 5./0.1, 0., 5.);
+    DotDir_GE21 = new TH1F("DotDir_GE21", "DotDir_GE21", 1.5/0.01, 0., 1.5);
+
+    maxPull_values = new TH1F("maxPull_values", "maxPull_values", 100, 0, 100);
+    maxX_GE11_values = new TH1F("maxX_GE11_values", "maxX_GE11_values", 100, 0, 100);
+    maxY_GE11_values = new TH1F("maxY_GE11_values", "maxY_GE11_values", 100, 0, 100);
+    maxX_GE21_values = new TH1F("maxX_GE21_values", "maxX_GE21_values", 100, 0, 100);
+    maxY_GE21_values = new TH1F("maxY_GE21_values", "maxY_GE21_values", 100, 0, 100);
+    minDotDir_values = new TH1F("minDotDir_values", "minDotDir_values", 100, 0, 100);
+
+    for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
+      maxPull_values->SetBinContent(aaa+1, maxPull.at(aaa));
+      map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))] = new TH1F(DoubleToString("maxXPull_GE11", maxPull.at(aaa)).data(), DoubleToString("maxXPull_GE11", maxPull.at(aaa)).data(), 2, 0, 2);
+      map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))] = new TH1F(DoubleToString("maxYPull_GE11", maxPull.at(aaa)).data(), DoubleToString("maxYPull_GE11", maxPull.at(aaa)).data(), 2, 0, 2);
+      map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))] = new TH1F(DoubleToString("maxXPull_GE21", maxPull.at(aaa)).data(), DoubleToString("maxXPull_GE21", maxPull.at(aaa)).data(), 2, 0, 2);
+      map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))] = new TH1F(DoubleToString("maxYPull_GE21", maxPull.at(aaa)).data(), DoubleToString("maxYPull_GE21", maxPull.at(aaa)).data(), 2, 0, 2);
+    }
+    for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
+      maxX_GE11_values->SetBinContent(aaa+1, maxX_GE11.at(aaa));
+      std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
+      map_maxX_GE11[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
+    }
+    for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
+      maxY_GE11_values->SetBinContent(aaa+1, maxY_GE11.at(aaa));
+      std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
+      map_maxY_GE11[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
+    }
+    for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
+      maxX_GE21_values->SetBinContent(aaa+1, maxX_GE21.at(aaa));
+      std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
+      map_maxX_GE21[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
+    }
+    for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
+      maxY_GE21_values->SetBinContent(aaa+1, maxY_GE21.at(aaa));
+      std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
+      map_maxY_GE21[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
+    }
+    for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
+      minDotDir_values->SetBinContent(aaa+1, minDotDir.at(aaa));
+      map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))] = new TH1F(DoubleToString("minDotDir_GE11", minDotDir.at(aaa)).data(), DoubleToString("minDotDir_GE11", minDotDir.at(aaa)).data(), 2, 0, 2);
+      map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))] = new TH1F(DoubleToString("minDotDir_GE21", minDotDir.at(aaa)).data(), DoubleToString("minDotDir_GE21", minDotDir.at(aaa)).data(), 2, 0, 2);
+    }
+    
+  }
 
 
 
@@ -582,6 +632,26 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           DelY_GE11->Fill(DelY);
           DelY_over_sigma_GE11->Fill(DelY_over_sigma);
           DotDir_GE11->Fill(DotDir);
+          for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
+            int matchX = DelX_over_sigma<maxPull.at(aaa)?1:0;    
+            int matchY = DelY_over_sigma<maxPull.at(aaa)?1:0;
+            map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))]->Fill(matchX);
+            map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))]->Fill(matchY);
+          }
+          for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
+            int match = DelX<maxX_GE11.at(aaa)?1:0;
+            std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
+            map_maxX_GE11[thistitle]->Fill(match);
+          }
+          for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
+            int match = DelY<maxY_GE11.at(aaa)?1:0;
+            std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
+            map_maxY_GE11[thistitle]->Fill(match);
+          }
+          for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
+            int match = DotDir>minDotDir.at(aaa)?1:0;
+            map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))]->Fill(match);
+          }
         }
         if(station == 3){
           DelX_GE21->Fill(DelX);
@@ -589,7 +659,28 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           DelY_GE21->Fill(DelY);
           DelY_over_sigma_GE21->Fill(DelY_over_sigma);
           DotDir_GE21->Fill(DotDir);
+          for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
+            int matchX = DelX_over_sigma<maxPull.at(aaa)?1:0;
+            int matchY = DelY_over_sigma<maxPull.at(aaa)?1:0;
+            map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))]->Fill(matchX);
+            map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))]->Fill(matchY);
+          }
+          for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
+            int match = DelX<maxX_GE21.at(aaa)?1:0;
+            std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
+            map_maxX_GE21[thistitle]->Fill(match);
+          }
+          for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
+            int match = DelY<maxY_GE21.at(aaa)?1:0;
+            std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
+            map_maxY_GE21[thistitle]->Fill(match);
+          }
+          for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
+            int match = DotDir>minDotDir.at(aaa)?1:0;
+            map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))]->Fill(match);
+          }
         }
+
 
       } // END gemSegment loop
 
@@ -644,17 +735,52 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   HitsUnmatchedGEMMuon_Pt->Write();
 
   /* Matching Study */
-  DelX_GE11->Write();
-  DelX_over_sigma_GE11->Write();
-  DelY_GE11->Write();
-  DelY_over_sigma_GE11->Write();
-  DotDir_GE11->Write();
-  DelX_GE21->Write();
-  DelX_over_sigma_GE21->Write();
-  DelY_GE21->Write();
-  DelY_over_sigma_GE21->Write();
-  DotDir_GE21->Write();
-  
+  if(doMatchingStudy){
+    DelX_GE11->Write();
+    DelX_over_sigma_GE11->Write();
+    DelY_GE11->Write();
+    DelY_over_sigma_GE11->Write();
+    DotDir_GE11->Write();
+    DelX_GE21->Write();
+    DelX_over_sigma_GE21->Write();
+    DelY_GE21->Write();
+    DelY_over_sigma_GE21->Write();
+    DotDir_GE21->Write();
+
+    maxPull_values->Write();
+    maxX_GE11_values->Write();
+    maxY_GE11_values->Write();
+    maxX_GE21_values->Write();
+    maxY_GE21_values->Write();
+    minDotDir_values->Write();
+
+    for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
+      map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))]->Write();
+      map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))]->Write();
+      map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))]->Write();
+      map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))]->Write();
+    }
+    for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
+      std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
+      map_maxX_GE11[thistitle]->Write();
+    }
+    for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
+      std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
+      map_maxY_GE11[thistitle]->Write();
+    }
+    for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
+      std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
+      map_maxX_GE21[thistitle]->Write();
+    }
+    for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
+      std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
+      map_maxY_GE21[thistitle]->Write();
+    }
+    for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
+      map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))]->Write();
+      map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))]->Write();
+    }
+  }
 }
 
 FreeTrajectoryState
@@ -701,6 +827,12 @@ void GEMMuonAnalyzer::getFromFTS(const FreeTrajectoryState& fts,
   charge = fts.charge();
   cov = fts.hasError() ? fts.cartesianError().matrix() : AlgebraicSymMatrix66();
 
+}
+
+std::string GEMMuonAnalyzer::DoubleToString(std::string prefix, double dd){
+  std::ostringstream os;
+  os << dd;
+  return prefix+"_"+os.str();
 }
 
 DEFINE_FWK_MODULE(GEMMuonAnalyzer);

@@ -20,7 +20,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(-1)
 )
 
 
@@ -67,23 +67,26 @@ from CommonTools.RecoAlgos.gemAssociator import *
 process.gemMuonSel = gemmuon
 
 process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
-                              
 
-                              HistoFolder = cms.string('OUTPUTTEMPLATE'),
-                              HistoFile = cms.string('OUTPUTTEMPLATE.root'),
+  HistoFile = cms.string('OUTPUTTEMPLATE.root'),
 
-                              FakeRatePtCut = cms.double(5.0),
-                              MatchingWindowDelR = cms.double (.15),
-                              UseGEMEtaCoverageMuons = cms.bool(True),
-                              UseAssociators = cms.bool(True),
+  FakeRatePtCut = cms.double(5.0),
+  MatchingWindowDelR = cms.double (.15),
+  UseGEMEtaCoverageMuons = cms.bool(True),
+  UseAssociators = cms.bool(True),
 
-                              associators = cms.vstring('muonAssociatorByHits'),
+  associators = cms.vstring('muonAssociatorByHits'),
 
-                              label = cms.VInputTag('gemMuonSel'),
+  label = cms.VInputTag('gemMuonSel'),
 
-                              doMatchingStudy = cms.bool(False),
-                              
-                              
+  doMatchingStudy = cms.bool(False),
+  maxPull = cms.vdouble(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 10.0, 100.0, 500.0, 1000.0, 10000.0, 100000.0),
+  maxX_GE11 = cms.vdouble(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 10.0, 100.0, 500.0, 1000.0, 10000.0, 100000.0),
+  maxY_GE11 = cms.vdouble(0.001, 0.01, 0.1, 1.0, 2.0, 3.0, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 10.5, 11.0, 100.0, 200., 300., 400., 500., 1000.),
+  maxX_GE21 = cms.vdouble(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 10.0, 100., 200., 300., 400., 500., 1000.0, 10000.0),
+  maxY_GE21 = cms.vdouble(0.001, 0.01, 0.1, 1.0, 2.0, 3.0, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0, 100.0, 200., 300., 400., 500., 1000.),
+  minDotDir = cms.vdouble(0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.85, 0.86, 0.87, 0.88, 0.89, 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0),
+  
 )
 
 process.p = cms.Path(process.gemMuonSel*process.muonAssociatorByHits*process.GEMMuonAnalyzer)

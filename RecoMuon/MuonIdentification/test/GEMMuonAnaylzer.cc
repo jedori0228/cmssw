@@ -51,7 +51,7 @@
 
 #include "Fit/FitResult.h"
 #include "TF1.h" 
-
+#include "TEfficiency.h"
 
 #include "TMath.h"
 #include "TLorentzVector.h"
@@ -707,13 +707,11 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   MatchedGEMMuon_Eta->Write();
   MatchedGEMMuon_Pt->Write();
   // Efficiecny
-  TH1F* Eff_Eta = (TH1F*)MatchedGEMMuon_Eta->Clone();
+  TEfficiency* Eff_Eta = new TEfficiency(*MatchedGEMMuon_Eta, *GenMuon_Eta);
+  TEfficiency* Eff_Pt = new TEfficiency(*MatchedGEMMuon_Pt, *GenMuon_Pt);
   Eff_Eta->SetName("Eff_Eta");
-  Eff_Eta->Divide(GenMuon_Eta);
-  Eff_Eta->Write();
-  TH1F* Eff_Pt = (TH1F*)MatchedGEMMuon_Pt->Clone();
   Eff_Pt->SetName("Eff_Pt");
-  Eff_Pt->Divide(GenMuon_Pt);
+  Eff_Eta->Write();
   Eff_Pt->Write();
   
   /* Association by hits */
@@ -722,13 +720,11 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   HitsMatchedGEMMuon_Eta->Write();
   HitsMatchedGEMMuon_Pt->Write();
   // Efficeicny
-  TH1F* HitsEff_Eta = (TH1F*)HitsMatchedGEMMuon_Eta->Clone();
-  HitsEff_Eta->Divide(TPMuon_Eta);
+  TEfficiency* HitsEff_Eta = new TEfficiency(*HitsMatchedGEMMuon_Eta, *TPMuon_Eta);
+  TEfficiency* HitsEff_Pt = new TEfficiency(*HitsMatchedGEMMuon_Pt, *TPMuon_Pt);
   HitsEff_Eta->SetName("HitsEff_Eta");
-  HitsEff_Eta->Write();
-  TH1F* HitsEff_Pt = (TH1F*)HitsMatchedGEMMuon_Pt->Clone();
-  HitsEff_Pt->Divide(TPMuon_Pt);
   HitsEff_Pt->SetName("HitsEff_Pt");
+  HitsEff_Eta->Write();
   HitsEff_Pt->Write();
   // Fake
   HitsUnmatchedGEMMuon_Eta->Write();
@@ -736,6 +732,7 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
   /* Matching Study */
   if(doMatchingStudy){
+
     DelX_GE11->Write();
     DelX_over_sigma_GE11->Write();
     DelY_GE11->Write();
@@ -780,7 +777,12 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
       map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))]->Write();
       map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))]->Write();
     }
-  }
+
+  } // END if(doMatchingStudy)
+
+
+
+
 }
 
 FreeTrajectoryState

@@ -391,7 +391,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     unsigned int trackCollectionSize = 0;
     iEvent.getByToken(track_Collection_Token[0], trackCollection);
     trackCollectionSize = trackCollection->size();
-
     // denominators for efficiencies
     for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
       TrackingParticleRef tpr(trackingParticles, i);
@@ -443,13 +442,12 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
       //Check if the track is associated to any gen particle
       bool TrackIsEfficient = false;
-
+      if(recSimColl.find(track) == recSimColl.end()) continue; //FIXME
       if(recSimColl.find(track) != recSimColl.end()){
         tp = recSimColl[track];
         if (tp.size()!=0) {
           //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
           tpr = tp.begin()->first;
-
           //double assocChi2 = -(tp.begin()->second);
  
           //So this track is matched to a gen particle, lets get that gen particle now

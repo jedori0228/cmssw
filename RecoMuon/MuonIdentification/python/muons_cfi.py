@@ -90,6 +90,6 @@ muons = cms.EDProducer("MuonProducer",
                        FillShoweringInfo = cms.bool(True),
                        ShowerInfoMap = cms.InputTag("muonShowerInformation"),
 
-                       FillCosmicsIdMap = cms.bool(True),
+                       FillCosmicsIdMap = cms.bool(False), #jskim
                        CosmicIdMap = cms.InputTag("cosmicsVeto")
                        )

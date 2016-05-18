@@ -72,7 +72,7 @@ globalreco = cms.Sequence(globalreco_tracking*
                           jetGlobalReco*
                           muonGlobalReco*
                           pfTrackingGlobalReco*
-                          muoncosmicreco*
+                          #muoncosmicreco* #jskim
                           CastorFullReco)
 
 globalreco_plusPL= cms.Sequence(globalreco*ctfTracksPixelLess)
@@ -83,15 +83,15 @@ reducedRecHits = cms.Sequence ( reducedEcalRecHitsSequence * reducedHcalRecHitsS
 highlevelreco = cms.Sequence(egammaHighLevelRecoPrePF*
                              particleFlowReco*
                              egammaHighLevelRecoPostPF*
-                             muoncosmichighlevelreco*
-                             muonshighlevelreco *
-                             particleFlowLinks*
-                             jetHighLevelReco*
-                             metrecoPlusHCALNoise*
-                             btagging*
-                             recoPFMET*
-                             PFTau*
-                             reducedRecHits
+                             #muoncosmichighlevelreco*
+                             muonshighlevelreco #*
+                             #particleFlowLinks*
+                             #jetHighLevelReco*
+                             #metrecoPlusHCALNoise*
+                             #btagging*
+                             #recoPFMET*
+                             #PFTau*
+                             #reducedRecHits
                              )
 
 

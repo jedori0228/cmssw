@@ -769,8 +769,8 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   // gemsegment
   TEfficiency* Eff_GEMSegment_Eta = new TEfficiency(*MatchedGEMSegment_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMSegment_Pt = new TEfficiency(*MatchedGEMSegment_Pt, *GenMuon_Pt);
-  Eff_GEMSegment_Eta->SetName("Eff_Eta");
-  Eff_GEMSegment_Pt->SetName("Eff_Pt");
+  Eff_GEMSegment_Eta->SetName("Eff_GEMSegment_Eta");
+  Eff_GEMSegment_Pt->SetName("Eff_GEMSegment_Pt");
   Eff_GEMSegment_Eta->Write();
   Eff_GEMSegment_Pt->Write();
   

@@ -111,6 +111,7 @@ public:
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticlesToken_;
   edm::EDGetTokenT <reco::TrackCollection > generalTracksToken_;
   edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
+  edm::EDGetTokenT<GEMRecHitCollection> GEMRecHit_Token;
   edm::EDGetTokenT<GEMSegmentCollection> GEMSegment_Token;
   std::vector<edm::EDGetTokenT<edm::View<reco::Track> > > track_Collection_Token;
 
@@ -133,10 +134,14 @@ public:
   TH1F* Nevents_h;
 
   TH1F *GenMuon_Eta; TH1F *GenMuon_Pt; TH1F *MatchedGEMMuon_Eta; TH1F *MatchedGEMMuon_Pt;
+  TH1F *MatchedGEMRecHit_Eta; TH1F *MatchedGEMRecHit_Pt;
+  TH1F *TwoMatchedGEMRecHit_Eta; TH1F *TwoMatchedGEMRecHit_Pt;
   TH1F *MatchedGEMSegment_Eta; TH1F *MatchedGEMSegment_Pt;
   TH1F *TPMuon_Eta; TH1F *TPMuon_Pt;
   TH1F *HitsMatchedGEMMuon_Eta; TH1F *HitsMatchedGEMMuon_Pt;
   TH1F *HitsUnmatchedGEMMuon_Eta; TH1F* HitsUnmatchedGEMMuon_Pt;
+
+  TH2F *GEMRecHit_LocalPosition_scattered, *GEMSegment_LocalPosition_scattered;
 
   TH1F *DelX_GE11, *DelX_over_sigma_GE11, *DelY_GE11, *DelY_over_sigma_GE11, *DotDir_GE11;
   TH1F *DelX_GE21, *DelX_over_sigma_GE21, *DelY_GE21, *DelY_over_sigma_GE21, *DotDir_GE21;
@@ -167,6 +172,7 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   edm::InputTag trackingParticlesTag ("mix","MergedTrackTruth");
   trackingParticlesToken_ = consumes<TrackingParticleCollection>(trackingParticlesTag);
   RecoMuon_Token = consumes<reco::MuonCollection>(edm::InputTag("muons"));
+  GEMRecHit_Token = consumes<GEMRecHitCollection>(edm::InputTag("gemRecHits"));
   GEMSegment_Token = consumes<GEMSegmentCollection>(edm::InputTag("gemSegments"));
 
   //Getting tokens and doing consumers for track associators
@@ -211,6 +217,10 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   MatchedGEMMuon_Eta = new TH1F("MatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMMuon_Pt =  new TH1F("MatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_Eta = new TH1F("MatchedGEMRecHit_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  MatchedGEMRecHit_Pt =  new TH1F("MatchedGEMRecHit_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  TwoMatchedGEMRecHit_Eta = new TH1F("TwoMatchedGEMRecHit_Eta", "Muon #eta", n_eta_bin, eta_bin );
+  TwoMatchedGEMRecHit_Pt =  new TH1F("TwoMatchedGEMRecHit_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   MatchedGEMSegment_Eta = new TH1F("MatchedGEMSegment_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMSegment_Pt =  new TH1F("MatchedGEMSegment_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   TPMuon_Eta = new TH1F("TPMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
@@ -219,6 +229,9 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   HitsMatchedGEMMuon_Pt  = new TH1F("HitsMatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+
+  GEMRecHit_LocalPosition_scattered = new TH2F("GEMRecHit_LocalPosition_scattered", "GEMRecHit LocalPosition", 800, -400., 400., 800, -400., 400.);
+  GEMSegment_LocalPosition_scattered = new TH2F("GEMSegment_LocalPosition_scattered", "GEMSegment LocalPosition", 800, -400., 400., 800, -400., 400.);
 
   if(doMatchingStudy){
     DelX_GE11 = new TH1F("DelX_GE11", "DelX_GE11", 5./0.1, 0., 5.);
@@ -332,14 +345,12 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
     if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){   
 
-      double LowestDelR = 9999;
-      double thisDelR = 9999;
+      double LowestDelR = 0.15;
       int MatchedID = -1;
       int GEMMuonID = 0;
       for(reco::MuonCollection::const_iterator gemmuon = GEMMuonColl.begin(); gemmuon != GEMMuonColl.end(); ++gemmuon){
         TrackRef tkRef = gemmuon->innerTrack();
-        thisDelR = reco::deltaR(CurrentParticle,*tkRef);
-
+        double thisDelR = reco::deltaR(CurrentParticle,*tkRef);
         if( tkRef->pt() > FakeRatePtCut ){
           if( thisDelR < MatchingWindowDelR ){
             if( thisDelR < LowestDelR ){
@@ -516,12 +527,90 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   } // END if (UseAssociators)
 
 
+  //==== GEMRecHit study
+
+  iSetup.get<MuonGeometryRecord>().get(gemGeom);
+  edm::Handle<GEMRecHitCollection> gemRecHitCollection;
+  iEvent.getByToken(GEMRecHit_Token, gemRecHitCollection);
+
+  for(auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
+    GEMDetId id = thisRecHit->gemId();
+    auto roll = gemGeom->etaPartition(id);
+    auto RecHitLP = thisRecHit->localPosition();
+    auto RecHitGP = roll->toGlobal(RecHitLP);
+    GEMRecHit_LocalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
+  }
+
+
+  for(unsigned int i=0; i<gensize; i++){
+
+    const reco::GenParticle& CurrentParticle=(*genParticles)[i];
+
+    if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){
+
+      TLorentzVector igenP4;
+      igenP4.SetPtEtaPhiM(CurrentParticle.pt(), CurrentParticle.eta(), CurrentParticle.phi(), CurrentParticle.mass());
+
+      double LowestDelR = 0.15;
+      int MatchedID = -1;
+      int GEMRecHitID = 0;
+      bool doublematched = false;
+      std::map< GEMDetId, int > n_SuperChamber;
+      for (auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
+        GEMDetId id = thisRecHit->gemId();
+        auto roll = gemGeom->etaPartition(id);
+        auto superChamber_id = gemGeom->superChamber(id)->id();
+        n_SuperChamber[superChamber_id]++;
+        auto RecHitLP = thisRecHit->localPosition();
+        auto RecHitGP = roll->toGlobal(RecHitLP);
+        TLorentzVector RecHit;
+        //RecHit.SetPtEtaPhiM(1, RecHitGP.eta(), RecHitGP.phi(), 0);
+        RecHit.SetPxPyPzE(RecHitGP.x(), RecHitGP.y(), RecHitGP.z(), 1);
+        double thisDelR = igenP4.DeltaR(RecHit);
+        if( thisDelR < LowestDelR ){
+          LowestDelR = thisDelR;
+          MatchedID = GEMRecHitID;
+        }
+
+        GEMRecHitID++;
+
+      }
+
+      //==== check if matched to more than two rechit from same SuperChamber
+      for(std::map< GEMDetId, int >::iterator mapit = n_SuperChamber.begin(); mapit != n_SuperChamber.end(); ++mapit){
+        if(mapit->second >= 2){
+          doublematched = true;
+        }
+      }
+
+      //==== GEMRecHit matched to gen muon
+      if( MatchedID != -1){
+        if ((CurrentParticle.pt() >FakeRatePtCut) ){
+          MatchedGEMRecHit_Eta->Fill(fabs(CurrentParticle.eta()));
+          if(doublematched) TwoMatchedGEMRecHit_Eta->Fill(fabs(CurrentParticle.eta()));
+          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+            MatchedGEMRecHit_Pt->Fill(CurrentParticle.pt());
+            if(doublematched) TwoMatchedGEMRecHit_Pt->Fill(CurrentParticle.pt());
+          }
+        }
+      }
+
+    } // END prompt muons selection
+  } // END gen particle loop
+
 
   //==== GEMSegment study
 
-  iSetup.get<MuonGeometryRecord>().get(gemGeom);
   edm::Handle<GEMSegmentCollection> gemSegmentCollection;
   iEvent.getByToken(GEMSegment_Token, gemSegmentCollection);
+
+  for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
+    GEMDetId id = gems->gemDetId();
+    auto chamb = gemGeom->superChamber(id);
+    auto segLP = gems->localPosition();
+    auto segGP = chamb->toGlobal(segLP);
+    GEMSegment_LocalPosition_scattered->Fill(segGP.x(), segGP.y());
+  }
 
   for(unsigned int i=0; i<gensize; i++){
 
@@ -532,8 +621,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       TLorentzVector igenP4;
       igenP4.SetPtEtaPhiM(CurrentParticle.pt(), CurrentParticle.eta(), CurrentParticle.phi(), CurrentParticle.mass());
 
-      double LowestDelR = 9999;
-      double thisDelR = 9999;
+      double LowestDelR = 0.15;
       int MatchedID = -1;
       int GEMSegID = 0;
       for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
@@ -542,8 +630,9 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         auto segLP = gems->localPosition();
         auto segGP = chamb->toGlobal(segLP);
         TLorentzVector segment;
-        segment.SetPtEtaPhiM(1, segGP.eta(), segGP.phi(), 0);
-        thisDelR = igenP4.DeltaR(segment);
+        //segment.SetPtEtaPhiM(1, segGP.eta(), segGP.phi(), 0);
+        segment.SetPxPyPzE(segGP.x(), segGP.y(), segGP.z(), 1);
+        double thisDelR = igenP4.DeltaR(segment);
         if( thisDelR < LowestDelR ){
           LowestDelR = thisDelR;
           MatchedID = GEMSegID;
@@ -757,6 +846,10 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   GenMuon_Pt->Write();
   MatchedGEMMuon_Eta->Write();
   MatchedGEMMuon_Pt->Write();
+  MatchedGEMRecHit_Eta->Write();
+  MatchedGEMRecHit_Pt->Write();
+  TwoMatchedGEMRecHit_Eta->Write();
+  TwoMatchedGEMRecHit_Pt->Write();
   MatchedGEMSegment_Eta->Write();
   MatchedGEMSegment_Pt->Write();
   // Efficiecny
@@ -766,6 +859,19 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   Eff_Pt->SetName("Eff_Pt");
   Eff_Eta->Write();
   Eff_Pt->Write();
+  // rechit
+  TEfficiency* Eff_GEMRecHit_Eta = new TEfficiency(*MatchedGEMRecHit_Eta, *GenMuon_Eta);
+  TEfficiency* Eff_GEMRecHit_Pt = new TEfficiency(*MatchedGEMRecHit_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_TwoGEMRecHit_Eta = new TEfficiency(*TwoMatchedGEMRecHit_Eta, *GenMuon_Eta);
+  TEfficiency* Eff_TwoGEMRecHit_Pt = new TEfficiency(*TwoMatchedGEMRecHit_Pt, *GenMuon_Pt);
+  Eff_GEMRecHit_Eta->SetName("Eff_GEMRecHit_Eta");
+  Eff_GEMRecHit_Pt->SetName("Eff_GEMRecHit_Pt");
+  Eff_TwoGEMRecHit_Eta->SetName("Eff_TwoGEMRecHit_Eta");
+  Eff_TwoGEMRecHit_Pt->SetName("Eff_TwoGEMRecHit_Pt");
+  Eff_GEMRecHit_Eta->Write();
+  Eff_GEMRecHit_Pt->Write();
+  Eff_TwoGEMRecHit_Eta->Write();
+  Eff_TwoGEMRecHit_Pt->Write();
   // gemsegment
   TEfficiency* Eff_GEMSegment_Eta = new TEfficiency(*MatchedGEMSegment_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMSegment_Pt = new TEfficiency(*MatchedGEMSegment_Pt, *GenMuon_Pt);
@@ -789,6 +895,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   // Fake
   HitsUnmatchedGEMMuon_Eta->Write();
   HitsUnmatchedGEMMuon_Pt->Write();
+
+  GEMRecHit_LocalPosition_scattered->Write();
+  GEMSegment_LocalPosition_scattered->Write();
 
   /* Matching Study */
   if(doMatchingStudy){

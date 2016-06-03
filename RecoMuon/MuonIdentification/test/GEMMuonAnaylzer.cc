@@ -345,12 +345,13 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
     if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){   
 
-      double LowestDelR = 0.15;
+      double LowestDelR = 9999;
+      double thisDelR = 9999;
       int MatchedID = -1;
       int GEMMuonID = 0;
       for(reco::MuonCollection::const_iterator gemmuon = GEMMuonColl.begin(); gemmuon != GEMMuonColl.end(); ++gemmuon){
         TrackRef tkRef = gemmuon->innerTrack();
-        double thisDelR = reco::deltaR(CurrentParticle,*tkRef);
+        thisDelR = reco::deltaR(CurrentParticle,*tkRef);
         if( tkRef->pt() > FakeRatePtCut ){
           if( thisDelR < MatchingWindowDelR ){
             if( thisDelR < LowestDelR ){
@@ -551,35 +552,68 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       TLorentzVector igenP4;
       igenP4.SetPtEtaPhiM(CurrentParticle.pt(), CurrentParticle.eta(), CurrentParticle.phi(), CurrentParticle.mass());
 
-      double LowestDelR = 0.15;
+      double LowestDelR = 9999;
+      double thisDelR = 9999;
       int MatchedID = -1;
       int GEMRecHitID = 0;
       bool doublematched = false;
-      std::map< GEMDetId, int > n_SuperChamber;
+      std::vector<GEMDetId> matched_id;
       for (auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
         GEMDetId id = thisRecHit->gemId();
         auto roll = gemGeom->etaPartition(id);
-        auto superChamber_id = gemGeom->superChamber(id)->id();
-        n_SuperChamber[superChamber_id]++;
         auto RecHitLP = thisRecHit->localPosition();
         auto RecHitGP = roll->toGlobal(RecHitLP);
         TLorentzVector RecHit;
         //RecHit.SetPtEtaPhiM(1, RecHitGP.eta(), RecHitGP.phi(), 0);
         RecHit.SetPxPyPzE(RecHitGP.x(), RecHitGP.y(), RecHitGP.z(), 1);
-        double thisDelR = igenP4.DeltaR(RecHit);
-        if( thisDelR < LowestDelR ){
-          LowestDelR = thisDelR;
-          MatchedID = GEMRecHitID;
+        thisDelR = igenP4.DeltaR(RecHit);
+        //std::cout << "this RecHit id = " << id << " => deltaR = " << thisDelR << std::endl;
+        if( thisDelR < MatchingWindowDelR ){
+          matched_id.push_back(id);
+          if( thisDelR < LowestDelR ){
+            //std::cout << "  -> matched" << std::endl;
+            LowestDelR = thisDelR;
+            MatchedID = GEMRecHitID;
+            //matched_id.push_back(id);
+          }
         }
 
         GEMRecHitID++;
 
       }
 
-      //==== check if matched to more than two rechit from same SuperChamber
-      for(std::map< GEMDetId, int >::iterator mapit = n_SuperChamber.begin(); mapit != n_SuperChamber.end(); ++mapit){
-        if(mapit->second >= 2){
-          doublematched = true;
+      //std::cout << "[this GenMuon]" << std::endl;
+      //==== Cluster rechits who has same SuperChamber ID
+      std::map< GEMDetId, std::vector<GEMDetId> > map_scid_to_id;
+      for(auto idit = matched_id.begin(); idit != matched_id.end(); ++idit){
+        GEMDetId scid = idit->superChamberId();
+        map_scid_to_id[scid].push_back(*idit);
+      }
+
+      //==== check both layer1 and layer2 are used
+      for(auto mapit = map_scid_to_id.begin(); mapit != map_scid_to_id.end(); ++mapit){
+        //std::cout << "  [this SC]" << std::endl;
+        std::vector<GEMDetId> thisIDvec_from_SC = mapit->second;
+        std::map< int, std::vector<GEMDetId> > map_roll_to_id;
+        //==== Among the rechits who has same SuperChamber ID,
+        //==== now cluster them who has same roll ID
+        for(auto itit = thisIDvec_from_SC.begin(); itit != thisIDvec_from_SC.end(); ++itit){
+          map_roll_to_id[itit->roll()].push_back(*itit);
+        }
+
+        for(auto itit = map_roll_to_id.begin(); itit != map_roll_to_id.end(); ++itit){
+          //std::cout << "    [this roll]" << std::endl;
+          std::vector<GEMDetId> thisIDvec_from_roll = itit->second;
+          bool layer1_fired(false), layer2_fired(false);
+          for(auto ititit = thisIDvec_from_roll.begin(); ititit != thisIDvec_from_roll.end(); ++ititit){
+            if(ititit->layer() == 1) layer1_fired = true;
+            if(ititit->layer() == 2) layer2_fired = true;
+            //std::cout << "    " << *ititit << std::endl;
+          }
+          if(layer1_fired && layer2_fired){
+            doublematched = true;
+            //std::cout << "    ==> double matched" << std::endl;
+          }
         }
       }
 
@@ -610,6 +644,13 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     auto segLP = gems->localPosition();
     auto segGP = chamb->toGlobal(segLP);
     GEMSegment_LocalPosition_scattered->Fill(segGP.x(), segGP.y());
+    //auto rechits = gems->specificRecHits();
+    //std::cout << "[This Segment]" << std::endl;
+    //for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
+    //  GEMDetId rhid = itrh->gemId();
+    //  std::cout
+    //  << "  " << rhid << std::endl;
+    //}
   }
 
   for(unsigned int i=0; i<gensize; i++){
@@ -621,7 +662,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       TLorentzVector igenP4;
       igenP4.SetPtEtaPhiM(CurrentParticle.pt(), CurrentParticle.eta(), CurrentParticle.phi(), CurrentParticle.mass());
 
-      double LowestDelR = 0.15;
+      double LowestDelR = 9999;
+      double thisDelR = 9999;
       int MatchedID = -1;
       int GEMSegID = 0;
       for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
@@ -632,10 +674,12 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         TLorentzVector segment;
         //segment.SetPtEtaPhiM(1, segGP.eta(), segGP.phi(), 0);
         segment.SetPxPyPzE(segGP.x(), segGP.y(), segGP.z(), 1);
-        double thisDelR = igenP4.DeltaR(segment);
-        if( thisDelR < LowestDelR ){
-          LowestDelR = thisDelR;
-          MatchedID = GEMSegID;
+        thisDelR = igenP4.DeltaR(segment);
+        if( thisDelR < MatchingWindowDelR ){
+          if( thisDelR < LowestDelR ){
+            LowestDelR = thisDelR;
+            MatchedID = GEMSegID;
+          }
         }
 
         GEMSegID++;

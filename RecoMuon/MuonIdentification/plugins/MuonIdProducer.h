@@ -52,6 +52,7 @@
 #include "DataFormats/RPCRecHit/interface/RPCRecHitCollection.h"
 #include "DataFormats/RPCRecHit/interface/RPCRecHit.h"
 #include "DataFormats/MuonReco/interface/MuonRPCHitMatch.h"
+#include "DataFormats/GEMRecHit/interface/GEMSegmentCollection.h"
 
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/CaloMuon.h"
@@ -104,6 +105,7 @@ class MuonIdProducer : public edm::stream::EDProducer<> {
    
    bool          isGoodTrackerMuon( const reco::Muon& muon );
    bool          isGoodRPCMuon( const reco::Muon& muon );
+	 bool          isGEMMuon( const reco::Muon& muon );
    
    // check number of common DetIds for a given trackerMuon and a stand alone
    // muon track
@@ -185,6 +187,13 @@ class MuonIdProducer : public edm::stream::EDProducer<> {
    double ptThresholdToFillCandidateP4WithGlobalFit_;
    double sigmaThresholdToFillCandidateP4WithGlobalFit_;
    
+   // trackerGEM matching
+   double trackerGEM_maxPull_;
+   double maxDiffXGE11_, maxDiffYGE11_,
+          maxDiffXGE21_, maxDiffYGE21_,
+          minDotDir_;
+
+
    bool debugWithTruthMatching_;
 
    edm::Handle<reco::TrackCollection>             innerTrackCollectionHandle_;
@@ -208,6 +217,9 @@ class MuonIdProducer : public edm::stream::EDProducer<> {
 
    edm::Handle<RPCRecHitCollection> rpcHitHandle_;
    edm::Handle<edm::ValueMap<reco::MuonQuality> > glbQualHandle_;
+
+   edm::EDGetTokenT<GEMSegmentCollection> gemSegmentsToken_;
+   edm::Handle<GEMSegmentCollection> gemSegmentsHandle_;
    
    MuonCaloCompatibility muonCaloCompatibility_;
    reco::isodeposit::IsoDepositExtractor* muIsoExtractorCalo_;

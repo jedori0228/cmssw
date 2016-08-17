@@ -135,33 +135,33 @@ public:
 
   TH1F* Nevents_h;
 
-  TH1F *GenMuon_Eta; TH1F *GenMuon_Pt;
-  TH1F *MatchedRecoMuon_Eta; TH1F *MatchedRecoMuon_Pt;
-  TH1F *MatchedRecoMuon_not_GEMMuon_Eta; TH1F *MatchedRecoMuon_not_GEMMuon_Pt;
-  TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta; TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt;
-  TH1F *MatchedGEMMuon_Eta; TH1F *MatchedGEMMuon_Pt;
-  TH1F *MatchedGEMRecHit_Eta; TH1F *MatchedGEMRecHit_Pt;
-  TH1F *MatchedGEMRecHit_GE11_layer1_Eta; TH1F *MatchedGEMRecHit_GE11_layer1_Pt;
-  TH1F *MatchedGEMRecHit_GE11_layer2_Eta; TH1F *MatchedGEMRecHit_GE11_layer2_Pt;
-  TH1F *MatchedGEMRecHit_GE21_layer1_Eta; TH1F *MatchedGEMRecHit_GE21_layer1_Pt;
-  TH1F *MatchedGEMRecHit_GE21_layer2_Eta; TH1F *MatchedGEMRecHit_GE21_layer2_Pt;
-  TH1F *MatchedGEMRecHit_GE11_two_Eta; TH1F *MatchedGEMRecHit_GE11_two_Pt;
-  TH1F *MatchedGEMRecHit_GE21_two_Eta; TH1F *MatchedGEMRecHit_GE21_two_Pt;
+  TH1F *GenMuon_Eta; TH1F *GenMuon_Pt; TH1F *GenMuon_Phi;
+  TH1F *MatchedRecoMuon_Eta; TH1F *MatchedRecoMuon_Pt; TH1F *MatchedRecoMuon_Phi;
+  TH1F *MatchedRecoMuon_not_GEMMuon_Eta; TH1F *MatchedRecoMuon_not_GEMMuon_Pt; TH1F *MatchedRecoMuon_not_GEMMuon_Phi;
+  TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta; TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt; TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi;
+  TH1F *MatchedGEMMuon_Eta; TH1F *MatchedGEMMuon_Pt; TH1F *MatchedGEMMuon_Phi;
+  TH1F *MatchedGEMRecHit_Eta; TH1F *MatchedGEMRecHit_Pt; TH1F *MatchedGEMRecHit_Phi;
+  TH1F *MatchedGEMRecHit_GE11_layer1_Eta; TH1F *MatchedGEMRecHit_GE11_layer1_Pt; TH1F *MatchedGEMRecHit_GE11_layer1_Phi;
+  TH1F *MatchedGEMRecHit_GE11_layer2_Eta; TH1F *MatchedGEMRecHit_GE11_layer2_Pt; TH1F *MatchedGEMRecHit_GE11_layer2_Phi;
+  TH1F *MatchedGEMRecHit_GE21_layer1_Eta; TH1F *MatchedGEMRecHit_GE21_layer1_Pt; TH1F *MatchedGEMRecHit_GE21_layer1_Phi;
+  TH1F *MatchedGEMRecHit_GE21_layer2_Eta; TH1F *MatchedGEMRecHit_GE21_layer2_Pt; TH1F *MatchedGEMRecHit_GE21_layer2_Phi;
+  TH1F *MatchedGEMRecHit_GE11_two_Eta; TH1F *MatchedGEMRecHit_GE11_two_Pt; TH1F *MatchedGEMRecHit_GE11_two_Phi;
+  TH1F *MatchedGEMRecHit_GE21_two_Eta; TH1F *MatchedGEMRecHit_GE21_two_Pt; TH1F *MatchedGEMRecHit_GE21_two_Phi;
   TH1I *MatchedClusteredGEMRecHit_GE11_dBunchX; TH1I *MatchedClusteredGEMRecHit_GE21_dBunchX;
-  TH1F *MatchedGEMSegment_GE11_Eta; TH1F *MatchedGEMSegment_GE11_Pt;
-  TH1F *MatchedGEMSegment_GE21_Eta; TH1F *MatchedGEMSegment_GE21_Pt;
-  TH1F *MatchedGEMSegment_Eta; TH1F *MatchedGEMSegment_Pt;
-  TH1F *TPMuon_Eta; TH1F *TPMuon_Pt;
-  TH1F *HitsMatchedGEMMuon_Eta; TH1F *HitsMatchedGEMMuon_Pt;
-  TH1F *HitsUnmatchedGEMMuon_Eta; TH1F* HitsUnmatchedGEMMuon_Pt;
-  TH1F *HitsMatchedRecoMuon_Eta; TH1F *HitsMatchedRecoMuon_Pt;
-  TH1F *HitsUnmatchedRecoMuon_Eta; TH1F* HitsUnmatchedRecoMuon_Pt;
-  TH1F *HitsMatchedLooseMuon_Eta; TH1F *HitsMatchedLooseMuon_Pt;
-  TH1F *HitsUnmatchedLooseMuon_Eta; TH1F* HitsUnmatchedLooseMuon_Pt;
-  TH1F *HitsMatchedMediumMuon_Eta; TH1F *HitsMatchedMediumMuon_Pt;
-  TH1F *HitsUnmatchedMediumMuon_Eta; TH1F* HitsUnmatchedMediumMuon_Pt;
-  TH1F *HitsMatchedTightMuon_Eta; TH1F *HitsMatchedTightMuon_Pt;
-  TH1F *HitsUnmatchedTightMuon_Eta; TH1F* HitsUnmatchedTightMuon_Pt;
+  TH1F *MatchedGEMSegment_GE11_Eta; TH1F *MatchedGEMSegment_GE11_Pt; TH1F *MatchedGEMSegment_GE11_Phi;
+  TH1F *MatchedGEMSegment_GE21_Eta; TH1F *MatchedGEMSegment_GE21_Pt; TH1F *MatchedGEMSegment_GE21_Phi;
+  TH1F *MatchedGEMSegment_Eta; TH1F *MatchedGEMSegment_Pt; TH1F *MatchedGEMSegment_Phi;
+  TH1F *TPMuon_Eta; TH1F *TPMuon_Pt; TH1F *TPMuon_Phi;
+  TH1F *HitsMatchedGEMMuon_Eta; TH1F *HitsMatchedGEMMuon_Pt; TH1F *HitsMatchedGEMMuon_Phi;
+  TH1F *HitsUnmatchedGEMMuon_Eta; TH1F* HitsUnmatchedGEMMuon_Pt; TH1F* HitsUnmatchedGEMMuon_Phi;
+  TH1F *HitsMatchedRecoMuon_Eta; TH1F *HitsMatchedRecoMuon_Pt; TH1F *HitsMatchedRecoMuon_Phi;
+  TH1F *HitsUnmatchedRecoMuon_Eta; TH1F* HitsUnmatchedRecoMuon_Pt; TH1F* HitsUnmatchedRecoMuon_Phi;
+  TH1F *HitsMatchedLooseMuon_Eta; TH1F *HitsMatchedLooseMuon_Pt; TH1F *HitsMatchedLooseMuon_Phi;
+  TH1F *HitsUnmatchedLooseMuon_Eta; TH1F* HitsUnmatchedLooseMuon_Pt; TH1F* HitsUnmatchedLooseMuon_Phi;
+  TH1F *HitsMatchedMediumMuon_Eta; TH1F *HitsMatchedMediumMuon_Pt; TH1F *HitsMatchedMediumMuon_Phi;
+  TH1F *HitsUnmatchedMediumMuon_Eta; TH1F* HitsUnmatchedMediumMuon_Pt; TH1F* HitsUnmatchedMediumMuon_Phi;
+  TH1F *HitsMatchedTightMuon_Eta; TH1F *HitsMatchedTightMuon_Pt; TH1F *HitsMatchedTightMuon_Phi;
+  TH1F *HitsUnmatchedTightMuon_Eta; TH1F* HitsUnmatchedTightMuon_Pt; TH1F* HitsUnmatchedTightMuon_Phi;
 
   TH2F *GEMRecHit_GE11_GlobalPosition_scattered, *GEMSegment_GE11_GlobalPosition_scattered;
   TH2F *GEMRecHit_GE21_GlobalPosition_scattered, *GEMSegment_GE21_GlobalPosition_scattered;
@@ -256,58 +256,84 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   Nevents_h = new TH1F("Nevents_h", "Nevents", 2, 0, 2 );
   GenMuon_Eta = new TH1F("GenMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  GenMuon_Phi = new TH1F("GenMuon_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi());
   MatchedRecoMuon_Eta = new TH1F("MatchedRecoMuon_Eta", "RecoMuon #eta", n_eta_bin, eta_bin );
   MatchedRecoMuon_Pt =  new TH1F("MatchedRecoMuon_Pt", "RecoMuon p_{T}", n_pt_bin, pt_bin );
+  MatchedRecoMuon_Phi =  new TH1F("MatchedRecoMuon_Phi", "RecoMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedRecoMuon_not_GEMMuon_Eta = new TH1F("MatchedRecoMuon_not_GEMMuon_Eta", "RecoMuon NOT GEMMuon #eta", n_eta_bin, eta_bin );
   MatchedRecoMuon_not_GEMMuon_Pt =  new TH1F("MatchedRecoMuon_not_GEMMuon_Pt", "RecoMuon NOT GEMMuon p_{T}", n_pt_bin, pt_bin );
+  MatchedRecoMuon_not_GEMMuon_Phi = new TH1F("MatchedRecoMuon_not_GEMMuon_Phi", "RecoMuon NOT GEMMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta = new TH1F("MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta", "RecoMuon NOT GEMMuon, NO GEMSegment matched #eta", n_eta_bin, eta_bin );
   MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt =  new TH1F("MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt", "RecoMuon NOT GEMMuon, NO GEMSegment matched p_{T}", n_pt_bin, pt_bin );
+  MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi = new TH1F("MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi", "RecoMuon NOT GEMMuon, NO GEMSegment matched #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMMuon_Eta = new TH1F("MatchedGEMMuon_Eta", "GEMMuon #eta", n_eta_bin, eta_bin );
   MatchedGEMMuon_Pt =  new TH1F("MatchedGEMMuon_Pt", "GEMMuon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMMuon_Phi = new TH1F("MatchedGEMMuon_Phi", "GEMMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_Eta = new TH1F("MatchedGEMRecHit_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMRecHit_Pt =  new TH1F("MatchedGEMRecHit_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_Phi = new TH1F("MatchedGEMRecHit_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_GE11_layer1_Eta = new TH1F("MatchedGEMRecHit_GE11_layer1_Eta", "Muon #eta GE11 layer 1", n_eta_bin, eta_bin );
   MatchedGEMRecHit_GE11_layer1_Pt =  new TH1F("MatchedGEMRecHit_GE11_layer1_Pt", "Muon p_{T}  GE11 layer 1", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_GE11_layer1_Phi = new TH1F("MatchedGEMRecHit_GE11_layer1_Phi", "Muon #phi GE11 layer 1", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_GE11_layer2_Eta = new TH1F("MatchedGEMRecHit_GE11_layer2_Eta", "Muon #eta GE11 layer 2", n_eta_bin, eta_bin );
   MatchedGEMRecHit_GE11_layer2_Pt =  new TH1F("MatchedGEMRecHit_GE11_layer2_Pt", "Muon p_{T}  GE11 layer 2", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_GE11_layer2_Phi = new TH1F("MatchedGEMRecHit_GE11_layer2_Phi", "Muon #phi GE11 layer 2", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_GE21_layer1_Eta = new TH1F("MatchedGEMRecHit_GE21_layer1_Eta", "Muon #eta GE21 layer 1", n_eta_bin, eta_bin );
   MatchedGEMRecHit_GE21_layer1_Pt =  new TH1F("MatchedGEMRecHit_GE21_layer1_Pt", "Muon p_{T}  GE21 layer 1", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_GE21_layer1_Phi = new TH1F("MatchedGEMRecHit_GE21_layer1_Phi", "Muon #phi GE21 layer 1", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_GE21_layer2_Eta = new TH1F("MatchedGEMRecHit_GE21_layer2_Eta", "Muon #eta GE21 layer 2", n_eta_bin, eta_bin );
   MatchedGEMRecHit_GE21_layer2_Pt =  new TH1F("MatchedGEMRecHit_GE21_layer2_Pt", "Muon p_{T}  GE21 layer 2", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_GE21_layer2_Phi = new TH1F("MatchedGEMRecHit_GE21_layer2_Phi", "Muon #phi GE21 layer 2", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_GE11_two_Eta = new TH1F("MatchedGEMRecHit_GE11_two_Eta", "Muon #eta GE11", n_eta_bin, eta_bin );
   MatchedGEMRecHit_GE11_two_Pt =  new TH1F("MatchedGEMRecHit_GE11_two_Pt", "Muon p_{T} GE11", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_GE11_two_Phi = new TH1F("MatchedGEMRecHit_GE11_two_Phi", "Muon #phi GE11", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMRecHit_GE21_two_Eta = new TH1F("MatchedGEMRecHit_GE21_two_Eta", "Muon #eta GE21", n_eta_bin, eta_bin );
   MatchedGEMRecHit_GE21_two_Pt =  new TH1F("MatchedGEMRecHit_GE21_two_Pt", "Muon p_{T} GE21", n_pt_bin, pt_bin );
+  MatchedGEMRecHit_GE21_two_Phi = new TH1F("MatchedGEMRecHit_GE21_two_Phi", "Muon #phi GE21", 36, -TMath::Pi(), TMath::Pi() );
   MatchedClusteredGEMRecHit_GE11_dBunchX = new TH1I("MatchedClusteredGEMRecHit_GE11_dBunchX", "#DeltaBunchX GE11", 10, 0, 10);
   MatchedClusteredGEMRecHit_GE21_dBunchX = new TH1I("MatchedClusteredGEMRecHit_GE21_dBunchX", "#DeltaBunchX GE21", 10, 0, 10);
   MatchedGEMSegment_GE11_Eta = new TH1F("MatchedGEMSegment_GE11_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMSegment_GE11_Pt =  new TH1F("MatchedGEMSegment_GE11_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMSegment_GE11_Phi = new TH1F("MatchedGEMSegment_GE11_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMSegment_GE21_Eta = new TH1F("MatchedGEMSegment_GE21_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMSegment_GE21_Pt =  new TH1F("MatchedGEMSegment_GE21_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMSegment_GE21_Phi = new TH1F("MatchedGEMSegment_GE21_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
   MatchedGEMSegment_Eta = new TH1F("MatchedGEMSegment_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMSegment_Pt =  new TH1F("MatchedGEMSegment_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  MatchedGEMSegment_Phi = new TH1F("MatchedGEMSegment_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
   TPMuon_Eta = new TH1F("TPMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   TPMuon_Pt = new TH1F("TPMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
+  TPMuon_Phi = new TH1F("TPMuon_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsMatchedGEMMuon_Eta = new TH1F("HitsMatchedGEMMuon_Eta", "GEMMuon #eta", n_eta_bin, eta_bin );
   HitsMatchedGEMMuon_Pt  = new TH1F("HitsMatchedGEMMuon_Pt", "GENMuon p_{T}", n_pt_bin, pt_bin );
+  HitsMatchedGEMMuon_Phi = new TH1F("HitsMatchedGEMMuon_Phi", "GEMMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsUnmatchedGEMMuon_Eta = new TH1F("HitsUnmatchedGEMMuon_Eta", "GEMMuon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedGEMMuon_Pt  = new TH1F("HitsUnmatchedGEMMuon_Pt", "GENMuon p_{T}", n_pt_bin, pt_bin );
+  HitsUnmatchedGEMMuon_Phi = new TH1F("HitsUnmatchedGEMMuon_Phi", "GEMMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsMatchedRecoMuon_Eta = new TH1F("HitsMatchedRecoMuon_Eta", "RecoMuon #eta", n_eta_bin, eta_bin );
   HitsMatchedRecoMuon_Pt  = new TH1F("HitsMatchedRecoMuon_Pt", "RecoMuon p_{T}", n_pt_bin, pt_bin );
+  HitsMatchedRecoMuon_Phi = new TH1F("HitsMatchedRecoMuon_Phi", "RecoMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsUnmatchedRecoMuon_Eta = new TH1F("HitsUnmatchedRecoMuon_Eta", "RecoMuon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedRecoMuon_Pt  = new TH1F("HitsUnmatchedRecoMuon_Pt", "RecoMuon p_{T}", n_pt_bin, pt_bin );
+  HitsUnmatchedRecoMuon_Phi = new TH1F("HitsUnmatchedRecoMuon_Phi", "RecoMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsMatchedLooseMuon_Eta = new TH1F("HitsMatchedLooseMuon_Eta", "LooseMuon #eta", n_eta_bin, eta_bin );
   HitsMatchedLooseMuon_Pt  = new TH1F("HitsMatchedLooseMuon_Pt", "LooseMuon p_{T}", n_pt_bin, pt_bin );
+  HitsMatchedLooseMuon_Phi = new TH1F("HitsMatchedLooseMuon_Phi", "LooseMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsUnmatchedLooseMuon_Eta = new TH1F("HitsUnmatchedLooseMuon_Eta", "LooseMuon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedLooseMuon_Pt  = new TH1F("HitsUnmatchedLooseMuon_Pt", "LooseMuon p_{T}", n_pt_bin, pt_bin );
+  HitsUnmatchedLooseMuon_Phi = new TH1F("HitsUnmatchedLooseMuon_Phi", "LooseMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsMatchedMediumMuon_Eta = new TH1F("HitsMatchedMediumMuon_Eta", "MediumMuon #eta", n_eta_bin, eta_bin );
   HitsMatchedMediumMuon_Pt  = new TH1F("HitsMatchedMediumMuon_Pt", "MediumMuon p_{T}", n_pt_bin, pt_bin );
+  HitsMatchedMediumMuon_Phi = new TH1F("HitsMatchedMediumMuon_Phi", "MediumMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsUnmatchedMediumMuon_Eta = new TH1F("HitsUnmatchedMediumMuon_Eta", "MediumMuon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedMediumMuon_Pt  = new TH1F("HitsUnmatchedMediumMuon_Pt", "MediumMuon p_{T}", n_pt_bin, pt_bin );
+  HitsUnmatchedMediumMuon_Phi = new TH1F("HitsUnmatchedMediumMuon_Phi", "MediumMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsMatchedTightMuon_Eta = new TH1F("HitsMatchedTightMuon_Eta", "TightMuon #eta", n_eta_bin, eta_bin );
   HitsMatchedTightMuon_Pt  = new TH1F("HitsMatchedTightMuon_Pt", "TightMuon p_{T}", n_pt_bin, pt_bin );
+  HitsMatchedTightMuon_Phi = new TH1F("HitsMatchedTightMuon_Phi", "TightMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
   HitsUnmatchedTightMuon_Eta = new TH1F("HitsUnmatchedTightMuon_Eta", "TightMuon #eta", n_eta_bin, eta_bin );
   HitsUnmatchedTightMuon_Pt  = new TH1F("HitsUnmatchedTightMuon_Pt", "TightMuon p_{T}", n_pt_bin, pt_bin );
+  HitsUnmatchedTightMuon_Phi = new TH1F("HitsUnmatchedTightMuon_Phi", "TightMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
 
   GEMRecHit_GE11_GlobalPosition_scattered = new TH2F("GEMRecHit_GE11_GlobalPosition_scattered", "GEMRecHit GE11 GlobalPosition", 800, -400., 400., 800, -400., 400.);
   GEMSegment_GE11_GlobalPosition_scattered = new TH2F("GEMSegment_GE11_GlobalPosition_scattered", "GEMSegment GE11 GlobalPosition", 800, -400., 400., 800, -400., 400.);
@@ -503,6 +529,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         GenMuon_Eta->Fill(fabs(CurrentParticle.eta()));
         if ( (fabs(CurrentParticle.eta()) > 1.6) && (fabs(CurrentParticle.eta()) < 2.4) ) {
           GenMuon_Pt->Fill(CurrentParticle.pt());
+          GenMuon_Phi->Fill(CurrentParticle.phi());
         }
       }
 
@@ -556,6 +583,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           MatchedRecoMuon_Eta->Fill(fabs(CurrentParticle.eta()));
           if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
             MatchedRecoMuon_Pt->Fill(CurrentParticle.pt());
+            MatchedRecoMuon_Phi->Fill(CurrentParticle.phi());
           }
         }
       }
@@ -564,6 +592,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           MatchedRecoMuon_not_GEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
           if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
             MatchedRecoMuon_not_GEMMuon_Pt->Fill(CurrentParticle.pt());
+            MatchedRecoMuon_not_GEMMuon_Phi->Fill(CurrentParticle.phi());
           }
         }
       }
@@ -573,6 +602,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           MatchedGEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
           if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
             MatchedGEMMuon_Pt->Fill(CurrentParticle.pt());
+            MatchedGEMMuon_Phi->Fill(CurrentParticle.phi());
           }
         }
       }
@@ -700,7 +730,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           if(GE11doublematched) MatchedGEMRecHit_GE11_two_Eta->Fill(fabs(CurrentParticle.eta()));
           if(GE21doublematched) MatchedGEMRecHit_GE21_two_Eta->Fill(fabs(CurrentParticle.eta()));
 
-          //==== pt
+          //==== pt, phi
           if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
             MatchedGEMRecHit_Pt->Fill(CurrentParticle.pt());
             if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Pt->Fill(CurrentParticle.pt());
@@ -709,6 +739,13 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Pt->Fill(CurrentParticle.pt());
             if(GE11doublematched) MatchedGEMRecHit_GE11_two_Pt->Fill(CurrentParticle.pt());
             if(GE21doublematched) MatchedGEMRecHit_GE21_two_Pt->Fill(CurrentParticle.pt());
+            MatchedGEMRecHit_Phi->Fill(CurrentParticle.phi());
+            if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Phi->Fill(CurrentParticle.phi());
+            if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Phi->Fill(CurrentParticle.phi());
+            if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Phi->Fill(CurrentParticle.phi());
+            if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Phi->Fill(CurrentParticle.phi());
+            if(GE11doublematched) MatchedGEMRecHit_GE11_two_Phi->Fill(CurrentParticle.phi());
+            if(GE21doublematched) MatchedGEMRecHit_GE21_two_Phi->Fill(CurrentParticle.phi());
           }
 
         }
@@ -767,6 +804,9 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             MatchedGEMSegment_Pt->Fill(CurrentParticle.pt());
             if(isGE11Matched) MatchedGEMSegment_GE11_Pt->Fill(CurrentParticle.pt());
             if(isGE21Matched) MatchedGEMSegment_GE21_Pt->Fill(CurrentParticle.pt());
+            MatchedGEMSegment_Phi->Fill(CurrentParticle.phi());
+            if(isGE11Matched) MatchedGEMSegment_GE11_Phi->Fill(CurrentParticle.phi());
+            if(isGE21Matched) MatchedGEMSegment_GE21_Phi->Fill(CurrentParticle.phi());
           }
 
         }
@@ -778,6 +818,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta->Fill(fabs(CurrentParticle.eta()));
           if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
             MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt->Fill(CurrentParticle.pt());
+            MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi->Fill(CurrentParticle.phi());
           }
         }
       }
@@ -819,6 +860,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if(SignalMuon){
           TPMuon_Eta->Fill(fabs(tp->eta()));
           TPMuon_Pt->Fill(tp->pt());
+          TPMuon_Phi->Fill(tp->phi());
         }
 
       } // END if( Eta_1p6_2p4 && Pt_5 )
@@ -905,22 +947,27 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                       if(label[www]=="gemMuonSel"){
                         HitsMatchedGEMMuon_Eta->Fill(fabs(tpr->eta()));
                         HitsMatchedGEMMuon_Pt->Fill(tpr->pt());
+                        HitsMatchedGEMMuon_Phi->Fill(tpr->phi());
                       }
                       if(label[www]=="recoMuonSel"){
                         HitsMatchedRecoMuon_Eta->Fill(fabs(tpr->eta()));
                         HitsMatchedRecoMuon_Pt->Fill(tpr->pt());
+                        HitsMatchedRecoMuon_Phi->Fill(tpr->phi());
                       }
                       if(label[www]=="looseMuonSel"){
                         HitsMatchedLooseMuon_Eta->Fill(fabs(tpr->eta()));
                         HitsMatchedLooseMuon_Pt->Fill(tpr->pt());
+                        HitsMatchedLooseMuon_Phi->Fill(tpr->phi());
                       }
                       if(label[www]=="mediumMuonSel"){
                         HitsMatchedMediumMuon_Eta->Fill(fabs(tpr->eta()));
                         HitsMatchedMediumMuon_Pt->Fill(tpr->pt());
+                        HitsMatchedMediumMuon_Phi->Fill(tpr->phi());
                       }
                       if(label[www]=="tightMuonSel"){
                         HitsMatchedTightMuon_Eta->Fill(fabs(tpr->eta()));
                         HitsMatchedTightMuon_Pt->Fill(tpr->pt());
+                        HitsMatchedTightMuon_Phi->Fill(tpr->phi());
                       }
 
 
@@ -942,23 +989,28 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           if( Eta_1p6_2p4 && Pt_5 ){
             if(label[www]=="gemMuonSel"){
                HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
-              HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
+               HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
+               HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
             }
             if(label[www]=="recoMuonSel"){
               HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
               HitsUnmatchedRecoMuon_Pt->Fill(track->pt());
+              HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
             }
             if(label[www]=="looseMuonSel"){
               HitsUnmatchedLooseMuon_Eta->Fill(fabs(tpr->eta()));
               HitsUnmatchedLooseMuon_Pt->Fill(tpr->pt());
+              HitsUnmatchedLooseMuon_Phi->Fill(tpr->phi());
             }
             if(label[www]=="mediumMuonSel"){
               HitsUnmatchedMediumMuon_Eta->Fill(fabs(tpr->eta()));
               HitsUnmatchedMediumMuon_Pt->Fill(tpr->pt());
+              HitsUnmatchedMediumMuon_Phi->Fill(tpr->phi());
             }
             if(label[www]=="tightMuonSel"){
               HitsUnmatchedTightMuon_Eta->Fill(fabs(tpr->eta()));
               HitsUnmatchedTightMuon_Pt->Fill(tpr->pt());
+              HitsUnmatchedTightMuon_Phi->Fill(tpr->phi());
             }
           } 
 
@@ -1298,208 +1350,294 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   /* gen-reco delta R matching */
   GenMuon_Eta->Write();
   GenMuon_Pt->Write();
+  GenMuon_Phi->Write();
   MatchedRecoMuon_Eta->Write();
   MatchedRecoMuon_Pt->Write();
+  MatchedRecoMuon_Phi->Write();
   MatchedRecoMuon_not_GEMMuon_Eta->Write();
   MatchedRecoMuon_not_GEMMuon_Pt->Write();
+  MatchedRecoMuon_not_GEMMuon_Phi->Write();
   MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta->Write();
   MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt->Write();
+  MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi->Write();
   MatchedGEMMuon_Eta->Write();
   MatchedGEMMuon_Pt->Write();
+  MatchedGEMMuon_Phi->Write();
   MatchedGEMRecHit_Eta->Write();
   MatchedGEMRecHit_Pt->Write();
+  MatchedGEMRecHit_Phi->Write();
   MatchedGEMRecHit_GE11_layer1_Eta->Write();
   MatchedGEMRecHit_GE11_layer1_Pt->Write();
+  MatchedGEMRecHit_GE11_layer1_Phi->Write();
   MatchedGEMRecHit_GE11_layer2_Eta->Write();
   MatchedGEMRecHit_GE11_layer2_Pt->Write();
+  MatchedGEMRecHit_GE11_layer2_Phi->Write();
   MatchedGEMRecHit_GE21_layer1_Eta->Write();
   MatchedGEMRecHit_GE21_layer1_Pt->Write();
+  MatchedGEMRecHit_GE21_layer1_Phi->Write();
   MatchedGEMRecHit_GE21_layer2_Eta->Write();
   MatchedGEMRecHit_GE21_layer2_Pt->Write();
+  MatchedGEMRecHit_GE21_layer2_Phi->Write();
   MatchedGEMRecHit_GE11_two_Eta->Write();
   MatchedGEMRecHit_GE11_two_Pt->Write();
+  MatchedGEMRecHit_GE11_two_Phi->Write();
   MatchedGEMRecHit_GE21_two_Eta->Write();
   MatchedGEMRecHit_GE21_two_Pt->Write();
+  MatchedGEMRecHit_GE21_two_Phi->Write();
   MatchedClusteredGEMRecHit_GE11_dBunchX->Write();
   MatchedClusteredGEMRecHit_GE21_dBunchX->Write();
   MatchedGEMSegment_GE11_Eta->Write();
   MatchedGEMSegment_GE11_Pt->Write();
+  MatchedGEMSegment_GE11_Phi->Write();
   MatchedGEMSegment_GE21_Eta->Write();
   MatchedGEMSegment_GE21_Pt->Write();
+  MatchedGEMSegment_GE21_Phi->Write();
   MatchedGEMSegment_Eta->Write();
   MatchedGEMSegment_Pt->Write();
+  MatchedGEMSegment_Phi->Write();
   //==== RecoMuon Efficiency
   TEfficiency* Eff_RecoMuon_Eta = new TEfficiency(*MatchedRecoMuon_Eta, *GenMuon_Eta);
   TEfficiency* Eff_RecoMuon_Pt = new TEfficiency(*MatchedRecoMuon_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_RecoMuon_Phi = new TEfficiency(*MatchedRecoMuon_Phi, *GenMuon_Phi);
   Eff_RecoMuon_Eta->SetName("Eff_RecoMuon_Eta");
   Eff_RecoMuon_Pt->SetName("Eff_RecoMuon_Pt");
+  Eff_RecoMuon_Phi->SetName("Eff_RecoMuon_Phi");
   Eff_RecoMuon_Eta->Write();
   Eff_RecoMuon_Pt->Write();
+  Eff_RecoMuon_Phi->Write();
   //==== NotGEMMuon Efficiency
   TEfficiency* Eff_NotGEMMuon_Eta = new TEfficiency(*MatchedRecoMuon_not_GEMMuon_Eta, *GenMuon_Eta);
   TEfficiency* Eff_NotGEMMuon_Pt = new TEfficiency(*MatchedRecoMuon_not_GEMMuon_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_NotGEMMuon_Phi = new TEfficiency(*MatchedRecoMuon_not_GEMMuon_Phi, *GenMuon_Phi);
   Eff_NotGEMMuon_Eta->SetName("Eff_NotGEMMuon_Eta");
   Eff_NotGEMMuon_Pt->SetName("Eff_NotGEMMuon_Pt");
+  Eff_NotGEMMuon_Phi->SetName("Eff_NotGEMMuon_Phi");
   Eff_NotGEMMuon_Eta->Write();
   Eff_NotGEMMuon_Pt->Write();
+  Eff_NotGEMMuon_Phi->Write();
   //==== NOTGEMMuon, no GEMSegment matched Efficiency
   TEfficiency* Eff_NotGEMMuon_no_gemseg_Eta = new TEfficiency(*MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta, *GenMuon_Eta);
   TEfficiency* Eff_NotGEMMuon_no_gemseg_Pt = new TEfficiency(*MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_NotGEMMuon_no_gemseg_Phi = new TEfficiency(*MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi, *GenMuon_Phi);
   Eff_NotGEMMuon_no_gemseg_Eta->SetName("Eff_NotGEMMuon_no_gemseg_Eta");
   Eff_NotGEMMuon_no_gemseg_Pt->SetName("Eff_NotGEMMuon_no_gemseg_Pt");
+  Eff_NotGEMMuon_no_gemseg_Phi->SetName("Eff_NotGEMMuon_no_gemseg_Phi");
   Eff_NotGEMMuon_no_gemseg_Eta->Write();
   Eff_NotGEMMuon_no_gemseg_Pt->Write();
+  Eff_NotGEMMuon_no_gemseg_Phi->Write();
   //==== GEMMuon Efficiency
   TEfficiency* Eff_GEMMuon_Eta = new TEfficiency(*MatchedGEMMuon_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMMuon_Pt = new TEfficiency(*MatchedGEMMuon_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMMuon_Phi = new TEfficiency(*MatchedGEMMuon_Phi, *GenMuon_Phi);
   Eff_GEMMuon_Eta->SetName("Eff_GEMMuon_Eta");
   Eff_GEMMuon_Pt->SetName("Eff_GEMMuon_Pt");
+  Eff_GEMMuon_Phi->SetName("Eff_GEMMuon_Phi");
   Eff_GEMMuon_Eta->Write();
   Eff_GEMMuon_Pt->Write();
+  Eff_GEMMuon_Phi->Write();
   //==== GEMMuon/RecoMuon Efficiency
   TEfficiency* Eff_GEMMuon_over_RecoMuon_Eta = new TEfficiency(*MatchedGEMMuon_Eta, *MatchedRecoMuon_Eta);
   TEfficiency* Eff_GEMMuon_over_RecoMuon_Pt = new TEfficiency(*MatchedGEMMuon_Pt, *MatchedRecoMuon_Pt);
+  TEfficiency* Eff_GEMMuon_over_RecoMuon_Phi = new TEfficiency(*MatchedGEMMuon_Phi, *MatchedRecoMuon_Phi);
   Eff_GEMMuon_over_RecoMuon_Eta->SetName("Eff_GEMMuon_over_RecoMuon_Eta");
   Eff_GEMMuon_over_RecoMuon_Pt->SetName("Eff_GEMMuon_over_RecoMuon_Pt");
+  Eff_GEMMuon_over_RecoMuon_Phi->SetName("Eff_GEMMuon_over_RecoMuon_Phi");
   Eff_GEMMuon_over_RecoMuon_Eta->Write();
   Eff_GEMMuon_over_RecoMuon_Pt->Write();
+  Eff_GEMMuon_over_RecoMuon_Phi->Write();
   //==== Rechit Efficiency
   TEfficiency* Eff_GEMRecHit_Eta = new TEfficiency(*MatchedGEMRecHit_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_Pt = new TEfficiency(*MatchedGEMRecHit_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_Phi = new TEfficiency(*MatchedGEMRecHit_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMRecHit_GE11_layer1_Eta = new TEfficiency(*MatchedGEMRecHit_GE11_layer1_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_GE11_layer1_Pt = new TEfficiency(*MatchedGEMRecHit_GE11_layer1_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_GE11_layer1_Phi = new TEfficiency(*MatchedGEMRecHit_GE11_layer1_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMRecHit_GE11_layer2_Eta = new TEfficiency(*MatchedGEMRecHit_GE11_layer2_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_GE11_layer2_Pt = new TEfficiency(*MatchedGEMRecHit_GE11_layer2_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_GE11_layer2_Phi = new TEfficiency(*MatchedGEMRecHit_GE11_layer2_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMRecHit_GE21_layer1_Eta = new TEfficiency(*MatchedGEMRecHit_GE21_layer1_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_GE21_layer1_Pt = new TEfficiency(*MatchedGEMRecHit_GE21_layer1_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_GE21_layer1_Phi = new TEfficiency(*MatchedGEMRecHit_GE21_layer1_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMRecHit_GE21_layer2_Eta = new TEfficiency(*MatchedGEMRecHit_GE21_layer2_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_GE21_layer2_Pt = new TEfficiency(*MatchedGEMRecHit_GE21_layer2_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_GE21_layer2_Phi = new TEfficiency(*MatchedGEMRecHit_GE21_layer2_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMRecHit_GE11_two_Eta = new TEfficiency(*MatchedGEMRecHit_GE11_two_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_GE11_two_Pt = new TEfficiency(*MatchedGEMRecHit_GE11_two_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_GE11_two_Phi = new TEfficiency(*MatchedGEMRecHit_GE11_two_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMRecHit_GE21_two_Eta = new TEfficiency(*MatchedGEMRecHit_GE21_two_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMRecHit_GE21_two_Pt = new TEfficiency(*MatchedGEMRecHit_GE21_two_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMRecHit_GE21_two_Phi = new TEfficiency(*MatchedGEMRecHit_GE21_two_Phi, *GenMuon_Phi);
   Eff_GEMRecHit_Eta->SetName("Eff_GEMRecHit_Eta");
   Eff_GEMRecHit_Pt->SetName("Eff_GEMRecHit_Pt");
+  Eff_GEMRecHit_Phi->SetName("Eff_GEMRecHit_Phi");
   Eff_GEMRecHit_GE11_layer1_Eta->SetName("Eff_GEMRecHit_GE11_layer1_Eta");
   Eff_GEMRecHit_GE11_layer1_Pt->SetName("Eff_GEMRecHit_GE11_layer1_Pt");
+  Eff_GEMRecHit_GE11_layer1_Phi->SetName("Eff_GEMRecHit_GE11_layer1_Phi");
   Eff_GEMRecHit_GE11_layer2_Eta->SetName("Eff_GEMRecHit_GE11_layer2_Eta");
   Eff_GEMRecHit_GE11_layer2_Pt->SetName("Eff_GEMRecHit_GE11_layer2_Pt");
+  Eff_GEMRecHit_GE11_layer2_Phi->SetName("Eff_GEMRecHit_GE11_layer2_Phi");
   Eff_GEMRecHit_GE21_layer1_Eta->SetName("Eff_GEMRecHit_GE21_layer1_Eta");
   Eff_GEMRecHit_GE21_layer1_Pt->SetName("Eff_GEMRecHit_GE21_layer1_Pt");
+  Eff_GEMRecHit_GE21_layer1_Phi->SetName("Eff_GEMRecHit_GE21_layer1_Phi");
   Eff_GEMRecHit_GE21_layer2_Eta->SetName("Eff_GEMRecHit_GE21_layer2_Eta");
   Eff_GEMRecHit_GE21_layer2_Pt->SetName("Eff_GEMRecHit_GE21_layer2_Pt");
+  Eff_GEMRecHit_GE21_layer2_Phi->SetName("Eff_GEMRecHit_GE21_layer2_Phi");
   Eff_GEMRecHit_GE11_two_Eta->SetName("Eff_GEMRecHit_GE11_two_Eta");
   Eff_GEMRecHit_GE11_two_Pt->SetName("Eff_GEMRecHit_GE11_two_Pt");
+  Eff_GEMRecHit_GE11_two_Phi->SetName("Eff_GEMRecHit_GE11_two_Phi");
   Eff_GEMRecHit_GE21_two_Eta->SetName("Eff_GEMRecHit_GE21_two_Eta");
   Eff_GEMRecHit_GE21_two_Pt->SetName("Eff_GEMRecHit_GE21_two_Pt");
+  Eff_GEMRecHit_GE21_two_Phi->SetName("Eff_GEMRecHit_GE21_two_Phi");
   Eff_GEMRecHit_Eta->Write();
   Eff_GEMRecHit_Pt->Write();
+  Eff_GEMRecHit_Phi->Write();
   Eff_GEMRecHit_GE11_layer1_Eta->Write();
   Eff_GEMRecHit_GE11_layer1_Pt->Write();
+  Eff_GEMRecHit_GE11_layer1_Phi->Write();
   Eff_GEMRecHit_GE11_layer2_Eta->Write();
   Eff_GEMRecHit_GE11_layer2_Pt->Write();
+  Eff_GEMRecHit_GE11_layer2_Phi->Write();
   Eff_GEMRecHit_GE21_layer1_Eta->Write();
   Eff_GEMRecHit_GE21_layer1_Pt->Write();
+  Eff_GEMRecHit_GE21_layer1_Phi->Write();
   Eff_GEMRecHit_GE21_layer2_Eta->Write();
   Eff_GEMRecHit_GE21_layer2_Pt->Write();
+  Eff_GEMRecHit_GE21_layer2_Phi->Write();
   Eff_GEMRecHit_GE11_two_Eta->Write();
   Eff_GEMRecHit_GE11_two_Pt->Write();
+  Eff_GEMRecHit_GE11_two_Phi->Write();
   Eff_GEMRecHit_GE21_two_Eta->Write();
   Eff_GEMRecHit_GE21_two_Pt->Write();
+  Eff_GEMRecHit_GE21_two_Phi->Write();
   // gemsegment
   TEfficiency* Eff_GEMSegment_GE11_Eta = new TEfficiency(*MatchedGEMSegment_GE11_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMSegment_GE11_Pt = new TEfficiency(*MatchedGEMSegment_GE11_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMSegment_GE11_Phi = new TEfficiency(*MatchedGEMSegment_GE11_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMSegment_GE21_Eta = new TEfficiency(*MatchedGEMSegment_GE21_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMSegment_GE21_Pt = new TEfficiency(*MatchedGEMSegment_GE21_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMSegment_GE21_Phi = new TEfficiency(*MatchedGEMSegment_GE21_Phi, *GenMuon_Phi);
   TEfficiency* Eff_GEMSegment_Eta = new TEfficiency(*MatchedGEMSegment_Eta, *GenMuon_Eta);
   TEfficiency* Eff_GEMSegment_Pt = new TEfficiency(*MatchedGEMSegment_Pt, *GenMuon_Pt);
+  TEfficiency* Eff_GEMSegment_Phi = new TEfficiency(*MatchedGEMSegment_Phi, *GenMuon_Phi);
   Eff_GEMSegment_GE11_Eta->SetName("Eff_GEMSegment_GE11_Eta");
   Eff_GEMSegment_GE11_Pt->SetName("Eff_GEMSegment_GE11_Pt");
+  Eff_GEMSegment_GE11_Phi->SetName("Eff_GEMSegment_GE11_Phi");
   Eff_GEMSegment_GE21_Eta->SetName("Eff_GEMSegment_GE21_Eta");
   Eff_GEMSegment_GE21_Pt->SetName("Eff_GEMSegment_GE21_Pt");
+  Eff_GEMSegment_GE21_Phi->SetName("Eff_GEMSegment_GE21_Phi");
   Eff_GEMSegment_Eta->SetName("Eff_GEMSegment_Eta");
   Eff_GEMSegment_Pt->SetName("Eff_GEMSegment_Pt");
+  Eff_GEMSegment_Phi->SetName("Eff_GEMSegment_Phi");
   Eff_GEMSegment_GE11_Eta->Write();
   Eff_GEMSegment_GE11_Pt->Write();
+  Eff_GEMSegment_GE11_Phi->Write();
   Eff_GEMSegment_GE21_Eta->Write();
   Eff_GEMSegment_GE21_Pt->Write();
+  Eff_GEMSegment_GE21_Phi->Write();
   Eff_GEMSegment_Eta->Write();
   Eff_GEMSegment_Pt->Write();
-  
+  Eff_GEMSegment_Phi->Write();
+ 
   /* Association by hits */
 
   TPMuon_Eta->Write();
   TPMuon_Pt->Write();
+  TPMuon_Phi->Write();
 
   //==== GEMMuon
   HitsMatchedGEMMuon_Eta->Write();
   HitsMatchedGEMMuon_Pt->Write();
+  HitsMatchedGEMMuon_Phi->Write();
   // Efficeicny
   TEfficiency* HitsEff_GEMMuon_Eta = new TEfficiency(*HitsMatchedGEMMuon_Eta, *TPMuon_Eta);
   TEfficiency* HitsEff_GEMMuon_Pt = new TEfficiency(*HitsMatchedGEMMuon_Pt, *TPMuon_Pt);
+  TEfficiency* HitsEff_GEMMuon_Phi = new TEfficiency(*HitsMatchedGEMMuon_Phi, *TPMuon_Phi);
   HitsEff_GEMMuon_Eta->SetName("HitsEff_GEMMuon_Eta");
   HitsEff_GEMMuon_Pt->SetName("HitsEff_GEMMuon_Pt");
+  HitsEff_GEMMuon_Phi->SetName("HitsEff_GEMMuon_Phi");
   HitsEff_GEMMuon_Eta->Write();
   HitsEff_GEMMuon_Pt->Write();
+  HitsEff_GEMMuon_Phi->Write();
   // Fake
   HitsUnmatchedGEMMuon_Eta->Write();
   HitsUnmatchedGEMMuon_Pt->Write();
+  HitsUnmatchedGEMMuon_Phi->Write();
 
   //==== RecoMuon
   HitsMatchedRecoMuon_Eta->Write();
   HitsMatchedRecoMuon_Pt->Write();
+  HitsMatchedRecoMuon_Phi->Write();
   // Efficeicny
   TEfficiency* HitsEff_RecoMuon_Eta = new TEfficiency(*HitsMatchedRecoMuon_Eta, *TPMuon_Eta);
   TEfficiency* HitsEff_RecoMuon_Pt = new TEfficiency(*HitsMatchedRecoMuon_Pt, *TPMuon_Pt);
+  TEfficiency* HitsEff_RecoMuon_Phi = new TEfficiency(*HitsMatchedRecoMuon_Phi, *TPMuon_Phi);
   HitsEff_RecoMuon_Eta->SetName("HitsEff_RecoMuon_Eta");
   HitsEff_RecoMuon_Pt->SetName("HitsEff_RecoMuon_Pt");
+  HitsEff_RecoMuon_Phi->SetName("HitsEff_RecoMuon_Phi");
   HitsEff_RecoMuon_Eta->Write();
   HitsEff_RecoMuon_Pt->Write();
+  HitsEff_RecoMuon_Phi->Write();
   // Fake
   HitsUnmatchedRecoMuon_Eta->Write();
   HitsUnmatchedRecoMuon_Pt->Write();
+  HitsUnmatchedRecoMuon_Phi->Write();
 
   //==== LooseMuon
   HitsMatchedLooseMuon_Eta->Write();
   HitsMatchedLooseMuon_Pt->Write();
+  HitsMatchedLooseMuon_Phi->Write();
   // Efficeicny
   TEfficiency* HitsEff_LooseMuon_Eta = new TEfficiency(*HitsMatchedLooseMuon_Eta, *TPMuon_Eta);
   TEfficiency* HitsEff_LooseMuon_Pt = new TEfficiency(*HitsMatchedLooseMuon_Pt, *TPMuon_Pt);
+  TEfficiency* HitsEff_LooseMuon_Phi = new TEfficiency(*HitsMatchedLooseMuon_Phi, *TPMuon_Phi);
   HitsEff_LooseMuon_Eta->SetName("HitsEff_LooseMuon_Eta");
   HitsEff_LooseMuon_Pt->SetName("HitsEff_LooseMuon_Pt");
+  HitsEff_LooseMuon_Phi->SetName("HitsEff_LooseMuon_Phi");
   HitsEff_LooseMuon_Eta->Write();
   HitsEff_LooseMuon_Pt->Write();
+  HitsEff_LooseMuon_Phi->Write();
   // Fake
   HitsUnmatchedLooseMuon_Eta->Write();
   HitsUnmatchedLooseMuon_Pt->Write();
+  HitsUnmatchedLooseMuon_Phi->Write();
 
   //==== MediumMuon
   HitsMatchedMediumMuon_Eta->Write();
   HitsMatchedMediumMuon_Pt->Write();
+  HitsMatchedMediumMuon_Phi->Write();
   // Efficeicny
   TEfficiency* HitsEff_MediumMuon_Eta = new TEfficiency(*HitsMatchedMediumMuon_Eta, *TPMuon_Eta);
   TEfficiency* HitsEff_MediumMuon_Pt = new TEfficiency(*HitsMatchedMediumMuon_Pt, *TPMuon_Pt);
+  TEfficiency* HitsEff_MediumMuon_Phi = new TEfficiency(*HitsMatchedMediumMuon_Phi, *TPMuon_Phi);
   HitsEff_MediumMuon_Eta->SetName("HitsEff_MediumMuon_Eta");
   HitsEff_MediumMuon_Pt->SetName("HitsEff_MediumMuon_Pt");
+  HitsEff_MediumMuon_Phi->SetName("HitsEff_MediumMuon_Phi");
   HitsEff_MediumMuon_Eta->Write();
   HitsEff_MediumMuon_Pt->Write();
+  HitsEff_MediumMuon_Phi->Write();
   // Fake
   HitsUnmatchedMediumMuon_Eta->Write();
   HitsUnmatchedMediumMuon_Pt->Write();
+  HitsUnmatchedMediumMuon_Phi->Write();
 
   //==== TightMuon
   HitsMatchedTightMuon_Eta->Write();
   HitsMatchedTightMuon_Pt->Write();
+  HitsMatchedTightMuon_Phi->Write();
   // Efficeicny
   TEfficiency* HitsEff_TightMuon_Eta = new TEfficiency(*HitsMatchedTightMuon_Eta, *TPMuon_Eta);
   TEfficiency* HitsEff_TightMuon_Pt = new TEfficiency(*HitsMatchedTightMuon_Pt, *TPMuon_Pt);
+  TEfficiency* HitsEff_TightMuon_Phi = new TEfficiency(*HitsMatchedTightMuon_Phi, *TPMuon_Phi);
   HitsEff_TightMuon_Eta->SetName("HitsEff_TightMuon_Eta");
   HitsEff_TightMuon_Pt->SetName("HitsEff_TightMuon_Pt");
+  HitsEff_TightMuon_Phi->SetName("HitsEff_TightMuon_Phi");
   HitsEff_TightMuon_Eta->Write();
   HitsEff_TightMuon_Pt->Write();
+  HitsEff_TightMuon_Phi->Write();
   // Fake
   HitsUnmatchedTightMuon_Eta->Write();
   HitsUnmatchedTightMuon_Pt->Write();
+  HitsUnmatchedTightMuon_Phi->Write();
 
   GEMRecHit_GE11_GlobalPosition_scattered->Write();
   GEMSegment_GE11_GlobalPosition_scattered->Write();

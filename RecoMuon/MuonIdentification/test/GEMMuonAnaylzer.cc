@@ -829,7 +829,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
   if (UseAssociators) {
 
-    //==== denominators for efficiencies
     //std::cout << "TrackingParticle size = " << trackingParticles->size() << std::endl;
     for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
       TrackingParticleRef tpr(trackingParticles, i);
@@ -839,11 +838,12 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
       if (abs(tp->pdgId()) != 13) continue;
 
-      bool Eta_1p6_2p4 = fabs(tp->eta()) > 1.6 && fabs(tp->eta()) < 2.4,
-           Pt_5 = tp->pt() > 5;
+      bool Eta_1p6_2p4 = fabs(tp->eta()) > 1.6 && fabs(tp->eta()) < 2.4;
+      bool Pt_5 = tp->pt() > 5;
       if( Eta_1p6_2p4 && Pt_5 ){
         bool SignalMuon = false;
-        if(tp->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+        if(tp->status() != -99){
+          //==== Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
           //int motherid=-1;
           if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
             if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
@@ -858,10 +858,77 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         } // END if(tp->status() != -99)        
 
         if(SignalMuon){
+          //==== Fill the Denominator
           TPMuon_Eta->Fill(fabs(tp->eta()));
           TPMuon_Pt->Fill(tp->pt());
           TPMuon_Phi->Fill(tp->phi());
-        }
+          //==== Looking at SimToReco
+          for (unsigned int www=0;www<label.size();www++){
+
+            Handle<reco::SimToRecoCollection > simtorecoCollectionH;
+            iEvent.getByLabel(associators[www],simtorecoCollectionH);
+            reco::SimToRecoCollection simRecColl= *(simtorecoCollectionH.product());
+
+            Handle<reco::RecoToSimCollection > recotosimCollectionH;
+            iEvent.getByLabel(associators[www],recotosimCollectionH);
+            reco::RecoToSimCollection recSimColl= *(recotosimCollectionH.product());
+
+            edm::Handle<View<Track> >  trackCollection;
+            iEvent.getByToken(track_Collection_Token[www], trackCollection);
+
+            if( (simRecColl.find(tpr) == simRecColl.end()) || (simRecColl[tpr].size() == 0) ){
+              edm::LogVerbatim("GEMMuonAnalyzer") << "No SimToReco found for this TrackingParticle";
+            }
+            else{
+              std::vector<std::pair<RefToBase<Track>, double> > rt = simRecColl[tpr];
+              RefToBase<Track> rtr = rt.begin()->first;
+              std::cout << "This SimToReco :" << std::endl;
+              for(std::vector<std::pair<RefToBase<Track>, double> >::const_iterator itit=rt.begin(); itit!=rt.end(); itit++){
+                std::cout << "  quality = "<<itit->second<<std::endl;
+              }
+              if( (recSimColl.find(rtr) == recSimColl.end()) || (recSimColl[rtr].size() ==0) ){
+                edm::LogVerbatim("GEMMuonAnalyzer") << "SimToReco found, but no RecoToSim for the best SimToReco";
+              }
+              else{
+                std::vector<std::pair<TrackingParticleRef, double> > tp = recSimColl[rtr];
+                TrackingParticleRef bestTPforEff = tp.begin()->first;
+                if( bestTPforEff == tpr ){
+                  edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched RecoTrack";
+
+                  if(label[www]=="gemMuonSel"){
+                    n_AssoByHits_matched_GEMmuon++;
+                    HitsMatchedGEMMuon_Eta->Fill(fabs(tpr->eta()));
+                    HitsMatchedGEMMuon_Pt->Fill(tpr->pt());
+                    HitsMatchedGEMMuon_Phi->Fill(tpr->phi());
+                  }
+                  if(label[www]=="recoMuonSel"){
+                    HitsMatchedRecoMuon_Eta->Fill(fabs(tpr->eta()));
+                    HitsMatchedRecoMuon_Pt->Fill(tpr->pt());
+                    HitsMatchedRecoMuon_Phi->Fill(tpr->phi());
+                  }
+                  if(label[www]=="looseMuonSel"){
+                    HitsMatchedLooseMuon_Eta->Fill(fabs(tpr->eta()));
+                    HitsMatchedLooseMuon_Pt->Fill(tpr->pt());
+                    HitsMatchedLooseMuon_Phi->Fill(tpr->phi());
+                  }
+                  if(label[www]=="mediumMuonSel"){
+                    HitsMatchedMediumMuon_Eta->Fill(fabs(tpr->eta()));
+                    HitsMatchedMediumMuon_Pt->Fill(tpr->pt());
+                    HitsMatchedMediumMuon_Phi->Fill(tpr->phi());
+                  }
+                  if(label[www]=="tightMuonSel"){
+                    HitsMatchedTightMuon_Eta->Fill(fabs(tpr->eta()));
+                    HitsMatchedTightMuon_Pt->Fill(tpr->pt());
+                    HitsMatchedTightMuon_Phi->Fill(tpr->phi());
+                  }
+
+                }
+              }
+            }
+
+          } //==== END of label loop
+
+        } //==== END if(SignalMuon)
 
       } // END if( Eta_1p6_2p4 && Pt_5 )
 
@@ -882,8 +949,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       iEvent.getByLabel(associators[www],recotosimCollectionH);
       recSimColl= *(recotosimCollectionH.product());
 
-
-
       unsigned int trackCollectionSize = 0;
       iEvent.getByToken(track_Collection_Token[www], trackCollection);
       trackCollectionSize = trackCollection->size();
@@ -894,128 +959,79 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         //std::cout << i << "th trackCollection iterator" << std::endl;
         RefToBase<Track> track(trackCollection, i);
 
-        std::vector<std::pair<TrackingParticleRef, double> > tp;
-        std::vector<std::pair<TrackingParticleRef, double> > tpforfake;
-        TrackingParticleRef tpr;
-        TrackingParticleRef tprforfake;
-
         //==== Check if the track is associated to any gen particle
-        bool TrackIsEfficient = false;
-        if(recSimColl.find(track) == recSimColl.end()) continue; //FIXME
-        if(recSimColl.find(track) != recSimColl.end()){
-          tp = recSimColl[track];
-          if (tp.size()!=0) {
-            //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
-            tpr = tp.begin()->first;
-            //double assocChi2 = -(tp.begin()->second);
-   
-            //==== So this track is matched to a gen particle, lets get that gen particle now
-            if( (simRecColl.find(tpr) != simRecColl.end()) ){
-              std::vector<std::pair<RefToBase<Track>, double> > rt;
-              if(simRecColl[tpr].size() > 0){
-                //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
-                rt=simRecColl[tpr];
-                RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
-                //==== Only fill the efficiency histo if the track found matches up to a gen particle's best choice
-                //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
-                if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) ) {
-                  TrackIsEfficient=true;
-                  //==== This section fills the numerator of the efficiency calculation...
-
-                  bool Eta_1p6_2p4 = fabs(tpr->eta()) > 1.6 && fabs(tpr->eta()) < 2.4,
-                       Pt_5 = tpr->pt() > 5;
-                  if( Eta_1p6_2p4 && Pt_5 ){
-                   
-                    bool SignalMuon=false;
-                    
-                    if(tpr->status() !=-99){
-                      //int motherid=-1;
-                      if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
-                        if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
-                          //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
-                        }
-                      }
-                      //std::cout<<"Mother ID = "<<motherid<<std::endl;
-                      if( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
-                          ( (tpr->status()==1) )
-                      ) SignalMuon=true;
-                    } // END if (tpr->status() !=-99)
-                    if(SignalMuon){
-
-                      n_AssoByHits_matched_GEMmuon++;
-
-                      if(label[www]=="gemMuonSel"){
-                        HitsMatchedGEMMuon_Eta->Fill(fabs(tpr->eta()));
-                        HitsMatchedGEMMuon_Pt->Fill(tpr->pt());
-                        HitsMatchedGEMMuon_Phi->Fill(tpr->phi());
-                      }
-                      if(label[www]=="recoMuonSel"){
-                        HitsMatchedRecoMuon_Eta->Fill(fabs(tpr->eta()));
-                        HitsMatchedRecoMuon_Pt->Fill(tpr->pt());
-                        HitsMatchedRecoMuon_Phi->Fill(tpr->phi());
-                      }
-                      if(label[www]=="looseMuonSel"){
-                        HitsMatchedLooseMuon_Eta->Fill(fabs(tpr->eta()));
-                        HitsMatchedLooseMuon_Pt->Fill(tpr->pt());
-                        HitsMatchedLooseMuon_Phi->Fill(tpr->phi());
-                      }
-                      if(label[www]=="mediumMuonSel"){
-                        HitsMatchedMediumMuon_Eta->Fill(fabs(tpr->eta()));
-                        HitsMatchedMediumMuon_Pt->Fill(tpr->pt());
-                        HitsMatchedMediumMuon_Phi->Fill(tpr->phi());
-                      }
-                      if(label[www]=="tightMuonSel"){
-                        HitsMatchedTightMuon_Eta->Fill(fabs(tpr->eta()));
-                        HitsMatchedTightMuon_Pt->Fill(tpr->pt());
-                        HitsMatchedTightMuon_Phi->Fill(tpr->phi());
-                      }
-
-
-                    } // END if(SignalMuon)
-
-                  } // END if( Eta_1p6_2p4 && Pt_5 )            
-
-                } // END if ( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) )
-              } // END if(simRecColl[tpr].size() > 0) 
-            } // END  if ( (simRecColl.find(tpr) != simRecColl.end()) )
-
-          } // END if (tp.size()!=0)
-        } // END if(recSimColl.find(track) != recSimColl.end())
-
-        // A simple way of measuring fake rate
-        if (!TrackIsEfficient) {
-          bool Eta_1p6_2p4 = fabs(tpr->eta()) > 1.6 && fabs(tpr->eta()) < 2.4,
-               Pt_5 = tpr->pt() > 5;
-          if( Eta_1p6_2p4 && Pt_5 ){
-            if(label[www]=="gemMuonSel"){
-               HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
-               HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
-               HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
-            }
-            if(label[www]=="recoMuonSel"){
-              HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
-              HitsUnmatchedRecoMuon_Pt->Fill(track->pt());
-              HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
-            }
-            if(label[www]=="looseMuonSel"){
-              HitsUnmatchedLooseMuon_Eta->Fill(fabs(tpr->eta()));
-              HitsUnmatchedLooseMuon_Pt->Fill(tpr->pt());
-              HitsUnmatchedLooseMuon_Phi->Fill(tpr->phi());
-            }
-            if(label[www]=="mediumMuonSel"){
-              HitsUnmatchedMediumMuon_Eta->Fill(fabs(tpr->eta()));
-              HitsUnmatchedMediumMuon_Pt->Fill(tpr->pt());
-              HitsUnmatchedMediumMuon_Phi->Fill(tpr->phi());
-            }
-            if(label[www]=="tightMuonSel"){
-              HitsUnmatchedTightMuon_Eta->Fill(fabs(tpr->eta()));
-              HitsUnmatchedTightMuon_Pt->Fill(tpr->pt());
-              HitsUnmatchedTightMuon_Phi->Fill(tpr->phi());
-            }
+        bool isFake = false;
+        if( (recSimColl.find(track) == recSimColl.end()) || (recSimColl[track].size() == 0) ){
+          edm::LogVerbatim("GEMMuonAnalyzer") << "No RecoToSim found for this RecoTrack";
+          isFake = true;
+        }
+        //==== gen particle is found
+        else{
+          std::vector<std::pair<TrackingParticleRef, double> > tp = recSimColl[track];
+          TrackingParticleRef tpr = tp.begin()->first;
+          //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
+          if( (simRecColl.find(tpr) == simRecColl.end())  ||  (simRecColl[tpr].size() == 0)  ) {
+            edm::LogVerbatim("GEMMuonAnalyzer") << "RecoToSim found, but no SimToReco for the best RecoToSim";
+            isFake = true;
           } 
+          else{
+            std::vector<std::pair<RefToBase<Track>, double> > rt = simRecColl[tpr];
+            RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
+            //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
 
-        } // END if (!TrackIsEfficient)
-      } // END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
+            //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
+            bool Eta_1p6_2p4 = fabs(tpr->eta()) > 1.6 && fabs(tpr->eta()) < 2.4;
+            bool Pt_5 = tpr->pt() > 5;
+            bool SignalMuon = false;
+            if(tpr->status() !=-99){
+              if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+                if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+                  //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+                }
+              }
+              //std::cout<<"Mother ID = "<<motherid<<std::endl;
+              if( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                  ( (tpr->status()==1) ) ) SignalMuon=true;
+            }
+            //if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && Eta_1p6_2p4 && Pt_5 && SignalMuon ) {
+            if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
+              edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched TrackingParticle";
+            }
+            else{
+              isFake = true;
+            }
+          }
+        }
+
+        if(isFake) {
+          if(label[www]=="gemMuonSel"){
+             HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
+             HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
+             HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
+          }
+          if(label[www]=="recoMuonSel"){
+            HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
+            HitsUnmatchedRecoMuon_Pt->Fill(track->pt());
+            HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
+          }
+          if(label[www]=="looseMuonSel"){
+            HitsUnmatchedLooseMuon_Eta->Fill(fabs(track->eta()));
+            HitsUnmatchedLooseMuon_Pt->Fill(track->pt());
+            HitsUnmatchedLooseMuon_Phi->Fill(track->phi());
+          }
+          if(label[www]=="mediumMuonSel"){
+            HitsUnmatchedMediumMuon_Eta->Fill(fabs(track->eta()));
+            HitsUnmatchedMediumMuon_Pt->Fill(track->pt());
+            HitsUnmatchedMediumMuon_Phi->Fill(track->phi());
+          }
+          if(label[www]=="tightMuonSel"){
+            HitsUnmatchedTightMuon_Eta->Fill(fabs(track->eta()));
+            HitsUnmatchedTightMuon_Pt->Fill(track->pt());
+            HitsUnmatchedTightMuon_Phi->Fill(track->phi());
+          }
+        } //==== END if(isFake)
+
+      }//==== END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
 
 
 

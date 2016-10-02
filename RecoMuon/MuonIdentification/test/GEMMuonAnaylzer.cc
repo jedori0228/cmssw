@@ -98,7 +98,7 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   void beginRun(edm::Run const&, edm::EventSetup const&);
   void endRun(edm::Run const&, edm::EventSetup const&);
-  std::string DoubleToString(std::string prefix, double dd);
+  std::string DoubleToString(double dd);
 
   //protected:
   
@@ -113,20 +113,20 @@ public:
 
   edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
   edm::EDGetTokenT<TrackingParticleCollection> trackingParticlesToken_;
-  edm::EDGetTokenT <reco::TrackCollection > generalTracksToken_;
   edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
   edm::EDGetTokenT<GEMRecHitCollection> GEMRecHit_Token;
   edm::EDGetTokenT<GEMSegmentCollection> GEMSegment_Token;
   std::vector<edm::EDGetTokenT<edm::View<reco::Track> > > track_Collection_Token;
 
   bool UseAssociators;
-  bool UseGEMEtaCoverageMuons;
-  bool doMatchingStudy;
+  bool UseDeltaR;
+  bool doGeometryStudy;
   const TrackAssociatorByChi2Impl* associatorByChi2;
 
   std::vector<std::string> associators;
   //std::vector<edm::InputTag> label;
   std::vector<std::string> label;
+  std::vector<double> PullXValues, DXValues, PullYValues, DYValues;
 
   //Histos for plotting
   TFile* histoFile; 
@@ -171,23 +171,31 @@ public:
   TH2F *GEMRecHit_GE11_odd_XZplane, *GEMRecHit_GE11_even_XZplane; 
   TH2F *GEMRecHit_GE21_odd_XZplane, *GEMRecHit_GE21_even_XZplane;
 
-  TH1F *DelX_GE11, *DelX_over_sigma_GE11, *DelY_GE11, *DelY_over_sigma_GE11, *DotDir_GE11;
-  TH1F *DelX_GE21, *DelX_over_sigma_GE21, *DelY_GE21, *DelY_over_sigma_GE21, *DotDir_GE21;
-
-  std::vector<double> maxPull, maxX_GE11, maxY_GE11, maxX_GE21, maxY_GE21, minDotDir;
-  TH1F *maxPull_values, *maxX_GE11_values, *maxY_GE11_values, *maxX_GE21_values, *maxY_GE21_values, *minDotDir_values;
-  std::map< std::string, TH1F* > map_maxXPull_GE11, map_maxYPull_GE11, map_maxXPull_GE21, map_maxYPull_GE21, map_maxX_GE11, map_maxY_GE11, map_maxX_GE21, map_maxY_GE21, map_minDotDir_GE11, map_minDotDir_GE21;
-
-  double Current_trackerGEM_maxPull, Current_maxDiffXGE11, Current_maxDiffYGE11, Current_maxDiffXGE21, Current_maxDiffYGE21, Current_minDotDir;
+  std::vector<int> n_GEMMuon_PullX;
+  std::map< double, TH1F* > N_GEMMuon_PullX_h;
+  std::map< double, TH1F* > HitsMatchedPullX_Eta, HitsMatchedPullX_Pt, HitsMatchedPullX_Phi,
+                            HitsUnmatchedPullX_Eta, HitsUnmatchedPullX_Pt, HitsUnmatchedPullX_Phi;
+  std::vector<int> n_GEMMuon_DX;
+  std::map< double, TH1F* > N_GEMMuon_DX_h;
+  std::map< double, TH1F* > HitsMatchedDX_Eta, HitsMatchedDX_Pt, HitsMatchedDX_Phi,
+                            HitsUnmatchedDX_Eta, HitsUnmatchedDX_Pt, HitsUnmatchedDX_Phi;
+  std::vector<int> n_GEMMuon_PullY;
+  std::map< double, TH1F* > N_GEMMuon_PullY_h;
+  std::map< double, TH1F* > HitsMatchedPullY_Eta, HitsMatchedPullY_Pt, HitsMatchedPullY_Phi,
+                            HitsUnmatchedPullY_Eta, HitsUnmatchedPullY_Pt, HitsUnmatchedPullY_Phi;
+  std::vector<int> n_GEMMuon_DY;
+  std::map< double, TH1F* > N_GEMMuon_DY_h;
+  std::map< double, TH1F* > HitsMatchedDY_Eta, HitsMatchedDY_Pt, HitsMatchedDY_Phi,
+                            HitsUnmatchedDY_Eta, HitsUnmatchedDY_Pt, HitsUnmatchedDY_Phi;
 
 };
 
 GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig) 
 {
   histoFile = new TFile(iConfig.getParameter<std::string>("HistoFile").c_str(), "recreate");
-  UseGEMEtaCoverageMuons = iConfig.getParameter< bool >("UseGEMEtaCoverageMuons");
   UseAssociators = iConfig.getParameter< bool >("UseAssociators");
-  doMatchingStudy = iConfig.getParameter< bool >("doMatchingStudy");
+  UseDeltaR = iConfig.getParameter< bool >("UseDeltaR");
+  doGeometryStudy = iConfig.getParameter< bool >("doGeometryStudy");
 
   FakeRatePtCut   = iConfig.getParameter<double>("FakeRatePtCut");
   MatchingWindowDelR   = iConfig.getParameter<double>("MatchingWindowDelR");
@@ -198,6 +206,10 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
 
   //label = iConfig.getParameter< std::vector<edm::InputTag> >("label");
   label = iConfig.getParameter< std::vector<std::string> >("label");
+  PullXValues = iConfig.getParameter< std::vector<double> >("PullXValues");
+  DXValues = iConfig.getParameter< std::vector<double> >("DXValues");
+  PullYValues = iConfig.getParameter< std::vector<double> >("PullYValues");
+  DYValues = iConfig.getParameter< std::vector<double> >("DYValues");
   edm::InputTag genParticlesTag ("genParticles");
   genParticlesToken_ = consumes<reco::GenParticleCollection>(genParticlesTag);
   edm::InputTag trackingParticlesTag ("mix","MergedTrackTruth");
@@ -219,25 +231,6 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
     }
   }
 
-  if(doMatchingStudy){
-    generalTracksToken_ = consumes<reco::TrackCollection>(edm::InputTag("generalTracks"));
-
-    maxPull = iConfig.getParameter< std::vector<double> >("maxPull");
-    maxX_GE11 = iConfig.getParameter< std::vector<double> >("maxX_GE11");
-    maxY_GE11 = iConfig.getParameter< std::vector<double> >("maxY_GE11");
-    maxX_GE21 = iConfig.getParameter< std::vector<double> >("maxX_GE21");
-    maxY_GE21 = iConfig.getParameter< std::vector<double> >("maxY_GE21");
-    minDotDir = iConfig.getParameter< std::vector<double> >("minDotDir");
-
-  }
-
-   Current_trackerGEM_maxPull = iConfig.getParameter<double>("Current_trackerGEM_maxPull");
-   Current_maxDiffXGE11   = iConfig.getParameter<double>("Current_maxDiffXGE11");
-   Current_maxDiffYGE11   = iConfig.getParameter<double>("Current_maxDiffYGE11");
-   Current_maxDiffXGE21   = iConfig.getParameter<double>("Current_maxDiffXGE21");
-   Current_maxDiffYGE21   = iConfig.getParameter<double>("Current_maxDiffYGE21");
-   Current_minDotDir      = iConfig.getParameter<double>("Current_minDotDir");
-
   n_genmuon = 0;
   n_dR_matched_GEMmuon = 0;
   n_AssoByHits_matched_GEMmuon = 0;
@@ -247,6 +240,11 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   n_LooseMuon = 0;
   n_MediumMuon = 0;
   n_TightMuon = 0;
+  for(unsigned int i=0; i<PullXValues.size(); i++) n_GEMMuon_PullX.push_back(0);
+  for(unsigned int i=0; i<DXValues.size(); i++) n_GEMMuon_DX.push_back(0);
+  for(unsigned int i=0; i<PullYValues.size(); i++) n_GEMMuon_PullY.push_back(0);
+  for(unsigned int i=0; i<DYValues.size(); i++) n_GEMMuon_DY.push_back(0);
+  
 
   std::cout<<"Contructor end"<<std::endl;
 }
@@ -360,61 +358,50 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   GEMRecHit_GE21_odd_XZplane = new TH2F("GEMRecHit_GE21_odd_XZplane", "GEMRecHit GE21 Odd XZ-plane",    20*10, 790., 810., 800, -400., 400.);
   GEMRecHit_GE21_even_XZplane = new TH2F("GEMRecHit_GE21_even_XZplane", "GEMRecHit GE21 Even XZ-plane", 20*10, 790., 810., 800, -400., 400.);
 
-  if(doMatchingStudy){
-    DelX_GE11 = new TH1F("DelX_GE11", "DelX_GE11", 5./0.1, 0., 5.);
-    DelX_over_sigma_GE11 = new TH1F("DelX_over_sigma_GE11", "DelX_over_sigma_GE11", 5./0.1, 0., 5.);
-    DelY_GE11 = new TH1F("DelY_GE11", "DelY_GE11", 20./0.1, 0., 20.);
-    DelY_over_sigma_GE11 = new TH1F("DelY_over_sigma_GE11", "DelY_over_sigma_GE11", 5./0.1, 0., 5.);
-    DotDir_GE11 = new TH1F("DotDir_GE11", "DotDir_GE11", 1.5/0.01, 0., 1.5);
-
-    DelX_GE21 = new TH1F("DelX_GE21", "DelX_GE21", 5./0.1, 0., 5.);
-    DelX_over_sigma_GE21 = new TH1F("DelX_over_sigma_GE21", "DelX_over_sigma_GE21", 5./0.1, 0., 5.);
-    DelY_GE21 = new TH1F("DelY_GE21", "DelY_GE21", 20./0.1, 0., 20.);
-    DelY_over_sigma_GE21 = new TH1F("DelY_over_sigma_GE21", "DelY_over_sigma_GE21", 5./0.1, 0., 5.);
-    DotDir_GE21 = new TH1F("DotDir_GE21", "DotDir_GE21", 1.5/0.01, 0., 1.5);
-
-    maxPull_values = new TH1F("maxPull_values", "maxPull_values", 100, 0, 100);
-    maxX_GE11_values = new TH1F("maxX_GE11_values", "maxX_GE11_values", 100, 0, 100);
-    maxY_GE11_values = new TH1F("maxY_GE11_values", "maxY_GE11_values", 100, 0, 100);
-    maxX_GE21_values = new TH1F("maxX_GE21_values", "maxX_GE21_values", 100, 0, 100);
-    maxY_GE21_values = new TH1F("maxY_GE21_values", "maxY_GE21_values", 100, 0, 100);
-    minDotDir_values = new TH1F("minDotDir_values", "minDotDir_values", 100, 0, 100);
-
-    for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
-      maxPull_values->SetBinContent(aaa+1, maxPull.at(aaa));
-      map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))] = new TH1F(DoubleToString("maxXPull_GE11", maxPull.at(aaa)).data(), DoubleToString("maxXPull_GE11", maxPull.at(aaa)).data(), 2, 0, 2);
-      map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))] = new TH1F(DoubleToString("maxYPull_GE11", maxPull.at(aaa)).data(), DoubleToString("maxYPull_GE11", maxPull.at(aaa)).data(), 2, 0, 2);
-      map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))] = new TH1F(DoubleToString("maxXPull_GE21", maxPull.at(aaa)).data(), DoubleToString("maxXPull_GE21", maxPull.at(aaa)).data(), 2, 0, 2);
-      map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))] = new TH1F(DoubleToString("maxYPull_GE21", maxPull.at(aaa)).data(), DoubleToString("maxYPull_GE21", maxPull.at(aaa)).data(), 2, 0, 2);
-    }
-    for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
-      maxX_GE11_values->SetBinContent(aaa+1, maxX_GE11.at(aaa));
-      std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
-      map_maxX_GE11[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
-    }
-    for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
-      maxY_GE11_values->SetBinContent(aaa+1, maxY_GE11.at(aaa));
-      std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
-      map_maxY_GE11[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
-    }
-    for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
-      maxX_GE21_values->SetBinContent(aaa+1, maxX_GE21.at(aaa));
-      std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
-      map_maxX_GE21[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
-    }
-    for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
-      maxY_GE21_values->SetBinContent(aaa+1, maxY_GE21.at(aaa));
-      std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
-      map_maxY_GE21[thistitle] = new TH1F(thistitle.data(), thistitle.data(), 2, 0, 2);
-    }
-    for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
-      minDotDir_values->SetBinContent(aaa+1, minDotDir.at(aaa));
-      map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))] = new TH1F(DoubleToString("minDotDir_GE11", minDotDir.at(aaa)).data(), DoubleToString("minDotDir_GE11", minDotDir.at(aaa)).data(), 2, 0, 2);
-      map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))] = new TH1F(DoubleToString("minDotDir_GE21", minDotDir.at(aaa)).data(), DoubleToString("minDotDir_GE21", minDotDir.at(aaa)).data(), 2, 0, 2);
-    }
-    
+  for(unsigned int i=0; i<PullXValues.size(); i++){
+    double aaa = PullXValues.at(i);
+    TString saaa = "_"+DoubleToString(aaa);
+    HitsMatchedPullX_Eta[aaa] = new TH1F("HitsMatchedPullX_Eta"+saaa, "PullX #eta", n_eta_bin, eta_bin );
+    HitsMatchedPullX_Pt[aaa]  = new TH1F("HitsMatchedPullX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsMatchedPullX_Phi[aaa] = new TH1F("HitsMatchedPullX_Phi"+saaa, "PullX #phi", 36, -TMath::Pi(), TMath::Pi() );
+    HitsUnmatchedPullX_Eta[aaa] = new TH1F("HitsUnmatchedPullX_Eta"+saaa, "PullX #eta", n_eta_bin, eta_bin );
+    HitsUnmatchedPullX_Pt[aaa]  = new TH1F("HitsUnmatchedPullX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsUnmatchedPullX_Phi[aaa] = new TH1F("HitsUnmatchedPullX_Phi"+saaa, "PullX #phi", 36, -TMath::Pi(), TMath::Pi() );
+    N_GEMMuon_PullX_h[aaa] = new TH1F("N_GEMMuon_PullX_h"+saaa, "Nevents", 1, 0, 1 );
   }
-
+  for(unsigned int i=0; i<DXValues.size(); i++){
+    double aaa = DXValues.at(i);
+    TString saaa = "_"+DoubleToString(aaa);
+    HitsMatchedDX_Eta[aaa] = new TH1F("HitsMatchedDX_Eta"+saaa, "DX #eta", n_eta_bin, eta_bin );
+    HitsMatchedDX_Pt[aaa]  = new TH1F("HitsMatchedDX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsMatchedDX_Phi[aaa] = new TH1F("HitsMatchedDX_Phi"+saaa, "DX #phi", 36, -TMath::Pi(), TMath::Pi() );
+    HitsUnmatchedDX_Eta[aaa] = new TH1F("HitsUnmatchedDX_Eta"+saaa, "DX #eta", n_eta_bin, eta_bin );
+    HitsUnmatchedDX_Pt[aaa]  = new TH1F("HitsUnmatchedDX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsUnmatchedDX_Phi[aaa] = new TH1F("HitsUnmatchedDX_Phi"+saaa, "DX #phi", 36, -TMath::Pi(), TMath::Pi() );
+    N_GEMMuon_DX_h[aaa] = new TH1F("N_GEMMuon_DX_h"+saaa, "Nevents", 1, 0, 1 );
+  }
+  for(unsigned int i=0; i<PullYValues.size(); i++){
+    double aaa = PullYValues.at(i);
+    TString saaa = "_"+DoubleToString(aaa);
+    HitsMatchedPullY_Eta[aaa] = new TH1F("HitsMatchedPullY_Eta"+saaa, "PullY #eta", n_eta_bin, eta_bin );
+    HitsMatchedPullY_Pt[aaa]  = new TH1F("HitsMatchedPullY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsMatchedPullY_Phi[aaa] = new TH1F("HitsMatchedPullY_Phi"+saaa, "PullY #phi", 36, -TMath::Pi(), TMath::Pi() );
+    HitsUnmatchedPullY_Eta[aaa] = new TH1F("HitsUnmatchedPullY_Eta"+saaa, "PullY #eta", n_eta_bin, eta_bin );
+    HitsUnmatchedPullY_Pt[aaa]  = new TH1F("HitsUnmatchedPullY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsUnmatchedPullY_Phi[aaa] = new TH1F("HitsUnmatchedPullY_Phi"+saaa, "PullY #phi", 36, -TMath::Pi(), TMath::Pi() );
+    N_GEMMuon_PullY_h[aaa] = new TH1F("N_GEMMuon_PullY_h"+saaa, "Nevents", 1, 0, 1 );
+  }
+  for(unsigned int i=0; i<DYValues.size(); i++){
+    double aaa = DYValues.at(i);
+    TString saaa = "_"+DoubleToString(aaa);
+    HitsMatchedDY_Eta[aaa] = new TH1F("HitsMatchedDY_Eta"+saaa, "DY #eta", n_eta_bin, eta_bin );
+    HitsMatchedDY_Pt[aaa]  = new TH1F("HitsMatchedDY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsMatchedDY_Phi[aaa] = new TH1F("HitsMatchedDY_Phi"+saaa, "DY #phi", 36, -TMath::Pi(), TMath::Pi() );
+    HitsUnmatchedDY_Eta[aaa] = new TH1F("HitsUnmatchedDY_Eta"+saaa, "DY #eta", n_eta_bin, eta_bin );
+    HitsUnmatchedDY_Pt[aaa]  = new TH1F("HitsUnmatchedDY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsUnmatchedDY_Phi[aaa] = new TH1F("HitsUnmatchedDY_Phi"+saaa, "DY #phi", 36, -TMath::Pi(), TMath::Pi() );
+    N_GEMMuon_DY_h[aaa] = new TH1F("N_GEMMuon_DY_h"+saaa, "Nevents", 1, 0, 1 );
+  }
 
 
 }
@@ -444,393 +431,398 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<reco::MuonCollection> recoMuons;
   iEvent.getByToken(RecoMuon_Token, recoMuons);
 
-  //==== GEMRecHit study
   iSetup.get<MuonGeometryRecord>().get(gemGeom);
   edm::Handle<GEMRecHitCollection> gemRecHitCollection;
   iEvent.getByToken(GEMRecHit_Token, gemRecHitCollection);
-
-  for(auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
-    GEMDetId id = thisRecHit->gemId();
-    auto roll = gemGeom->etaPartition(id);
-    auto RecHitLP = thisRecHit->localPosition();
-    auto RecHitGP = roll->toGlobal(RecHitLP);
-    //std::cout << "rechit station = " << id.station() << std::endl;
-    //std::cout << "Rechit id = " << id << " => (" << RecHitGP.x() << ", " << RecHitGP.y() << ", " << RecHitGP.z() << ")" << std::endl;
-    if( id.station() == 1 ){
-      GEMRecHit_GE11_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
-      GEMRecHit_GE11_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
-      if(id.chamber()%2 == 0){
-        GEMRecHit_GE11_even_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
-      }
-      else{
-        GEMRecHit_GE11_odd_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
-      }
-    }
-    if( id.station() == 3 ){
-      GEMRecHit_GE21_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
-      GEMRecHit_GE21_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
-      if(id.chamber()%2 == 0){
-        GEMRecHit_GE21_even_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
-      }
-      else{
-        GEMRecHit_GE21_odd_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
-      }
-    }
-  }
-
-  //==== GEMSegment study
   edm::Handle<GEMSegmentCollection> gemSegmentCollection;
   iEvent.getByToken(GEMSegment_Token, gemSegmentCollection);
 
-  for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
-    GEMDetId id = gems->gemDetId();
-    auto chamb = gemGeom->superChamber(id);
-    auto segLP = gems->localPosition();
-    auto segGP = chamb->toGlobal(segLP);
-    auto rechits = gems->specificRecHits();
-    //std::cout << "gemseg station = " << id.station() << std::endl;
-    //std::cout << "# of rechits used in this Segment = " << rechits.size() << std::endl;
-    //for(auto rechit = rechits.begin(); rechit != rechits.end(); ++rechit){
-    //  std::cout << "  " << rechit->gemId() << "(" << segGP.x() << ", " << segGP.y() << ", " << segGP.z() << ")" << std::endl;
-    //}
-    if( id.station() == 1 ){
-      GEMSegment_GE11_LocalPosition_scattered->Fill(segLP.x(), segLP.y());
-      GEMSegment_GE11_GlobalPosition_scattered->Fill(segGP.x(), segGP.y());
+  if(doGeometryStudy){
+
+    //==== GEMRecHit study
+
+    for(auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
+      GEMDetId id = thisRecHit->gemId();
+      auto roll = gemGeom->etaPartition(id);
+      auto RecHitLP = thisRecHit->localPosition();
+      auto RecHitGP = roll->toGlobal(RecHitLP);
+      //std::cout << "rechit station = " << id.station() << std::endl;
+      //std::cout << "Rechit id = " << id << " => (" << RecHitGP.x() << ", " << RecHitGP.y() << ", " << RecHitGP.z() << ")" << std::endl;
+      if( id.station() == 1 ){
+        GEMRecHit_GE11_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
+        GEMRecHit_GE11_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
+        if(id.chamber()%2 == 0){
+          GEMRecHit_GE11_even_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
+        }
+        else{
+          GEMRecHit_GE11_odd_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
+        }
+      }
+      if( id.station() == 3 ){
+        GEMRecHit_GE21_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
+        GEMRecHit_GE21_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
+        if(id.chamber()%2 == 0){
+          GEMRecHit_GE21_even_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
+        }
+        else{
+          GEMRecHit_GE21_odd_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
+        }
+      }
     }
-    if( id.station() == 3 ){
-      GEMSegment_GE21_LocalPosition_scattered->Fill(segLP.x(), segLP.y());
-      GEMSegment_GE21_GlobalPosition_scattered->Fill(segGP.x(), segGP.y());
+
+    //==== GEMSegment study
+
+    for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
+      GEMDetId id = gems->gemDetId();
+      auto chamb = gemGeom->superChamber(id);
+      auto segLP = gems->localPosition();
+      auto segGP = chamb->toGlobal(segLP);
+      auto rechits = gems->specificRecHits();
+      //std::cout << "gemseg station = " << id.station() << std::endl;
+      //std::cout << "# of rechits used in this Segment = " << rechits.size() << std::endl;
+      //for(auto rechit = rechits.begin(); rechit != rechits.end(); ++rechit){
+      //  std::cout << "  " << rechit->gemId() << "(" << segGP.x() << ", " << segGP.y() << ", " << segGP.z() << ")" << std::endl;
+      //}
+      if( id.station() == 1 ){
+        GEMSegment_GE11_LocalPosition_scattered->Fill(segLP.x(), segLP.y());
+        GEMSegment_GE11_GlobalPosition_scattered->Fill(segGP.x(), segGP.y());
+      }
+      if( id.station() == 3 ){
+        GEMSegment_GE21_LocalPosition_scattered->Fill(segLP.x(), segLP.y());
+        GEMSegment_GE21_GlobalPosition_scattered->Fill(segGP.x(), segGP.y());
+      }
     }
+
   }
-
-
 
   //==== DeltaR matching 
 
-  edm::LogVerbatim("GEMMuonAnalyzer") << "########### DeltaR Matching ###########";
+  if(UseDeltaR){
 
-  std::vector<int> matched_RecoMuonID;
+    edm::LogVerbatim("GEMMuonAnalyzer") << "########### DeltaR Matching ###########";
 
-  for(unsigned int i=0; i<gensize; i++){
+    std::vector<int> matched_RecoMuonID;
 
-    const reco::GenParticle& CurrentParticle=(*genParticles)[i];
+    for(unsigned int i=0; i<gensize; i++){
 
-    if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){   
+      const reco::GenParticle& CurrentParticle=(*genParticles)[i];
 
-      n_genmuon++;
+      if ( (CurrentParticle.status()==1) && ( (CurrentParticle.pdgId()==13)  || (CurrentParticle.pdgId()==-13) ) ){   
 
-      edm::LogVerbatim("GEMMuonAnalyzer") << "[this GenMuon]";
-      TLorentzVector igenP4;
-      igenP4.SetPtEtaPhiM(CurrentParticle.pt(), CurrentParticle.eta(), CurrentParticle.phi(), CurrentParticle.mass());
+        n_genmuon++;
 
-      //==== Fill Numerator
+        edm::LogVerbatim("GEMMuonAnalyzer") << "[this GenMuon]";
+        TLorentzVector igenP4;
+        igenP4.SetPtEtaPhiM(CurrentParticle.pt(), CurrentParticle.eta(), CurrentParticle.phi(), CurrentParticle.mass());
 
-      if ( (CurrentParticle.pt() >FakeRatePtCut) ){
-        GenMuon_Eta->Fill(fabs(CurrentParticle.eta()));
-        if ( (fabs(CurrentParticle.eta()) > 1.6) && (fabs(CurrentParticle.eta()) < 2.4) ) {
-          GenMuon_Pt->Fill(CurrentParticle.pt());
-          GenMuon_Phi->Fill(CurrentParticle.phi());
+        //==== Fill Numerator
+
+        if ( (CurrentParticle.pt() >FakeRatePtCut) ){
+          GenMuon_Eta->Fill(fabs(CurrentParticle.eta()));
+          if ( (fabs(CurrentParticle.eta()) > 1.6) && (fabs(CurrentParticle.eta()) < 2.4) ) {
+            GenMuon_Pt->Fill(CurrentParticle.pt());
+            GenMuon_Phi->Fill(CurrentParticle.phi());
+          }
         }
-      }
 
-      //==== RecoMuon
+        //==== RecoMuon
 
-      double RecoMuon_LowestDelR = 9999, RecoMuon_NotGEMMuon_LowestDelR = 9999, RecoMuoN_GEMMuon_h_LowestDelR = 9999;
-      double RecoMuon_thisDelR = 9999, RecoMuon_NotGEMMuon_thisDelR = 9999, RecoMuoN_GEMMuon_h_thisDelR = 9999;
-      bool RecoMuon_isMatched = false, RecoMuon_NotGEMMuon_isMatched = false, RecoMuoN_GEMMuon_h_isMatched = false;
-      int RecoMuonID = 0;
-      for(reco::MuonCollection::const_iterator recomuon = recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon){
-        TLorentzVector LV_recomuon;
-        LV_recomuon.SetPxPyPzE(recomuon->px(), recomuon->py(), recomuon->pz(), recomuon->energy());
+        double RecoMuon_LowestDelR = 9999, RecoMuon_NotGEMMuon_LowestDelR = 9999, RecoMuoN_GEMMuon_h_LowestDelR = 9999;
+        double RecoMuon_thisDelR = 9999, RecoMuon_NotGEMMuon_thisDelR = 9999, RecoMuoN_GEMMuon_h_thisDelR = 9999;
+        bool RecoMuon_isMatched = false, RecoMuon_NotGEMMuon_isMatched = false, RecoMuoN_GEMMuon_h_isMatched = false;
+        int RecoMuonID = 0;
+        for(reco::MuonCollection::const_iterator recomuon = recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon){
+          TLorentzVector LV_recomuon;
+          LV_recomuon.SetPxPyPzE(recomuon->px(), recomuon->py(), recomuon->pz(), recomuon->energy());
 
-        RecoMuon_thisDelR = igenP4.DeltaR(LV_recomuon);
-        if( recomuon->pt() > FakeRatePtCut){
-          if( RecoMuon_thisDelR < MatchingWindowDelR ){
+          RecoMuon_thisDelR = igenP4.DeltaR(LV_recomuon);
+          if( recomuon->pt() > FakeRatePtCut){
+            if( RecoMuon_thisDelR < MatchingWindowDelR ){
 
-            //==== matched RecoMuon
-            matched_RecoMuonID.push_back(RecoMuonID);
-            RecoMuon_isMatched = true;
-            if( RecoMuon_thisDelR < RecoMuon_LowestDelR ){
-              RecoMuon_LowestDelR = RecoMuon_thisDelR;
-            }
-
-            //==== matched RecoMuon, but NOT GEMMuon
-            if( !recomuon->isGEMMuon() ){
-              RecoMuon_NotGEMMuon_isMatched = true;
-              if( RecoMuon_thisDelR < RecoMuon_NotGEMMuon_LowestDelR ){
-                RecoMuon_NotGEMMuon_LowestDelR = RecoMuon_thisDelR;
+              //==== matched RecoMuon
+              matched_RecoMuonID.push_back(RecoMuonID);
+              RecoMuon_isMatched = true;
+              if( RecoMuon_thisDelR < RecoMuon_LowestDelR ){
+                RecoMuon_LowestDelR = RecoMuon_thisDelR;
               }
-            }
 
-            //==== matched RecoMuon and (GEMMuon && TrackerMuon)
-            if( recomuon->isGEMMuon() && recomuon->isTrackerMuon() ){
-              RecoMuoN_GEMMuon_h_isMatched = true;
-              if( RecoMuon_thisDelR < RecoMuoN_GEMMuon_h_LowestDelR ){
-                RecoMuoN_GEMMuon_h_LowestDelR = RecoMuon_thisDelR;
-              }
-            }
-
-          }
-        }
-
-
-        RecoMuonID++;
-
-      } // END RecoMuon loop
-      //==== RecoMuon matched to gen muon
-      if( RecoMuon_isMatched ){
-        if ((CurrentParticle.pt() >FakeRatePtCut) ){
-          MatchedRecoMuon_Eta->Fill(fabs(CurrentParticle.eta()));
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
-            MatchedRecoMuon_Pt->Fill(CurrentParticle.pt());
-            MatchedRecoMuon_Phi->Fill(CurrentParticle.phi());
-          }
-        }
-      }
-      if( RecoMuon_NotGEMMuon_isMatched ){
-        if ((CurrentParticle.pt() >FakeRatePtCut) ){
-          MatchedRecoMuon_not_GEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
-            MatchedRecoMuon_not_GEMMuon_Pt->Fill(CurrentParticle.pt());
-            MatchedRecoMuon_not_GEMMuon_Phi->Fill(CurrentParticle.phi());
-          }
-        }
-      }
-      if( RecoMuoN_GEMMuon_h_isMatched ){
-        GENMuon_matched.at(i) = true;
-        if ((CurrentParticle.pt() >FakeRatePtCut) ){
-          MatchedGEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
-            MatchedGEMMuon_Pt->Fill(CurrentParticle.pt());
-            MatchedGEMMuon_Phi->Fill(CurrentParticle.phi());
-          }
-        }
-      }
-
-      //==== GEMRecHit
-
-      edm::LogVerbatim("GEMMuonAnalyzer") << "==GEMRecHit Loop==";
-      double GEMRecHit_LowestDelR = 9999;
-      double GEMRecHit_thisDelR = 9999;
-      bool GEMRecHit_isMatched = false, isGE11layer1Matched = false, isGE11layer2Matched = false, isGE21layer1Matched = false, isGE21layer2Matched = false;
-      int GEMRecHitID = 0;
-      bool GE11doublematched = false, GE21doublematched = false;
-      std::vector<GEMRecHit> matched_rh;
-      for (auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
-        GEMDetId id = thisRecHit->gemId();
-        auto roll = gemGeom->etaPartition(id);
-        auto RecHitLP = thisRecHit->localPosition();
-        auto RecHitGP = roll->toGlobal(RecHitLP);
-        TLorentzVector RecHit;
-        //RecHit.SetPtEtaPhiM(1, RecHitGP.eta(), RecHitGP.phi(), 0);
-        RecHit.SetPxPyPzE(RecHitGP.x(), RecHitGP.y(), RecHitGP.z(), 1);
-        GEMRecHit_thisDelR = igenP4.DeltaR(RecHit);
-        edm::LogVerbatim("GEMMuonAnalyzer") << "this RecHit id = " << id << " => deltaR = " << GEMRecHit_thisDelR;
-        if( GEMRecHit_thisDelR < MatchingWindowDelR ){
-          matched_rh.push_back(*thisRecHit);
-          GEMRecHit_isMatched = true;
-          if(id.station() == 1 && id.layer() == 1) isGE11layer1Matched = true;
-          if(id.station() == 1 && id.layer() == 2) isGE11layer2Matched = true;
-          if(id.station() == 3 && id.layer() == 1) isGE21layer1Matched = true;
-          if(id.station() == 3 && id.layer() == 2) isGE21layer2Matched = true;
-          edm::LogVerbatim("GEMMuonAnalyzer") << "-> matched";
-          if( GEMRecHit_thisDelR < GEMRecHit_LowestDelR ){
-            GEMRecHit_LowestDelR = GEMRecHit_thisDelR;
-          }
-        }
-
-        GEMRecHitID++;
-
-      } // END GEMRecHit loop
-
-      //==== Cluster rechits who has same SuperChamber ID
-      std::map< GEMDetId, std::vector<GEMRecHit> > map_scid_to_rh;
-      for(auto idit = matched_rh.begin(); idit != matched_rh.end(); ++idit){
-        GEMDetId scid = idit->gemId().superChamberId();
-        map_scid_to_rh[scid].push_back(*idit);
-      }
-
-      edm::LogVerbatim("GEMMuonAnalyzer") << std::endl << "RecHits are now clustered";
-      //==== check both layer1 and layer2 are used
-      for(auto mapit = map_scid_to_rh.begin(); mapit != map_scid_to_rh.end(); ++mapit){
-
-        edm::LogVerbatim("GEMMuonAnalyzer") << "[this SC]";
-        std::vector<GEMRecHit> thisRHs_from_SC = mapit->second;
-        std::map< int, std::vector<GEMRecHit> > map_roll_to_rh;
-        //==== Among the rechits who has same SuperChamber ID,
-        //==== now cluster them who has same roll ID
-        for(auto itit = thisRHs_from_SC.begin(); itit != thisRHs_from_SC.end(); ++itit){
-          map_roll_to_rh[itit->gemId().roll()].push_back(*itit);
-        }
-
-        for(auto itit = map_roll_to_rh.begin(); itit != map_roll_to_rh.end(); ++itit){
-          edm::LogVerbatim("GEMMuonAnalyzer") << "  [this roll]";
-          std::vector<GEMRecHit> thisRHs_from_roll = itit->second;
-          bool GE11layer1_fired(false), GE11layer2_fired(false), GE21layer1_fired(false), GE21layer2_fired(false);
-          for(auto ititit = thisRHs_from_roll.begin(); ititit != thisRHs_from_roll.end(); ++ititit){
-            if(ititit->gemId().station() == 1 && ititit->gemId().layer() == 1) GE11layer1_fired = true;
-            if(ititit->gemId().station() == 1 && ititit->gemId().layer() == 2) GE11layer2_fired = true;
-            if(ititit->gemId().station() == 3 && ititit->gemId().layer() == 1) GE21layer1_fired = true;
-            if(ititit->gemId().station() == 3 && ititit->gemId().layer() == 2) GE21layer2_fired = true;
-            edm::LogVerbatim("GEMMuonAnalyzer") << "  " << ititit->gemId();
-          }
-          bool GE11_segment_exist = false, GE21_segment_exist = false;
-          if(GE11layer1_fired && GE11layer2_fired){
-            GE11doublematched = true;
-            edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> GE11 double matched";
-            MatchedClusteredGEMRecHit_GE11_dBunchX->Fill( abs(thisRHs_from_roll.at(0).BunchX() - thisRHs_from_roll.at(1).BunchX())  );
-            //==== find if GEMSegment is made
-            for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
-              auto rechits = gems->specificRecHits();
-              for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
-                GEMDetId rhid = itrh->gemId();
-                if(rhid == thisRHs_from_roll.at(0).gemId()){
-                  edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment exists ("<<thisRHs_from_roll.size()<<"): " << rhid;
-                  GE11_segment_exist = true;
-                  break;
+              //==== matched RecoMuon, but NOT GEMMuon
+              if( !recomuon->isGEMMuon() ){
+                RecoMuon_NotGEMMuon_isMatched = true;
+                if( RecoMuon_thisDelR < RecoMuon_NotGEMMuon_LowestDelR ){
+                  RecoMuon_NotGEMMuon_LowestDelR = RecoMuon_thisDelR;
                 }
               }
-            }
-            if(!GE11_segment_exist) edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment DO NOT exist ("<<thisRHs_from_roll.size()<<")";
-          }
-          if(GE21layer1_fired && GE21layer2_fired){
-            GE21doublematched = true;
-            edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> GE21 double matched";
-            MatchedClusteredGEMRecHit_GE21_dBunchX->Fill( abs(thisRHs_from_roll.at(0).BunchX() - thisRHs_from_roll.at(1).BunchX())  );
-            //==== find if GEMSegment is made
-            for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
-              auto rechits = gems->specificRecHits();
-              for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
-                GEMDetId rhid = itrh->gemId();
-                if(rhid == thisRHs_from_roll.at(0).gemId()){
-                  edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment exists ("<<thisRHs_from_roll.size()<<"): " << rhid;
-                  GE21_segment_exist = true;
-                  break;
+
+              //==== matched RecoMuon and (GEMMuon && TrackerMuon)
+              if( recomuon->isGEMMuon() && recomuon->isTrackerMuon() ){
+                RecoMuoN_GEMMuon_h_isMatched = true;
+                if( RecoMuon_thisDelR < RecoMuoN_GEMMuon_h_LowestDelR ){
+                  RecoMuoN_GEMMuon_h_LowestDelR = RecoMuon_thisDelR;
                 }
               }
+
             }
-            if(!GE21_segment_exist) edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment DO NOT exist ("<<thisRHs_from_roll.size()<<")";
           }
 
-        } // END Roll Loop
 
+          RecoMuonID++;
 
-      } // END SuperChamber Id loop
-
-      //==== GEMRecHit matched to gen muon
-      if( GEMRecHit_isMatched ){
-        if ((CurrentParticle.pt() >FakeRatePtCut) ){
-
-          //==== Eta
-          MatchedGEMRecHit_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(GE11doublematched) MatchedGEMRecHit_GE11_two_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(GE21doublematched) MatchedGEMRecHit_GE21_two_Eta->Fill(fabs(CurrentParticle.eta()));
-
-          //==== pt, phi
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
-            MatchedGEMRecHit_Pt->Fill(CurrentParticle.pt());
-            if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Pt->Fill(CurrentParticle.pt());
-            if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Pt->Fill(CurrentParticle.pt());
-            if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Pt->Fill(CurrentParticle.pt());
-            if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Pt->Fill(CurrentParticle.pt());
-            if(GE11doublematched) MatchedGEMRecHit_GE11_two_Pt->Fill(CurrentParticle.pt());
-            if(GE21doublematched) MatchedGEMRecHit_GE21_two_Pt->Fill(CurrentParticle.pt());
-            MatchedGEMRecHit_Phi->Fill(CurrentParticle.phi());
-            if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Phi->Fill(CurrentParticle.phi());
-            if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Phi->Fill(CurrentParticle.phi());
-            if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Phi->Fill(CurrentParticle.phi());
-            if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Phi->Fill(CurrentParticle.phi());
-            if(GE11doublematched) MatchedGEMRecHit_GE11_two_Phi->Fill(CurrentParticle.phi());
-            if(GE21doublematched) MatchedGEMRecHit_GE21_two_Phi->Fill(CurrentParticle.phi());
+        } // END RecoMuon loop
+        //==== RecoMuon matched to gen muon
+        if( RecoMuon_isMatched ){
+          if ((CurrentParticle.pt() >FakeRatePtCut) ){
+            MatchedRecoMuon_Eta->Fill(fabs(CurrentParticle.eta()));
+            if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+              MatchedRecoMuon_Pt->Fill(CurrentParticle.pt());
+              MatchedRecoMuon_Phi->Fill(CurrentParticle.phi());
+            }
           }
-
         }
-      }
-
-
-      //==== GEMSegment
-
-      edm::LogVerbatim("GEMMuonAnalyzer") << std::endl << "==GEMSegment Loop==";
-      double GEMSegment_LowestDelR = 9999;
-      double GEMSegment_thisDelR = 9999;
-      bool GEMSegment_isMatched = false, isGE11Matched = false, isGE21Matched = false;
-      int GEMSegID = 0;
-      for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
-        GEMDetId id = gems->gemDetId();
-        auto chamb = gemGeom->superChamber(id);
-        auto segLP = gems->localPosition();
-        auto segGP = chamb->toGlobal(segLP);
-        edm::LogVerbatim("GEMMuonAnalyzer") << "[This Segment is made of..]";
-        auto rechits = gems->specificRecHits();
-        for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
-          GEMDetId rhid = itrh->gemId();
-          TLorentzVector tmp_segment;
-          tmp_segment.SetPxPyPzE(segGP.x(), segGP.y(), segGP.z(), 1);
-          edm::LogVerbatim("GEMMuonAnalyzer") << rhid << "=> deltaR = " << igenP4.DeltaR(tmp_segment);
+        if( RecoMuon_NotGEMMuon_isMatched ){
+          if ((CurrentParticle.pt() >FakeRatePtCut) ){
+            MatchedRecoMuon_not_GEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
+            if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+              MatchedRecoMuon_not_GEMMuon_Pt->Fill(CurrentParticle.pt());
+              MatchedRecoMuon_not_GEMMuon_Phi->Fill(CurrentParticle.phi());
+            }
+          }
         }
-
-        TLorentzVector segment;
-        //segment.SetPtEtaPhiM(1, segGP.eta(), segGP.phi(), 0);
-        segment.SetPxPyPzE(segGP.x(), segGP.y(), segGP.z(), 1);
-        GEMSegment_thisDelR = igenP4.DeltaR(segment);
-        if( GEMSegment_thisDelR < MatchingWindowDelR ){
-          GEMSegment_isMatched = true;
-          edm::LogVerbatim("GEMMuonAnalyzer") << "-> matched";
-          if(id.station() == 1) isGE11Matched = true;
-          if(id.station() == 3) isGE21Matched = true;
-          if( GEMSegment_thisDelR < GEMSegment_LowestDelR ){
-            GEMSegment_LowestDelR = GEMSegment_thisDelR;
+        if( RecoMuoN_GEMMuon_h_isMatched ){
+          GENMuon_matched.at(i) = true;
+          if ((CurrentParticle.pt() >FakeRatePtCut) ){
+            MatchedGEMMuon_Eta->Fill(fabs(CurrentParticle.eta()));
+            if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+              MatchedGEMMuon_Pt->Fill(CurrentParticle.pt());
+              MatchedGEMMuon_Phi->Fill(CurrentParticle.phi());
+            }
           }
         }
 
-        GEMSegID++;
+        //==== GEMRecHit
 
-      }
-
-      //==== GEMSegment matched to gen muon
-      if( GEMSegment_isMatched ){
-
-        if ((CurrentParticle.pt() >FakeRatePtCut) ){
-
-          MatchedGEMSegment_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(isGE11Matched) MatchedGEMSegment_GE11_Eta->Fill(fabs(CurrentParticle.eta()));
-          if(isGE21Matched) MatchedGEMSegment_GE21_Eta->Fill(fabs(CurrentParticle.eta()));
-
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
-            MatchedGEMSegment_Pt->Fill(CurrentParticle.pt());
-            if(isGE11Matched) MatchedGEMSegment_GE11_Pt->Fill(CurrentParticle.pt());
-            if(isGE21Matched) MatchedGEMSegment_GE21_Pt->Fill(CurrentParticle.pt());
-            MatchedGEMSegment_Phi->Fill(CurrentParticle.phi());
-            if(isGE11Matched) MatchedGEMSegment_GE11_Phi->Fill(CurrentParticle.phi());
-            if(isGE21Matched) MatchedGEMSegment_GE21_Phi->Fill(CurrentParticle.phi());
+        edm::LogVerbatim("GEMMuonAnalyzer") << "==GEMRecHit Loop==";
+        double GEMRecHit_LowestDelR = 9999;
+        double GEMRecHit_thisDelR = 9999;
+        bool GEMRecHit_isMatched = false, isGE11layer1Matched = false, isGE11layer2Matched = false, isGE21layer1Matched = false, isGE21layer2Matched = false;
+        int GEMRecHitID = 0;
+        bool GE11doublematched = false, GE21doublematched = false;
+        std::vector<GEMRecHit> matched_rh;
+        for (auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
+          GEMDetId id = thisRecHit->gemId();
+          auto roll = gemGeom->etaPartition(id);
+          auto RecHitLP = thisRecHit->localPosition();
+          auto RecHitGP = roll->toGlobal(RecHitLP);
+          TLorentzVector RecHit;
+          //RecHit.SetPtEtaPhiM(1, RecHitGP.eta(), RecHitGP.phi(), 0);
+          RecHit.SetPxPyPzE(RecHitGP.x(), RecHitGP.y(), RecHitGP.z(), 1);
+          GEMRecHit_thisDelR = igenP4.DeltaR(RecHit);
+          edm::LogVerbatim("GEMMuonAnalyzer") << "this RecHit id = " << id << " => deltaR = " << GEMRecHit_thisDelR;
+          if( GEMRecHit_thisDelR < MatchingWindowDelR ){
+            matched_rh.push_back(*thisRecHit);
+            GEMRecHit_isMatched = true;
+            if(id.station() == 1 && id.layer() == 1) isGE11layer1Matched = true;
+            if(id.station() == 1 && id.layer() == 2) isGE11layer2Matched = true;
+            if(id.station() == 3 && id.layer() == 1) isGE21layer1Matched = true;
+            if(id.station() == 3 && id.layer() == 2) isGE21layer2Matched = true;
+            edm::LogVerbatim("GEMMuonAnalyzer") << "-> matched";
+            if( GEMRecHit_thisDelR < GEMRecHit_LowestDelR ){
+              GEMRecHit_LowestDelR = GEMRecHit_thisDelR;
+            }
           }
 
-        }
-      }
+          GEMRecHitID++;
 
-      //==== RecoMuon matched, but NOT (GEMMuon && both stations segment)
-      if( RecoMuon_NotGEMMuon_isMatched && !isGE11Matched && !isGE21Matched ){
-        if ((CurrentParticle.pt() >FakeRatePtCut) ){
-          MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta->Fill(fabs(CurrentParticle.eta()));
-          if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
-            MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt->Fill(CurrentParticle.pt());
-            MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi->Fill(CurrentParticle.phi());
+        } // END GEMRecHit loop
+
+        //==== Cluster rechits who has same SuperChamber ID
+        std::map< GEMDetId, std::vector<GEMRecHit> > map_scid_to_rh;
+        for(auto idit = matched_rh.begin(); idit != matched_rh.end(); ++idit){
+          GEMDetId scid = idit->gemId().superChamberId();
+          map_scid_to_rh[scid].push_back(*idit);
+        }
+
+        edm::LogVerbatim("GEMMuonAnalyzer") << std::endl << "RecHits are now clustered";
+        //==== check both layer1 and layer2 are used
+        for(auto mapit = map_scid_to_rh.begin(); mapit != map_scid_to_rh.end(); ++mapit){
+
+          edm::LogVerbatim("GEMMuonAnalyzer") << "[this SC]";
+          std::vector<GEMRecHit> thisRHs_from_SC = mapit->second;
+          std::map< int, std::vector<GEMRecHit> > map_roll_to_rh;
+          //==== Among the rechits who has same SuperChamber ID,
+          //==== now cluster them who has same roll ID
+          for(auto itit = thisRHs_from_SC.begin(); itit != thisRHs_from_SC.end(); ++itit){
+            map_roll_to_rh[itit->gemId().roll()].push_back(*itit);
+          }
+
+          for(auto itit = map_roll_to_rh.begin(); itit != map_roll_to_rh.end(); ++itit){
+            edm::LogVerbatim("GEMMuonAnalyzer") << "  [this roll]";
+            std::vector<GEMRecHit> thisRHs_from_roll = itit->second;
+            bool GE11layer1_fired(false), GE11layer2_fired(false), GE21layer1_fired(false), GE21layer2_fired(false);
+            for(auto ititit = thisRHs_from_roll.begin(); ititit != thisRHs_from_roll.end(); ++ititit){
+              if(ititit->gemId().station() == 1 && ititit->gemId().layer() == 1) GE11layer1_fired = true;
+              if(ititit->gemId().station() == 1 && ititit->gemId().layer() == 2) GE11layer2_fired = true;
+              if(ititit->gemId().station() == 3 && ititit->gemId().layer() == 1) GE21layer1_fired = true;
+              if(ititit->gemId().station() == 3 && ititit->gemId().layer() == 2) GE21layer2_fired = true;
+              edm::LogVerbatim("GEMMuonAnalyzer") << "  " << ititit->gemId();
+            }
+            bool GE11_segment_exist = false, GE21_segment_exist = false;
+            if(GE11layer1_fired && GE11layer2_fired){
+              GE11doublematched = true;
+              edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> GE11 double matched";
+              MatchedClusteredGEMRecHit_GE11_dBunchX->Fill( abs(thisRHs_from_roll.at(0).BunchX() - thisRHs_from_roll.at(1).BunchX())  );
+              //==== find if GEMSegment is made
+              for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
+                auto rechits = gems->specificRecHits();
+                for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
+                  GEMDetId rhid = itrh->gemId();
+                  if(rhid == thisRHs_from_roll.at(0).gemId()){
+                    edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment exists ("<<thisRHs_from_roll.size()<<"): " << rhid;
+                    GE11_segment_exist = true;
+                    break;
+                  }
+                }
+              }
+              if(!GE11_segment_exist) edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment DO NOT exist ("<<thisRHs_from_roll.size()<<")";
+            }
+            if(GE21layer1_fired && GE21layer2_fired){
+              GE21doublematched = true;
+              edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> GE21 double matched";
+              MatchedClusteredGEMRecHit_GE21_dBunchX->Fill( abs(thisRHs_from_roll.at(0).BunchX() - thisRHs_from_roll.at(1).BunchX())  );
+              //==== find if GEMSegment is made
+              for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
+                auto rechits = gems->specificRecHits();
+                for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
+                  GEMDetId rhid = itrh->gemId();
+                  if(rhid == thisRHs_from_roll.at(0).gemId()){
+                    edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment exists ("<<thisRHs_from_roll.size()<<"): " << rhid;
+                    GE21_segment_exist = true;
+                    break;
+                  }
+                }
+              }
+              if(!GE21_segment_exist) edm::LogVerbatim("GEMMuonAnalyzer") << "  ==> Segment DO NOT exist ("<<thisRHs_from_roll.size()<<")";
+            }
+
+          } // END Roll Loop
+
+
+        } // END SuperChamber Id loop
+
+        //==== GEMRecHit matched to gen muon
+        if( GEMRecHit_isMatched ){
+          if ((CurrentParticle.pt() >FakeRatePtCut) ){
+
+            //==== Eta
+            MatchedGEMRecHit_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(GE11doublematched) MatchedGEMRecHit_GE11_two_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(GE21doublematched) MatchedGEMRecHit_GE21_two_Eta->Fill(fabs(CurrentParticle.eta()));
+
+            //==== pt, phi
+            if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+              MatchedGEMRecHit_Pt->Fill(CurrentParticle.pt());
+              if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Pt->Fill(CurrentParticle.pt());
+              if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Pt->Fill(CurrentParticle.pt());
+              if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Pt->Fill(CurrentParticle.pt());
+              if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Pt->Fill(CurrentParticle.pt());
+              if(GE11doublematched) MatchedGEMRecHit_GE11_two_Pt->Fill(CurrentParticle.pt());
+              if(GE21doublematched) MatchedGEMRecHit_GE21_two_Pt->Fill(CurrentParticle.pt());
+              MatchedGEMRecHit_Phi->Fill(CurrentParticle.phi());
+              if(isGE11layer1Matched) MatchedGEMRecHit_GE11_layer1_Phi->Fill(CurrentParticle.phi());
+              if(isGE11layer2Matched) MatchedGEMRecHit_GE11_layer2_Phi->Fill(CurrentParticle.phi());
+              if(isGE21layer1Matched) MatchedGEMRecHit_GE21_layer1_Phi->Fill(CurrentParticle.phi());
+              if(isGE21layer2Matched) MatchedGEMRecHit_GE21_layer2_Phi->Fill(CurrentParticle.phi());
+              if(GE11doublematched) MatchedGEMRecHit_GE11_two_Phi->Fill(CurrentParticle.phi());
+              if(GE21doublematched) MatchedGEMRecHit_GE21_two_Phi->Fill(CurrentParticle.phi());
+            }
+
           }
         }
-      }
 
-    } // END prompt muons selection
-  } // END gen particle loop
-  
+
+        //==== GEMSegment
+
+        edm::LogVerbatim("GEMMuonAnalyzer") << std::endl << "==GEMSegment Loop==";
+        double GEMSegment_LowestDelR = 9999;
+        double GEMSegment_thisDelR = 9999;
+        bool GEMSegment_isMatched = false, isGE11Matched = false, isGE21Matched = false;
+        int GEMSegID = 0;
+        for (auto gems = gemSegmentCollection->begin(); gems != gemSegmentCollection->end(); ++gems) {
+          GEMDetId id = gems->gemDetId();
+          auto chamb = gemGeom->superChamber(id);
+          auto segLP = gems->localPosition();
+          auto segGP = chamb->toGlobal(segLP);
+          edm::LogVerbatim("GEMMuonAnalyzer") << "[This Segment is made of..]";
+          auto rechits = gems->specificRecHits();
+          for(auto itrh = rechits.begin(); itrh != rechits.end(); ++itrh){
+            GEMDetId rhid = itrh->gemId();
+            TLorentzVector tmp_segment;
+            tmp_segment.SetPxPyPzE(segGP.x(), segGP.y(), segGP.z(), 1);
+            edm::LogVerbatim("GEMMuonAnalyzer") << rhid << "=> deltaR = " << igenP4.DeltaR(tmp_segment);
+          }
+
+          TLorentzVector segment;
+          //segment.SetPtEtaPhiM(1, segGP.eta(), segGP.phi(), 0);
+          segment.SetPxPyPzE(segGP.x(), segGP.y(), segGP.z(), 1);
+          GEMSegment_thisDelR = igenP4.DeltaR(segment);
+          if( GEMSegment_thisDelR < MatchingWindowDelR ){
+            GEMSegment_isMatched = true;
+            edm::LogVerbatim("GEMMuonAnalyzer") << "-> matched";
+            if(id.station() == 1) isGE11Matched = true;
+            if(id.station() == 3) isGE21Matched = true;
+            if( GEMSegment_thisDelR < GEMSegment_LowestDelR ){
+              GEMSegment_LowestDelR = GEMSegment_thisDelR;
+            }
+          }
+
+          GEMSegID++;
+
+        }
+
+        //==== GEMSegment matched to gen muon
+        if( GEMSegment_isMatched ){
+
+          if ((CurrentParticle.pt() >FakeRatePtCut) ){
+
+            MatchedGEMSegment_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(isGE11Matched) MatchedGEMSegment_GE11_Eta->Fill(fabs(CurrentParticle.eta()));
+            if(isGE21Matched) MatchedGEMSegment_GE21_Eta->Fill(fabs(CurrentParticle.eta()));
+
+            if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+              MatchedGEMSegment_Pt->Fill(CurrentParticle.pt());
+              if(isGE11Matched) MatchedGEMSegment_GE11_Pt->Fill(CurrentParticle.pt());
+              if(isGE21Matched) MatchedGEMSegment_GE21_Pt->Fill(CurrentParticle.pt());
+              MatchedGEMSegment_Phi->Fill(CurrentParticle.phi());
+              if(isGE11Matched) MatchedGEMSegment_GE11_Phi->Fill(CurrentParticle.phi());
+              if(isGE21Matched) MatchedGEMSegment_GE21_Phi->Fill(CurrentParticle.phi());
+            }
+
+          }
+        }
+
+        //==== RecoMuon matched, but NOT (GEMMuon && both stations segment)
+        if( RecoMuon_NotGEMMuon_isMatched && !isGE11Matched && !isGE21Matched ){
+          if ((CurrentParticle.pt() >FakeRatePtCut) ){
+            MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta->Fill(fabs(CurrentParticle.eta()));
+            if ( (TMath::Abs(CurrentParticle.eta()) > 1.6) && (TMath::Abs(CurrentParticle.eta()) < 2.4) )  {
+              MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt->Fill(CurrentParticle.pt());
+              MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi->Fill(CurrentParticle.phi());
+            }
+          }
+        }
+
+      } // END prompt muons selection
+    } // END gen particle loop
+
+  } 
   
   if (UseAssociators) {
 
     //==== Efficiency study
-
     //std::cout << "TrackingParticle size = " << trackingParticles->size() << std::endl;
     for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
       TrackingParticleRef tpr(trackingParticles, i);
@@ -865,6 +857,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           TPMuon_Pt->Fill(tp->pt());
           TPMuon_Phi->Fill(tp->phi());
           //==== Looking at SimToReco
+          unsigned int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0;
           for (unsigned int www=0;www<label.size();www++){
 
             Handle<reco::SimToRecoCollection > simtorecoCollectionH;
@@ -923,10 +916,39 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                     HitsMatchedTightMuon_Pt->Fill(tpr->pt());
                     if(Pt_5) HitsMatchedTightMuon_Phi->Fill(tpr->phi());
                   }
+                  if(label[www].find("PullXScan") != std::string::npos){
+                    double this_cut = PullXValues.at(www_PullX);
+                    if(Pt_5) HitsMatchedPullX_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                    HitsMatchedPullX_Pt[this_cut]->Fill(tpr->pt());
+                    if(Pt_5) HitsMatchedPullX_Phi[this_cut]->Fill(tpr->phi());
+                  }
+                  if(label[www].find("DXScan") != std::string::npos){
+                    double this_cut = DXValues.at(www_DX);
+                    if(Pt_5) HitsMatchedDX_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                    HitsMatchedDX_Pt[this_cut]->Fill(tpr->pt());
+                    if(Pt_5) HitsMatchedDX_Phi[this_cut]->Fill(tpr->phi());
+                  }
+                  if(label[www].find("PullYScan") != std::string::npos){
+                    double this_cut = PullYValues.at(www_PullY);
+                    if(Pt_5) HitsMatchedPullY_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                    HitsMatchedPullY_Pt[this_cut]->Fill(tpr->pt());
+                    if(Pt_5) HitsMatchedPullY_Phi[this_cut]->Fill(tpr->phi());
+                  }
+                  if(label[www].find("DYScan") != std::string::npos){
+                    double this_cut = DYValues.at(www_DY);
+                    if(Pt_5) HitsMatchedDY_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                    HitsMatchedDY_Pt[this_cut]->Fill(tpr->pt());
+                    if(Pt_5) HitsMatchedDY_Phi[this_cut]->Fill(tpr->phi());
+                  }
 
                 }
               }
             }
+
+            if(label[www].find("PullXScan") != std::string::npos) www_PullX++;
+            if(label[www].find("DXScan") != std::string::npos) www_DX++;
+            if(label[www].find("PullYScan") != std::string::npos) www_PullY++;
+            if(label[www].find("DYScan") != std::string::npos) www_DY++;
 
           } //==== END of label loop
 
@@ -938,8 +960,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     } // END for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++)
 
     //==== Fake study
-
-    for (unsigned int www=0;www<label.size();www++){
+    int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0;
+    for(unsigned int www=0;www<label.size();www++){
 
       reco::RecoToSimCollection recSimColl;
       reco::SimToRecoCollection simRecColl;
@@ -965,6 +987,10 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       if(label[www]=="looseMuonSel") n_LooseMuon += trackCollectionSize;
       if(label[www]=="mediumMuonSel") n_MediumMuon += trackCollectionSize;
       if(label[www]=="tightMuonSel") n_TightMuon += trackCollectionSize;
+      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_PullX[www_PullX] += trackCollectionSize;
+      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DX[www_DX] += trackCollectionSize;
+      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_PullY[www_PullY] += trackCollectionSize;
+      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DY[www_DY] += trackCollectionSize;
 
       for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
         //std::cout << i << "th trackCollection iterator" << std::endl;
@@ -991,8 +1017,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
 
             //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
-            bool Eta_1p6_2p4 = fabs(tpr->eta()) > 1.6 && fabs(tpr->eta()) < 2.4;
-            bool Pt_5 = tpr->pt() > 5;
+            bool Eta_1p6_2p4 = fabs(track->eta()) > 1.6 && fabs(track->eta()) < 2.4;
             bool SignalMuon = false;
             if(tpr->status() !=-99){
               if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
@@ -1004,357 +1029,85 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               if( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
                   ( (tpr->status()==1) ) ) SignalMuon=true;
             }
-            //if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && Eta_1p6_2p4 && Pt_5 && SignalMuon ) {
             if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
               edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched TrackingParticle";
             }
             else{
               isFake = true;
             }
+
           }
         }
 
-        if(isFake) {
+        bool Eta_1p6_2p4 = fabs(track->eta()) > 1.6 && fabs(track->eta()) < 2.4;
+        if(isFake && Eta_1p6_2p4){
+          bool Pt_5 = track->pt() > 5;
           if(label[www]=="gemMuonSel"){
-             HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
+             if(Pt_5) HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
              HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
-             HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
+             if(Pt_5) HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
           }
           if(label[www]=="recoMuonSel"){
-            HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
+            if(Pt_5) HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
             HitsUnmatchedRecoMuon_Pt->Fill(track->pt());
-            HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
+            if(Pt_5) HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
           }
           if(label[www]=="looseMuonSel"){
-            HitsUnmatchedLooseMuon_Eta->Fill(fabs(track->eta()));
+            if(Pt_5) HitsUnmatchedLooseMuon_Eta->Fill(fabs(track->eta()));
             HitsUnmatchedLooseMuon_Pt->Fill(track->pt());
-            HitsUnmatchedLooseMuon_Phi->Fill(track->phi());
+            if(Pt_5) HitsUnmatchedLooseMuon_Phi->Fill(track->phi());
           }
           if(label[www]=="mediumMuonSel"){
-            HitsUnmatchedMediumMuon_Eta->Fill(fabs(track->eta()));
+            if(Pt_5) HitsUnmatchedMediumMuon_Eta->Fill(fabs(track->eta()));
             HitsUnmatchedMediumMuon_Pt->Fill(track->pt());
-            HitsUnmatchedMediumMuon_Phi->Fill(track->phi());
+            if(Pt_5) HitsUnmatchedMediumMuon_Phi->Fill(track->phi());
           }
           if(label[www]=="tightMuonSel"){
-            HitsUnmatchedTightMuon_Eta->Fill(fabs(track->eta()));
+            if(Pt_5) HitsUnmatchedTightMuon_Eta->Fill(fabs(track->eta()));
             HitsUnmatchedTightMuon_Pt->Fill(track->pt());
-            HitsUnmatchedTightMuon_Phi->Fill(track->phi());
+            if(Pt_5) HitsUnmatchedTightMuon_Phi->Fill(track->phi());
           }
+          if(label[www].find("PullXScan") != std::string::npos){
+            double this_cut = PullXValues.at(www_PullX);
+            if(Pt_5) HitsUnmatchedPullX_Eta[this_cut]->Fill(fabs(track->eta()));
+            HitsUnmatchedPullX_Pt[this_cut]->Fill(track->pt());
+            if(Pt_5) HitsUnmatchedPullX_Phi[this_cut]->Fill(track->phi());
+          }
+          if(label[www].find("DXScan") != std::string::npos){
+            double this_cut = DXValues.at(www_DX);
+            if(Pt_5) HitsUnmatchedDX_Eta[this_cut]->Fill(fabs(track->eta()));
+            HitsUnmatchedDX_Pt[this_cut]->Fill(track->pt());
+            if(Pt_5) HitsUnmatchedDX_Phi[this_cut]->Fill(track->phi());
+          }
+          if(label[www].find("PullYScan") != std::string::npos){
+            double this_cut = PullYValues.at(www_PullY);
+            if(Pt_5) HitsUnmatchedPullY_Eta[this_cut]->Fill(fabs(track->eta()));
+            HitsUnmatchedPullY_Pt[this_cut]->Fill(track->pt());
+            if(Pt_5) HitsUnmatchedPullY_Phi[this_cut]->Fill(track->phi());
+          }
+          if(label[www].find("DYScan") != std::string::npos){
+            double this_cut = DYValues.at(www_DY);
+            if(Pt_5) HitsUnmatchedDY_Eta[this_cut]->Fill(fabs(track->eta()));
+            HitsUnmatchedDY_Pt[this_cut]->Fill(track->pt());
+            if(Pt_5) HitsUnmatchedDY_Phi[this_cut]->Fill(track->phi());
+          }
+
         } //==== END if(isFake)
-
-      }//==== END for(View<Track>::size_type i=0; i<trackCollectionSize; ++i)
-
-
-
-    } // END muon obj loop (GEMMuon, RecoMuon..)
-  } // END if (UseAssociators)
-
-
-
-
-
-
-  //==== Matching Study
-
-  if(doMatchingStudy){
-
-    edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "########### GEMMuon Matching Study ###########";
-
-    for(unsigned int i=0; i<gensize; i++){
-      if( !GENMuon_matched.at(i) ){
-        const reco::GenParticle& CurrentParticle=(*genParticles)[i];
-        edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "Matching Failed GENMuon : (pt, eta, phi) = ("<<CurrentParticle.pt()<<","<<CurrentParticle.eta()<<","<<CurrentParticle.phi()<<")";
       }
-    }
-    edm::LogVerbatim("GEMMuonAnalyzer_Matching");
+      if(label[www].find("PullXScan") != std::string::npos) www_PullX++;
+      if(label[www].find("DXScan") != std::string::npos) www_DX++;
+      if(label[www].find("PullYScan") != std::string::npos) www_PullY++;
+      if(label[www].find("DYScan") != std::string::npos) www_DY++;
 
-    Long64_t aaa=0;
-    for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon, aaa++) {
-
-      for(auto chmatch = recomuon->matches().begin(); chmatch != recomuon->matches().end(); ++chmatch){
-        if( chmatch->id.subdetId() != 4 ) continue;
-        if( chmatch->segmentMatches.size() == 0 ) continue;
-
-        for(auto segmatch = chmatch->segmentMatches.begin(); segmatch != chmatch->segmentMatches.end(); ++segmatch){
-
-          int station = segmatch->gemSegmentRef->specificRecHits()[0].gemId().station();
-
-          Double_t sigmax = sqrt( chmatch->xErr*chmatch->xErr + segmatch->xErr*segmatch->xErr );
-          Double_t sigmay = sqrt( chmatch->yErr*chmatch->yErr + segmatch->yErr*segmatch->yErr );
-
-          GlobalVector Dir_ch(chmatch->dXdZ, chmatch->dYdZ, 1);
-          GlobalVector Dir_seg(segmatch->dXdZ, segmatch->dYdZ, 1);
-
-          Double_t DelX = std::abs(chmatch->x - segmatch->x);
-          Double_t DelX_over_sigma = DelX/sigmax;
-          Double_t DelY = std::abs(chmatch->y - segmatch->y);
-          Double_t DelY_over_sigma = DelY/sigmay;
-          Double_t DotDir = Dir_ch.unit().dot( Dir_seg.unit() );
-
-          if( std::find( matched_RecoMuonID.begin(), matched_RecoMuonID.end(), aaa ) != matched_RecoMuonID.end() ) {
-            GEMSegmentRef thisGEMSegRef = segmatch->gemSegmentRef;
-            bool XMatched(false), YMatched(false), DirMatched(false);
-            if(station == 1){
-              XMatched = DelX < Current_maxDiffXGE11 || DelX_over_sigma < Current_trackerGEM_maxPull;
-              YMatched = DelY < Current_maxDiffYGE11 || DelY_over_sigma < Current_trackerGEM_maxPull;
-            }
-            if(station == 3){
-              XMatched = DelX < Current_maxDiffXGE21 || DelX_over_sigma < Current_trackerGEM_maxPull;
-              YMatched = DelY < Current_maxDiffYGE21 || DelY_over_sigma < Current_trackerGEM_maxPull;
-            }
-            DirMatched = DotDir > Current_minDotDir;
-
-            edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "this GEMSegment id = " << thisGEMSegRef->gemDetId();
-            edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  DelX = " << DelX;
-            edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  DelX/sigma = " << DelX_over_sigma;
-            if(XMatched) edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  -> XMatch";
-            edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  DelY = " << DelY;
-            edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  DelY/sigma = " << DelY_over_sigma;
-            if(YMatched) edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  -> YMatch";
-            edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  DotDir = " << DotDir;
-            if(DirMatched) edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "  -> DirMatched";
-            if(XMatched && YMatched && DirMatched) edm::LogVerbatim("GEMMuonAnalyzer_Matching") << "==> GEMMuon Matched";
-
-          }
-
-          if(station == 1){
-            DelX_GE11->Fill(DelX);
-            DelX_over_sigma_GE11->Fill(DelX_over_sigma);
-            DelY_GE11->Fill(DelY);
-            DelY_over_sigma_GE11->Fill(DelY_over_sigma);
-            DotDir_GE11->Fill(DotDir);
-            for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
-              int matchX = DelX_over_sigma<maxPull.at(aaa)?1:0;    
-              int matchY = DelY_over_sigma<maxPull.at(aaa)?1:0;
-              map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))]->Fill(matchX);
-              map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))]->Fill(matchY);
-            }
-            for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
-              int match = DelX<maxX_GE11.at(aaa)?1:0;
-              std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
-              map_maxX_GE11[thistitle]->Fill(match);
-            }
-            for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
-              int match = DelY<maxY_GE11.at(aaa)?1:0;
-              std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
-              map_maxY_GE11[thistitle]->Fill(match);
-            }
-            for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
-              int match = DotDir>minDotDir.at(aaa)?1:0;
-              map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))]->Fill(match);
-            }
-          }
-          if(station == 3){
-            DelX_GE21->Fill(DelX);
-            DelX_over_sigma_GE21->Fill(DelX_over_sigma);
-            DelY_GE21->Fill(DelY);
-            DelY_over_sigma_GE21->Fill(DelY_over_sigma);
-            DotDir_GE21->Fill(DotDir);
-            for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
-              int matchX = DelX_over_sigma<maxPull.at(aaa)?1:0;
-              int matchY = DelY_over_sigma<maxPull.at(aaa)?1:0;
-              map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))]->Fill(matchX);
-              map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))]->Fill(matchY);
-            }
-            for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
-              int match = DelX<maxX_GE21.at(aaa)?1:0;
-              std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
-              map_maxX_GE21[thistitle]->Fill(match);
-            }
-            for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
-              int match = DelY<maxY_GE21.at(aaa)?1:0;
-              std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
-              map_maxY_GE21[thistitle]->Fill(match);
-            }
-            for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
-              int match = DotDir>minDotDir.at(aaa)?1:0;
-              map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))]->Fill(match);
-            }
-          }
+    } // END label Loop
 
 
-        } // END segment match loop
-
-      } // END MatchedChamber loop
-
-    } // END RecoMuon loop  
+  } // END Use Associator
 
 
-  } // END domMatchingStudy
-
- 
-
-  if(doMatchingStudy){
-
-    Handle <TrackCollection > generalTracks;
-    iEvent.getByToken (generalTracksToken_, generalTracks);
-
-    edm::ESHandle<GEMGeometry> gemGeom;
-    iSetup.get<MuonGeometryRecord>().get(gemGeom);
-    ESHandle<MagneticField> bField;
-    iSetup.get<IdealMagneticFieldRecord>().get(bField);
-    const SteppingHelixPropagator* shPropagator;
-    shPropagator = new SteppingHelixPropagator(&*bField,alongMomentum);
-
-    for (std::vector<Track>::const_iterator thisTrack = generalTracks->begin();
-         thisTrack != generalTracks->end(); ++thisTrack){
-
-      if (thisTrack->pt() < 1.5) continue;
-      if (std::abs(thisTrack->eta()) < 1.5) continue;
-
-      for (auto thisSegment = gemSegmentCollection->begin(); thisSegment != gemSegmentCollection->end();
-           ++thisSegment){
-
-        GEMDetId id = thisSegment->specificRecHits()[0].gemId();
-        int station = id.station();
-        if (id.station() != station) continue;
-        float zSign = thisTrack->pz() > 0 ? 1.0f : -1.0f;
-        if ( zSign * id.region() < 0 ) continue;
-
-        LocalPoint thisPosition(thisSegment->localPosition());
-        LocalVector thisDirection(thisSegment->localDirection());
-
-        //auto chamber = gemGeom->superChamber(id);
-        auto chamber = gemGeom->chamber(id);
-        GlobalPoint SegPos(chamber->toGlobal(thisPosition));
-        GlobalVector SegDir(chamber->toGlobal(thisDirection));
-
-        const float zValue = SegPos.z();
-
-        Plane *plane = new Plane(Surface::PositionType(0,0,zValue),Surface::RotationType());
-
-        //Getting the initial variables for propagation
-
-        int chargeReco = thisTrack->charge();
-        GlobalVector p3reco, r3reco;
-
-        p3reco = GlobalVector(thisTrack->outerPx(), thisTrack->outerPy(), thisTrack->outerPz());
-        r3reco = GlobalVector(thisTrack->outerX(), thisTrack->outerY(), thisTrack->outerZ());
-
-        AlgebraicSymMatrix66 covReco;
-        //This is to fill the cov matrix correctly
-        AlgebraicSymMatrix55 covReco_curv;
-        covReco_curv = thisTrack->outerStateCovariance();
-        FreeTrajectoryState initrecostate = getFTS(p3reco, r3reco, chargeReco, covReco_curv, shPropagator->magneticField());
-        getFromFTS(initrecostate, p3reco, r3reco, chargeReco, covReco);
-
-        //Now we propagate and get the propagated variables from the propagated state
-        SteppingHelixStateInfo startrecostate(initrecostate);
-        SteppingHelixStateInfo lastrecostate;
-
-        //const SteppingHelixPropagator* shPropagator = 
-        //dynamic_cast<const SteppingHelixPropagator*>(&*shProp);
-        // for 62XSLHC
-        //lastrecostate = shPropagator->propagate(startrecostate, *plane);
-        //lastrecostate = shPropagator->propagateWithPath(startrecostate, *plane);
-        // for 76X
-        shPropagator->propagate(startrecostate, *plane,lastrecostate);
-
-        FreeTrajectoryState finalrecostate;
-        lastrecostate.getFreeState(finalrecostate);
-
-        AlgebraicSymMatrix66 covFinalReco;
-        GlobalVector p3FinalReco_glob, r3FinalReco_globv;
-        getFromFTS(finalrecostate, p3FinalReco_glob, r3FinalReco_globv, chargeReco, covFinalReco);
-
-        //To transform the global propagated track to local coordinates
-        GlobalPoint r3FinalReco_glob(r3FinalReco_globv.x(),r3FinalReco_globv.y(),r3FinalReco_globv.z());
-
-        LocalPoint r3FinalReco = chamber->toLocal(r3FinalReco_glob);
-        LocalVector p3FinalReco=chamber->toLocal(p3FinalReco_glob);
-
-        //The same goes for the error
-        AlgebraicMatrix thisCov(4,4,0);
-        for (int i = 1; i <=4; i++){
-          for (int j = 1; j <=4; j++){
-            thisCov(i,j) = thisSegment->parametersError()(i,j);
-          }
-        }
-
-        LocalTrajectoryParameters ltp(r3FinalReco,p3FinalReco,chargeReco);
-        JacobianCartesianToLocal jctl(chamber->surface(),ltp);
-        AlgebraicMatrix56 jacobGlbToLoc = jctl.jacobian();
-
-        AlgebraicMatrix55 Ctmp =  (jacobGlbToLoc * covFinalReco) * ROOT::Math::Transpose(jacobGlbToLoc);
-        AlgebraicSymMatrix55 C;  // I couldn't find any other way, so I resort to the brute force
-        for(int i=0; i<5; ++i) {
-          for(int j=0; j<5; ++j) {
-            C[i][j] = Ctmp[i][j];
-          }
-        }
-
-        Double_t sigmax = sqrt(C[3][3]+thisSegment->localPositionError().xx() );
-        Double_t sigmay = sqrt(C[4][4]+thisSegment->localPositionError().yy() );
-
-        Double_t DelX = std::abs(thisPosition.x()-r3FinalReco.x());
-        Double_t DelX_over_sigma = DelX/sigmax;
-        Double_t DelY = std::abs(thisPosition.y()-r3FinalReco.y());
-        Double_t DelY_over_sigma = DelY/sigmay;
-        Double_t DotDir = p3FinalReco.unit().dot(thisDirection);
-
-        if(station == 1){
-          DelX_GE11->Fill(DelX);
-          DelX_over_sigma_GE11->Fill(DelX_over_sigma);
-          DelY_GE11->Fill(DelY);
-          DelY_over_sigma_GE11->Fill(DelY_over_sigma);
-          DotDir_GE11->Fill(DotDir);
-          for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
-            int matchX = DelX_over_sigma<maxPull.at(aaa)?1:0;    
-            int matchY = DelY_over_sigma<maxPull.at(aaa)?1:0;
-            map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))]->Fill(matchX);
-            map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))]->Fill(matchY);
-          }
-          for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
-            int match = DelX<maxX_GE11.at(aaa)?1:0;
-            std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
-            map_maxX_GE11[thistitle]->Fill(match);
-          }
-          for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
-            int match = DelY<maxY_GE11.at(aaa)?1:0;
-            std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
-            map_maxY_GE11[thistitle]->Fill(match);
-          }
-          for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
-            int match = DotDir>minDotDir.at(aaa)?1:0;
-            map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))]->Fill(match);
-          }
-        }
-        if(station == 3){
-          DelX_GE21->Fill(DelX);
-          DelX_over_sigma_GE21->Fill(DelX_over_sigma);
-          DelY_GE21->Fill(DelY);
-          DelY_over_sigma_GE21->Fill(DelY_over_sigma);
-          DotDir_GE21->Fill(DotDir);
-          for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
-            int matchX = DelX_over_sigma<maxPull.at(aaa)?1:0;
-            int matchY = DelY_over_sigma<maxPull.at(aaa)?1:0;
-            map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))]->Fill(matchX);
-            map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))]->Fill(matchY);
-          }
-          for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
-            int match = DelX<maxX_GE21.at(aaa)?1:0;
-            std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
-            map_maxX_GE21[thistitle]->Fill(match);
-          }
-          for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
-            int match = DelY<maxY_GE21.at(aaa)?1:0;
-            std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
-            map_maxY_GE21[thistitle]->Fill(match);
-          }
-          for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
-            int match = DotDir>minDotDir.at(aaa)?1:0;
-            map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))]->Fill(match);
-          }
-        }
 
 
-      } // END gemSegment loop
 
-
-    } // END general track loop
-
-
-  } // END if(doMatchingStudy)
 
 }
 
@@ -1691,58 +1444,117 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   GEMRecHit_GE21_odd_XZplane->Write();
   GEMRecHit_GE21_even_XZplane->Write();
 
-  /* Matching Study */
-  if(doMatchingStudy){
+  TH1F *hist_PullXValues = new TH1F("PullXValues", "", PullXValues.size(), 0, PullXValues.size());
+  for(unsigned int i=0; i<PullXValues.size(); i++){
+    double aaa = PullXValues.at(i);
+    hist_PullXValues->SetBinContent(i+1, aaa);   
+    TString saaa = DoubleToString(aaa);
+    HitsMatchedPullX_Eta[aaa]->Write();
+    HitsMatchedPullX_Pt[aaa]->Write();
+    HitsMatchedPullX_Phi[aaa]->Write();
+    //==== Efficiency
+    TEfficiency* HitsEff_Eta = new TEfficiency(*HitsMatchedPullX_Eta[aaa], *TPMuon_Eta);
+    TEfficiency* HitsEff_Pt = new TEfficiency(*HitsMatchedPullX_Pt[aaa], *TPMuon_Pt);
+    TEfficiency* HitsEff_Phi = new TEfficiency(*HitsMatchedPullX_Phi[aaa], *TPMuon_Phi);
+    HitsEff_Eta->SetName("HitsEff_PullX_Eta_"+saaa);
+    HitsEff_Pt->SetName("HitsEff_PullX_Pt_"+saaa);
+    HitsEff_Phi->SetName("HitsEff_PullX_Phi_"+saaa);
+    HitsEff_Eta->Write();
+    HitsEff_Pt->Write();
+    HitsEff_Phi->Write();
 
-    DelX_GE11->Write();
-    DelX_over_sigma_GE11->Write();
-    DelY_GE11->Write();
-    DelY_over_sigma_GE11->Write();
-    DotDir_GE11->Write();
-    DelX_GE21->Write();
-    DelX_over_sigma_GE21->Write();
-    DelY_GE21->Write();
-    DelY_over_sigma_GE21->Write();
-    DotDir_GE21->Write();
+    HitsUnmatchedPullX_Eta[aaa]->Write();
+    HitsUnmatchedPullX_Pt[aaa]->Write();
+    HitsUnmatchedPullX_Phi[aaa]->Write();
 
-    maxPull_values->Write();
-    maxX_GE11_values->Write();
-    maxY_GE11_values->Write();
-    maxX_GE21_values->Write();
-    maxY_GE21_values->Write();
-    minDotDir_values->Write();
+    N_GEMMuon_PullX_h[aaa]->SetBinContent(1, n_GEMMuon_PullX.at(i));
+    N_GEMMuon_PullX_h[aaa]->Write();
+  }
+  hist_PullXValues->Write();
 
-    for(unsigned int aaa=0; aaa<maxPull.size(); aaa++){
-      map_maxXPull_GE11[DoubleToString("maxXPull_GE11", maxPull.at(aaa))]->Write();
-      map_maxYPull_GE11[DoubleToString("maxYPull_GE11", maxPull.at(aaa))]->Write();
-      map_maxXPull_GE21[DoubleToString("maxXPull_GE21", maxPull.at(aaa))]->Write();
-      map_maxYPull_GE21[DoubleToString("maxYPull_GE21", maxPull.at(aaa))]->Write();
-    }
-    for(unsigned int aaa=0; aaa<maxX_GE11.size(); aaa++){
-      std::string thistitle = DoubleToString("maxX_GE11", maxX_GE11.at(aaa));
-      map_maxX_GE11[thistitle]->Write();
-    }
-    for(unsigned int aaa=0; aaa<maxY_GE11.size(); aaa++){
-      std::string thistitle = DoubleToString("maxY_GE11", maxY_GE11.at(aaa));
-      map_maxY_GE11[thistitle]->Write();
-    }
-    for(unsigned int aaa=0; aaa<maxX_GE21.size(); aaa++){
-      std::string thistitle = DoubleToString("maxX_GE21", maxX_GE21.at(aaa));
-      map_maxX_GE21[thistitle]->Write();
-    }
-    for(unsigned int aaa=0; aaa<maxY_GE21.size(); aaa++){
-      std::string thistitle = DoubleToString("maxY_GE21", maxY_GE21.at(aaa));
-      map_maxY_GE21[thistitle]->Write();
-    }
-    for(unsigned int aaa=0; aaa<minDotDir.size(); aaa++){
-      map_minDotDir_GE11[DoubleToString("minDotDir_GE11", minDotDir.at(aaa))]->Write();
-      map_minDotDir_GE21[DoubleToString("minDotDir_GE21", minDotDir.at(aaa))]->Write();
-    }
+  TH1F *hist_DXValues = new TH1F("DXValues", "", DXValues.size(), 0, DXValues.size());
+  for(unsigned int i=0; i<DXValues.size(); i++){
+    double aaa = DXValues.at(i);
+    hist_DXValues->SetBinContent(i+1, aaa);
+    TString saaa = DoubleToString(aaa);
+    HitsMatchedDX_Eta[aaa]->Write();
+    HitsMatchedDX_Pt[aaa]->Write();
+    HitsMatchedDX_Phi[aaa]->Write();
+    //==== Efficiency
+    TEfficiency* HitsEff_Eta = new TEfficiency(*HitsMatchedDX_Eta[aaa], *TPMuon_Eta);
+    TEfficiency* HitsEff_Pt = new TEfficiency(*HitsMatchedDX_Pt[aaa], *TPMuon_Pt);
+    TEfficiency* HitsEff_Phi = new TEfficiency(*HitsMatchedDX_Phi[aaa], *TPMuon_Phi);
+    HitsEff_Eta->SetName("HitsEff_DX_Eta_"+saaa);
+    HitsEff_Pt->SetName("HitsEff_DX_Pt_"+saaa);
+    HitsEff_Phi->SetName("HitsEff_DX_Phi_"+saaa);
+    HitsEff_Eta->Write();
+    HitsEff_Pt->Write();
+    HitsEff_Phi->Write();
 
-  } // END if(doMatchingStudy)
+    HitsUnmatchedDX_Eta[aaa]->Write();
+    HitsUnmatchedDX_Pt[aaa]->Write();
+    HitsUnmatchedDX_Phi[aaa]->Write();
 
+    N_GEMMuon_DX_h[aaa]->SetBinContent(1, n_GEMMuon_DX.at(i));
+    N_GEMMuon_DX_h[aaa]->Write();
+  }
+  hist_DXValues->Write();
 
+  TH1F *hist_PullYValues = new TH1F("PullYValues", "", PullYValues.size(), 0, PullYValues.size());
+  for(unsigned int i=0; i<PullYValues.size(); i++){
+    double aaa = PullYValues.at(i);
+    hist_PullYValues->SetBinContent(i+1, aaa);
+    TString saaa = DoubleToString(aaa);
+    HitsMatchedPullY_Eta[aaa]->Write();
+    HitsMatchedPullY_Pt[aaa]->Write();
+    HitsMatchedPullY_Phi[aaa]->Write();
+    //==== Efficiency
+    TEfficiency* HitsEff_Eta = new TEfficiency(*HitsMatchedPullY_Eta[aaa], *TPMuon_Eta);
+    TEfficiency* HitsEff_Pt = new TEfficiency(*HitsMatchedPullY_Pt[aaa], *TPMuon_Pt);
+    TEfficiency* HitsEff_Phi = new TEfficiency(*HitsMatchedPullY_Phi[aaa], *TPMuon_Phi);
+    HitsEff_Eta->SetName("HitsEff_PullY_Eta_"+saaa);
+    HitsEff_Pt->SetName("HitsEff_PullY_Pt_"+saaa);
+    HitsEff_Phi->SetName("HitsEff_PullY_Phi_"+saaa);
+    HitsEff_Eta->Write();
+    HitsEff_Pt->Write();
+    HitsEff_Phi->Write();
 
+    HitsUnmatchedPullY_Eta[aaa]->Write();
+    HitsUnmatchedPullY_Pt[aaa]->Write();
+    HitsUnmatchedPullY_Phi[aaa]->Write();
+
+    N_GEMMuon_PullY_h[aaa]->SetBinContent(1, n_GEMMuon_PullY.at(i));
+    N_GEMMuon_PullY_h[aaa]->Write();
+  }
+  hist_PullYValues->Write();
+
+  TH1F *hist_DYValues = new TH1F("DYValues", "", DYValues.size(), 0, DYValues.size());
+  for(unsigned int i=0; i<DYValues.size(); i++){
+    double aaa = DYValues.at(i);
+    hist_DYValues->SetBinContent(i+1, aaa);
+    TString saaa = DoubleToString(aaa);
+    HitsMatchedDY_Eta[aaa]->Write();
+    HitsMatchedDY_Pt[aaa]->Write();
+    HitsMatchedDY_Phi[aaa]->Write();
+    //==== Efficiency
+    TEfficiency* HitsEff_Eta = new TEfficiency(*HitsMatchedDY_Eta[aaa], *TPMuon_Eta);
+    TEfficiency* HitsEff_Pt = new TEfficiency(*HitsMatchedDY_Pt[aaa], *TPMuon_Pt);
+    TEfficiency* HitsEff_Phi = new TEfficiency(*HitsMatchedDY_Phi[aaa], *TPMuon_Phi);
+    HitsEff_Eta->SetName("HitsEff_DY_Eta_"+saaa);
+    HitsEff_Pt->SetName("HitsEff_DY_Pt_"+saaa);
+    HitsEff_Phi->SetName("HitsEff_DY_Phi_"+saaa);
+    HitsEff_Eta->Write();
+    HitsEff_Pt->Write();
+    HitsEff_Phi->Write();
+
+    HitsUnmatchedDY_Eta[aaa]->Write();
+    HitsUnmatchedDY_Pt[aaa]->Write();
+    HitsUnmatchedDY_Phi[aaa]->Write();
+
+    N_GEMMuon_DY_h[aaa]->SetBinContent(1, n_GEMMuon_DY.at(i));
+    N_GEMMuon_DY_h[aaa]->Write();
+  }
+  hist_DYValues->Write();
 
 }
 
@@ -1792,10 +1604,10 @@ void GEMMuonAnalyzer::getFromFTS(const FreeTrajectoryState& fts,
 
 }
 
-std::string GEMMuonAnalyzer::DoubleToString(std::string prefix, double dd){
+std::string GEMMuonAnalyzer::DoubleToString(double dd){
   std::ostringstream os;
   os << dd;
-  return prefix+"_"+os.str();
+  return os.str();
 }
 
 DEFINE_FWK_MODULE(GEMMuonAnalyzer);

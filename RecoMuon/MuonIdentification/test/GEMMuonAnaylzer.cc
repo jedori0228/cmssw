@@ -126,7 +126,7 @@ public:
   std::vector<std::string> associators;
   //std::vector<edm::InputTag> label;
   std::vector<std::string> label;
-  std::vector<double> PullXValues, DXValues, PullYValues, DYValues;
+  std::vector<double> PullXValues, DXValues, PullYValues, DYValues, DotDirValues;
 
   //Histos for plotting
   TFile* histoFile; 
@@ -187,6 +187,10 @@ public:
   std::map< double, TH1F* > N_GEMMuon_DY_h;
   std::map< double, TH1F* > HitsMatchedDY_Eta, HitsMatchedDY_Pt, HitsMatchedDY_Phi,
                             HitsUnmatchedDY_Eta, HitsUnmatchedDY_Pt, HitsUnmatchedDY_Phi;
+  std::vector<int> n_GEMMuon_DotDir;
+  std::map< double, TH1F* > N_GEMMuon_DotDir_h;
+  std::map< double, TH1F* > HitsMatchedDotDir_Eta, HitsMatchedDotDir_Pt, HitsMatchedDotDir_Phi,
+                            HitsUnmatchedDotDir_Eta, HitsUnmatchedDotDir_Pt, HitsUnmatchedDotDir_Phi;
 
 };
 
@@ -210,6 +214,7 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   DXValues = iConfig.getParameter< std::vector<double> >("DXValues");
   PullYValues = iConfig.getParameter< std::vector<double> >("PullYValues");
   DYValues = iConfig.getParameter< std::vector<double> >("DYValues");
+  DotDirValues = iConfig.getParameter< std::vector<double> >("DotDirValues");
   edm::InputTag genParticlesTag ("genParticles");
   genParticlesToken_ = consumes<reco::GenParticleCollection>(genParticlesTag);
   edm::InputTag trackingParticlesTag ("mix","MergedTrackTruth");
@@ -244,6 +249,7 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   for(unsigned int i=0; i<DXValues.size(); i++) n_GEMMuon_DX.push_back(0);
   for(unsigned int i=0; i<PullYValues.size(); i++) n_GEMMuon_PullY.push_back(0);
   for(unsigned int i=0; i<DYValues.size(); i++) n_GEMMuon_DY.push_back(0);
+  for(unsigned int i=0; i<DotDirValues.size(); i++) n_GEMMuon_DotDir.push_back(0);
   
 
   std::cout<<"Contructor end"<<std::endl;
@@ -402,6 +408,17 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
     HitsUnmatchedDY_Phi[aaa] = new TH1F("HitsUnmatchedDY_Phi"+saaa, "DY #phi", 36, -TMath::Pi(), TMath::Pi() );
     N_GEMMuon_DY_h[aaa] = new TH1F("N_GEMMuon_DY_h"+saaa, "Nevents", 1, 0, 1 );
   }
+  for(unsigned int i=0; i<DotDirValues.size(); i++){
+    double aaa = DotDirValues.at(i);
+    TString saaa = "_"+DoubleToString(aaa);
+    HitsMatchedDotDir_Eta[aaa] = new TH1F("HitsMatchedDotDir_Eta"+saaa, "DotDir #eta", n_eta_bin, eta_bin );
+    HitsMatchedDotDir_Pt[aaa]  = new TH1F("HitsMatchedDotDir_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsMatchedDotDir_Phi[aaa] = new TH1F("HitsMatchedDotDir_Phi"+saaa, "DotDir #phi", 36, -TMath::Pi(), TMath::Pi() );
+    HitsUnmatchedDotDir_Eta[aaa] = new TH1F("HitsUnmatchedDotDir_Eta"+saaa, "DotDir #eta", n_eta_bin, eta_bin );
+    HitsUnmatchedDotDir_Pt[aaa]  = new TH1F("HitsUnmatchedDotDir_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsUnmatchedDotDir_Phi[aaa] = new TH1F("HitsUnmatchedDotDir_Phi"+saaa, "DotDir #phi", 36, -TMath::Pi(), TMath::Pi() );
+    N_GEMMuon_DotDir_h[aaa] = new TH1F("N_GEMMuon_DotDir_h"+saaa, "Nevents", 1, 0, 1 );
+  }
 
 
 }
@@ -527,8 +544,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         //==== RecoMuon
 
-        double RecoMuon_LowestDelR = 9999, RecoMuon_NotGEMMuon_LowestDelR = 9999, RecoMuoN_GEMMuon_h_LowestDelR = 9999;
-        double RecoMuon_thisDelR = 9999, RecoMuon_NotGEMMuon_thisDelR = 9999, RecoMuoN_GEMMuon_h_thisDelR = 9999;
+        double RecoMuon_LowestDelR = 9999, RecoMuon_NotGEMMuon_LowestDelR = 9999, RecoMuon_GEMMuon_h_LowestDelR = 9999;
+        double RecoMuon_thisDelR = 9999;
         bool RecoMuon_isMatched = false, RecoMuon_NotGEMMuon_isMatched = false, RecoMuoN_GEMMuon_h_isMatched = false;
         int RecoMuonID = 0;
         for(reco::MuonCollection::const_iterator recomuon = recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon){
@@ -557,8 +574,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               //==== matched RecoMuon and (GEMMuon && TrackerMuon)
               if( recomuon->isGEMMuon() && recomuon->isTrackerMuon() ){
                 RecoMuoN_GEMMuon_h_isMatched = true;
-                if( RecoMuon_thisDelR < RecoMuoN_GEMMuon_h_LowestDelR ){
-                  RecoMuoN_GEMMuon_h_LowestDelR = RecoMuon_thisDelR;
+                if( RecoMuon_thisDelR < RecoMuon_GEMMuon_h_LowestDelR ){
+                  RecoMuon_GEMMuon_h_LowestDelR = RecoMuon_thisDelR;
                 }
               }
 
@@ -820,56 +837,66 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   } 
   
-  if (UseAssociators) {
+  if(UseAssociators) {
 
-    //==== Efficiency study
-    //std::cout << "TrackingParticle size = " << trackingParticles->size() << std::endl;
-    for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
-      TrackingParticleRef tpr(trackingParticles, i);
-      TrackingParticle* tp=const_cast<TrackingParticle*>(tpr.get());
-      TrackingParticle::Vector momentumTP;
-      TrackingParticle::Point vertexTP;
+    unsigned int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0, www_DotDir = 0;
+    for (unsigned int www=0;www<label.size();www++){
 
-      if (abs(tp->pdgId()) != 13) continue;
+      //=========================
+      //==== prepare RecoTracks
+      //=========================
 
-      bool Eta_1p6_2p4 = fabs(tp->eta()) > 1.6 && fabs(tp->eta()) < 2.4;
-      bool Pt_5 = tp->pt() > 5;
-      if( Eta_1p6_2p4 ){
-        bool SignalMuon = false;
-        if(tp->status() != -99){
-          //==== Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
-          //int motherid=-1;
-          if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
-            if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
-              //motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+      Handle<reco::SimToRecoCollection > simtorecoCollectionH;
+      iEvent.getByLabel(associators[www],simtorecoCollectionH);
+      reco::SimToRecoCollection simRecColl= *(simtorecoCollectionH.product());
+
+      Handle<reco::RecoToSimCollection > recotosimCollectionH;
+      iEvent.getByLabel(associators[www],recotosimCollectionH);
+      reco::RecoToSimCollection recSimColl= *(recotosimCollectionH.product());
+
+      edm::Handle<View<Track> >  trackCollection;
+      iEvent.getByToken(track_Collection_Token[www], trackCollection);
+
+      //=======================
+      //==== Efficiency study
+      //=======================
+
+      //std::cout << "TrackingParticle size = " << trackingParticles->size() << std::endl;
+      for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++){
+        TrackingParticleRef tpr(trackingParticles, i);
+        TrackingParticle* tp=const_cast<TrackingParticle*>(tpr.get());
+        TrackingParticle::Vector momentumTP;
+        TrackingParticle::Point vertexTP;
+
+        if (abs(tp->pdgId()) != 13) continue;
+
+        bool Eta_1p6_2p4 = fabs(tp->eta()) > 1.6 && fabs(tp->eta()) < 2.4;
+        bool Pt_5 = tp->pt() > 5;
+        if( Eta_1p6_2p4 ){
+          bool SignalMuon = false;
+          if(tp->status() != -99){
+            //==== Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+            //int motherid=-1;
+            if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
+              if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
+                //motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+              }
             }
-          }
-          //std::cout<<"Mother ID = "<<motherid<<std::endl;
+            //std::cout<<"Mother ID = "<<motherid<<std::endl;
 
-          if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
-               ( (tp->status()==1) )      )    SignalMuon=true;
+            if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                 ( (tp->status()==1) )      )    SignalMuon=true;
 
-        } // END if(tp->status() != -99)        
+          } // END if(tp->status() != -99)        
 
-        if(SignalMuon){
-          //==== Fill the Denominator
-          TPMuon_Eta->Fill(fabs(tp->eta()));
-          TPMuon_Pt->Fill(tp->pt());
-          TPMuon_Phi->Fill(tp->phi());
-          //==== Looking at SimToReco
-          unsigned int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0;
-          for (unsigned int www=0;www<label.size();www++){
-
-            Handle<reco::SimToRecoCollection > simtorecoCollectionH;
-            iEvent.getByLabel(associators[www],simtorecoCollectionH);
-            reco::SimToRecoCollection simRecColl= *(simtorecoCollectionH.product());
-
-            Handle<reco::RecoToSimCollection > recotosimCollectionH;
-            iEvent.getByLabel(associators[www],recotosimCollectionH);
-            reco::RecoToSimCollection recSimColl= *(recotosimCollectionH.product());
-
-            edm::Handle<View<Track> >  trackCollection;
-            iEvent.getByToken(track_Collection_Token[www], trackCollection);
+          if(SignalMuon){
+            //==== Fill the Denominator
+            //==== Should be filled only once (www=0)
+            if( www == 0 ){
+              TPMuon_Eta->Fill(fabs(tp->eta()));
+              TPMuon_Pt->Fill(tp->pt());
+              TPMuon_Phi->Fill(tp->phi());
+            }
 
             if( (simRecColl.find(tpr) == simRecColl.end()) || (simRecColl[tpr].size() == 0) ){
               edm::LogVerbatim("GEMMuonAnalyzer") << "No SimToReco found for this TrackingParticle";
@@ -940,43 +967,28 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                     HitsMatchedDY_Pt[this_cut]->Fill(tpr->pt());
                     if(Pt_5) HitsMatchedDY_Phi[this_cut]->Fill(tpr->phi());
                   }
+                  if(label[www].find("DotDirScan") != std::string::npos){
+                    double this_cut = DotDirValues.at(www_DotDir);
+                    if(Pt_5) HitsMatchedDotDir_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                    HitsMatchedDotDir_Pt[this_cut]->Fill(tpr->pt());
+                    if(Pt_5) HitsMatchedDotDir_Phi[this_cut]->Fill(tpr->phi());
+                  }
 
                 }
               }
             }
 
-            if(label[www].find("PullXScan") != std::string::npos) www_PullX++;
-            if(label[www].find("DXScan") != std::string::npos) www_DX++;
-            if(label[www].find("PullYScan") != std::string::npos) www_PullY++;
-            if(label[www].find("DYScan") != std::string::npos) www_DY++;
-
-          } //==== END of label loop
-
-        } //==== END if(SignalMuon)
-
-      } // END if( Eta_1p6_2p4 && Pt_5 )
+          } //==== END if(SignalMuon)
+        } // END if( Eta_1p6_2p4 && Pt_5 )
 
 
-    } // END for (TrackingParticleCollection::size_type i=0; i<trackingParticles->size(); i++)
+      } // END TrackingParticle Loop
 
-    //==== Fake study
-    int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0;
-    for(unsigned int www=0;www<label.size();www++){
-
-      reco::RecoToSimCollection recSimColl;
-      reco::SimToRecoCollection simRecColl;
-      edm::Handle<View<Track> >  trackCollection;
-
-      Handle<reco::SimToRecoCollection > simtorecoCollectionH;
-      iEvent.getByLabel(associators[www],simtorecoCollectionH);
-      simRecColl= *(simtorecoCollectionH.product());
-
-      Handle<reco::RecoToSimCollection > recotosimCollectionH;
-      iEvent.getByLabel(associators[www],recotosimCollectionH);
-      recSimColl= *(recotosimCollectionH.product());
+      //=================
+      //==== Fake study
+      //=================
 
       unsigned int trackCollectionSize = 0;
-      iEvent.getByToken(track_Collection_Token[www], trackCollection);
       trackCollectionSize = trackCollection->size();
 
       //==== loop over (GEMMuon/RecoMuon/...) tracks
@@ -991,6 +1003,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DX[www_DX] += trackCollectionSize;
       if(label[www].find("Scan") != std::string::npos) n_GEMMuon_PullY[www_PullY] += trackCollectionSize;
       if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DY[www_DY] += trackCollectionSize;
+      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DotDir[www_DotDir] += trackCollectionSize;
 
       for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
         //std::cout << i << "th trackCollection iterator" << std::endl;
@@ -1017,7 +1030,6 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
 
             //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
-            bool Eta_1p6_2p4 = fabs(track->eta()) > 1.6 && fabs(track->eta()) < 2.4;
             bool SignalMuon = false;
             if(tpr->status() !=-99){
               if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
@@ -1091,6 +1103,12 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             HitsUnmatchedDY_Pt[this_cut]->Fill(track->pt());
             if(Pt_5) HitsUnmatchedDY_Phi[this_cut]->Fill(track->phi());
           }
+          if(label[www].find("DotDirScan") != std::string::npos){
+            double this_cut = DotDirValues.at(www_DotDir);
+            if(Pt_5) HitsUnmatchedDotDir_Eta[this_cut]->Fill(fabs(track->eta()));
+            HitsUnmatchedDotDir_Pt[this_cut]->Fill(track->pt());
+            if(Pt_5) HitsUnmatchedDotDir_Phi[this_cut]->Fill(track->phi());
+          }
 
         } //==== END if(isFake)
       }
@@ -1098,6 +1116,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       if(label[www].find("DXScan") != std::string::npos) www_DX++;
       if(label[www].find("PullYScan") != std::string::npos) www_PullY++;
       if(label[www].find("DYScan") != std::string::npos) www_DY++;
+      if(label[www].find("DotDirScan") != std::string::npos) www_DotDir++;
 
     } // END label Loop
 
@@ -1556,6 +1575,33 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   }
   hist_DYValues->Write();
 
+  TH1F *hist_DotDirValues = new TH1F("DotDirValues", "", DotDirValues.size(), 0, DotDirValues.size());
+  for(unsigned int i=0; i<DotDirValues.size(); i++){
+    double aaa = DotDirValues.at(i);
+    hist_DotDirValues->SetBinContent(i+1, aaa);
+    TString saaa = DoubleToString(aaa);
+    HitsMatchedDotDir_Eta[aaa]->Write();
+    HitsMatchedDotDir_Pt[aaa]->Write();
+    HitsMatchedDotDir_Phi[aaa]->Write();
+    //==== Efficiency
+    TEfficiency* HitsEff_Eta = new TEfficiency(*HitsMatchedDotDir_Eta[aaa], *TPMuon_Eta);
+    TEfficiency* HitsEff_Pt = new TEfficiency(*HitsMatchedDotDir_Pt[aaa], *TPMuon_Pt);
+    TEfficiency* HitsEff_Phi = new TEfficiency(*HitsMatchedDotDir_Phi[aaa], *TPMuon_Phi);
+    HitsEff_Eta->SetName("HitsEff_DotDir_Eta_"+saaa);
+    HitsEff_Pt->SetName("HitsEff_DotDir_Pt_"+saaa);
+    HitsEff_Phi->SetName("HitsEff_DotDir_Phi_"+saaa);
+    HitsEff_Eta->Write();
+    HitsEff_Pt->Write();
+    HitsEff_Phi->Write();
+
+    HitsUnmatchedDotDir_Eta[aaa]->Write();
+    HitsUnmatchedDotDir_Pt[aaa]->Write();
+    HitsUnmatchedDotDir_Phi[aaa]->Write();
+
+    N_GEMMuon_DotDir_h[aaa]->SetBinContent(1, n_GEMMuon_DotDir.at(i));
+    N_GEMMuon_DotDir_h[aaa]->Write();
+  }
+  hist_DotDirValues->Write();
 }
 
 FreeTrajectoryState

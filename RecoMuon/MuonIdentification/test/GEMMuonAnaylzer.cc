@@ -133,8 +133,10 @@ public:
 
   double  FakeRatePtCut, MatchingWindowDelR;
 
-  TH1F *Nevents_h, *N_GEMMuon_h, *N_RecoMuon_h, *N_LooseMuon_h, *N_MediumMuon_h, *N_TightMuon_h;
+  TH1F *Nevents_h, *N_GEMMuon_h, *N_RecoMuon_h, *N_LooseMuon_h, *N_MediumMuon_h, *N_TightMuon_h,
+                   *N_GEMMuon_ptcut_h, *N_RecoMuon_ptcut_h, *N_LooseMuon_ptcut_h, *N_MediumMuon_ptcut_h, *N_TightMuon_ptcut_h;
   int n_GEMMuon, n_RecoMuon, n_LooseMuon, n_MediumMuon, n_TightMuon;
+  int n_GEMMuon_ptcut, n_RecoMuon_ptcut, n_LooseMuon_ptcut, n_MediumMuon_ptcut, n_TightMuon_ptcut;
 
   TH1F *GenMuon_Eta; TH1F *GenMuon_Pt; TH1F *GenMuon_Phi;
   TH1F *MatchedRecoMuon_Eta; TH1F *MatchedRecoMuon_Pt; TH1F *MatchedRecoMuon_Phi;
@@ -171,24 +173,24 @@ public:
   TH2F *GEMRecHit_GE11_odd_XZplane, *GEMRecHit_GE11_even_XZplane; 
   TH2F *GEMRecHit_GE21_odd_XZplane, *GEMRecHit_GE21_even_XZplane;
 
-  std::vector<int> n_GEMMuon_PullX;
-  std::map< double, TH1F* > N_GEMMuon_PullX_h;
+  std::vector<int> n_GEMMuon_PullX, n_GEMMuon_ptcut_PullX;
+  std::map< double, TH1F* > N_GEMMuon_PullX_h, N_GEMMuon_ptcut_PullX_h;
   std::map< double, TH1F* > HitsMatchedPullX_Eta, HitsMatchedPullX_Pt, HitsMatchedPullX_Phi,
                             HitsUnmatchedPullX_Eta, HitsUnmatchedPullX_Pt, HitsUnmatchedPullX_Phi;
-  std::vector<int> n_GEMMuon_DX;
-  std::map< double, TH1F* > N_GEMMuon_DX_h;
+  std::vector<int> n_GEMMuon_DX, n_GEMMuon_ptcut_DX;
+  std::map< double, TH1F* > N_GEMMuon_DX_h, N_GEMMuon_ptcut_DX_h;
   std::map< double, TH1F* > HitsMatchedDX_Eta, HitsMatchedDX_Pt, HitsMatchedDX_Phi,
                             HitsUnmatchedDX_Eta, HitsUnmatchedDX_Pt, HitsUnmatchedDX_Phi;
-  std::vector<int> n_GEMMuon_PullY;
-  std::map< double, TH1F* > N_GEMMuon_PullY_h;
+  std::vector<int> n_GEMMuon_PullY, n_GEMMuon_ptcut_PullY;
+  std::map< double, TH1F* > N_GEMMuon_PullY_h, N_GEMMuon_ptcut_PullY_h;
   std::map< double, TH1F* > HitsMatchedPullY_Eta, HitsMatchedPullY_Pt, HitsMatchedPullY_Phi,
                             HitsUnmatchedPullY_Eta, HitsUnmatchedPullY_Pt, HitsUnmatchedPullY_Phi;
-  std::vector<int> n_GEMMuon_DY;
-  std::map< double, TH1F* > N_GEMMuon_DY_h;
+  std::vector<int> n_GEMMuon_DY, n_GEMMuon_ptcut_DY;
+  std::map< double, TH1F* > N_GEMMuon_DY_h, N_GEMMuon_ptcut_DY_h;
   std::map< double, TH1F* > HitsMatchedDY_Eta, HitsMatchedDY_Pt, HitsMatchedDY_Phi,
                             HitsUnmatchedDY_Eta, HitsUnmatchedDY_Pt, HitsUnmatchedDY_Phi;
-  std::vector<int> n_GEMMuon_DotDir;
-  std::map< double, TH1F* > N_GEMMuon_DotDir_h;
+  std::vector<int> n_GEMMuon_DotDir, n_GEMMuon_ptcut_DotDir;
+  std::map< double, TH1F* > N_GEMMuon_DotDir_h, N_GEMMuon_ptcut_DotDir_h;
   std::map< double, TH1F* > HitsMatchedDotDir_Eta, HitsMatchedDotDir_Pt, HitsMatchedDotDir_Phi,
                             HitsUnmatchedDotDir_Eta, HitsUnmatchedDotDir_Pt, HitsUnmatchedDotDir_Phi;
 
@@ -245,11 +247,42 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   n_LooseMuon = 0;
   n_MediumMuon = 0;
   n_TightMuon = 0;
-  for(unsigned int i=0; i<PullXValues.size(); i++) n_GEMMuon_PullX.push_back(0);
-  for(unsigned int i=0; i<DXValues.size(); i++) n_GEMMuon_DX.push_back(0);
-  for(unsigned int i=0; i<PullYValues.size(); i++) n_GEMMuon_PullY.push_back(0);
-  for(unsigned int i=0; i<DYValues.size(); i++) n_GEMMuon_DY.push_back(0);
-  for(unsigned int i=0; i<DotDirValues.size(); i++) n_GEMMuon_DotDir.push_back(0);
+  n_GEMMuon_ptcut = 0;
+  n_RecoMuon_ptcut = 0;
+  n_LooseMuon_ptcut = 0;
+  n_MediumMuon_ptcut = 0;
+  n_TightMuon_ptcut = 0;
+  n_GEMMuon_PullX.clear();
+  n_GEMMuon_ptcut_PullX.clear();
+  n_GEMMuon_PullY.clear();
+  n_GEMMuon_ptcut_PullY.clear();
+  n_GEMMuon_PullY.clear();
+  n_GEMMuon_ptcut_PullY.clear();
+  n_GEMMuon_DY.clear();
+  n_GEMMuon_ptcut_DY.clear();
+  n_GEMMuon_DotDir.clear();
+  n_GEMMuon_ptcut_DotDir.clear();
+
+  for(unsigned int i=0; i<PullXValues.size(); i++){
+    n_GEMMuon_PullX.push_back(0);
+    n_GEMMuon_ptcut_PullX.push_back(0);
+  }
+  for(unsigned int i=0; i<DXValues.size(); i++){
+    n_GEMMuon_DX.push_back(0);
+    n_GEMMuon_ptcut_DX.push_back(0);
+  }
+  for(unsigned int i=0; i<PullYValues.size(); i++){
+    n_GEMMuon_PullY.push_back(0);
+    n_GEMMuon_ptcut_PullY.push_back(0);
+  }
+  for(unsigned int i=0; i<DYValues.size(); i++){
+    n_GEMMuon_DY.push_back(0);
+    n_GEMMuon_ptcut_DY.push_back(0);
+  }
+  for(unsigned int i=0; i<DotDirValues.size(); i++){
+    n_GEMMuon_DotDir.push_back(0);
+    n_GEMMuon_ptcut_DotDir.push_back(0);
+  }
   
 
   std::cout<<"Contructor end"<<std::endl;
@@ -270,6 +303,11 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   N_LooseMuon_h = new TH1F("N_LooseMuon_h", "Nevents", 1, 0, 1 );
   N_MediumMuon_h = new TH1F("N_MediumMuon_h", "Nevents", 1, 0, 1 );
   N_TightMuon_h = new TH1F("N_TightMuon_h", "Nevents", 1, 0, 1 );
+  N_GEMMuon_ptcut_h = new TH1F("N_GEMMuon_ptcut_h", "Nevents", 1, 0, 1 );
+  N_RecoMuon_ptcut_h = new TH1F("N_RecoMuon_ptcut_h", "Nevents", 1, 0, 1 );
+  N_LooseMuon_ptcut_h = new TH1F("N_LooseMuon_ptcut_h", "Nevents", 1, 0, 1 );
+  N_MediumMuon_ptcut_h = new TH1F("N_MediumMuon_ptcut_h", "Nevents", 1, 0, 1 );
+  N_TightMuon_ptcut_h = new TH1F("N_TightMuon_ptcut_h", "Nevents", 1, 0, 1 );
   GenMuon_Eta = new TH1F("GenMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   GenMuon_Phi = new TH1F("GenMuon_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi());
@@ -374,6 +412,7 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
     HitsUnmatchedPullX_Pt[aaa]  = new TH1F("HitsUnmatchedPullX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsUnmatchedPullX_Phi[aaa] = new TH1F("HitsUnmatchedPullX_Phi"+saaa, "PullX #phi", 36, -TMath::Pi(), TMath::Pi() );
     N_GEMMuon_PullX_h[aaa] = new TH1F("N_GEMMuon_PullX_h"+saaa, "Nevents", 1, 0, 1 );
+    N_GEMMuon_ptcut_PullX_h[aaa] = new TH1F("N_GEMMuon_ptcut_PullX_h"+saaa, "Nevents", 1, 0, 1 );
   }
   for(unsigned int i=0; i<DXValues.size(); i++){
     double aaa = DXValues.at(i);
@@ -385,6 +424,7 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
     HitsUnmatchedDX_Pt[aaa]  = new TH1F("HitsUnmatchedDX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsUnmatchedDX_Phi[aaa] = new TH1F("HitsUnmatchedDX_Phi"+saaa, "DX #phi", 36, -TMath::Pi(), TMath::Pi() );
     N_GEMMuon_DX_h[aaa] = new TH1F("N_GEMMuon_DX_h"+saaa, "Nevents", 1, 0, 1 );
+    N_GEMMuon_ptcut_DX_h[aaa] = new TH1F("N_GEMMuon_ptcut_DX_h"+saaa, "Nevents", 1, 0, 1 );
   }
   for(unsigned int i=0; i<PullYValues.size(); i++){
     double aaa = PullYValues.at(i);
@@ -396,6 +436,7 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
     HitsUnmatchedPullY_Pt[aaa]  = new TH1F("HitsUnmatchedPullY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsUnmatchedPullY_Phi[aaa] = new TH1F("HitsUnmatchedPullY_Phi"+saaa, "PullY #phi", 36, -TMath::Pi(), TMath::Pi() );
     N_GEMMuon_PullY_h[aaa] = new TH1F("N_GEMMuon_PullY_h"+saaa, "Nevents", 1, 0, 1 );
+    N_GEMMuon_ptcut_PullY_h[aaa] = new TH1F("N_GEMMuon_ptcut_PullY_h"+saaa, "Nevents", 1, 0, 1 );
   }
   for(unsigned int i=0; i<DYValues.size(); i++){
     double aaa = DYValues.at(i);
@@ -407,6 +448,7 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
     HitsUnmatchedDY_Pt[aaa]  = new TH1F("HitsUnmatchedDY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsUnmatchedDY_Phi[aaa] = new TH1F("HitsUnmatchedDY_Phi"+saaa, "DY #phi", 36, -TMath::Pi(), TMath::Pi() );
     N_GEMMuon_DY_h[aaa] = new TH1F("N_GEMMuon_DY_h"+saaa, "Nevents", 1, 0, 1 );
+    N_GEMMuon_ptcut_DY_h[aaa] = new TH1F("N_GEMMuon_ptcut_DY_h"+saaa, "Nevents", 1, 0, 1 );
   }
   for(unsigned int i=0; i<DotDirValues.size(); i++){
     double aaa = DotDirValues.at(i);
@@ -418,6 +460,7 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
     HitsUnmatchedDotDir_Pt[aaa]  = new TH1F("HitsUnmatchedDotDir_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsUnmatchedDotDir_Phi[aaa] = new TH1F("HitsUnmatchedDotDir_Phi"+saaa, "DotDir #phi", 36, -TMath::Pi(), TMath::Pi() );
     N_GEMMuon_DotDir_h[aaa] = new TH1F("N_GEMMuon_DotDir_h"+saaa, "Nevents", 1, 0, 1 );
+    N_GEMMuon_ptcut_DotDir_h[aaa] = new TH1F("N_GEMMuon_ptcut_DotDir_h"+saaa, "Nevents", 1, 0, 1 );
   }
 
 
@@ -893,9 +936,9 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             //==== Fill the Denominator
             //==== Should be filled only once (www=0)
             if( www == 0 ){
-              TPMuon_Eta->Fill(fabs(tp->eta()));
+              if(Pt_5) TPMuon_Eta->Fill(fabs(tp->eta()));
               TPMuon_Pt->Fill(tp->pt());
-              TPMuon_Phi->Fill(tp->phi());
+              if(Pt_5) TPMuon_Phi->Fill(tp->phi());
             }
 
             if( (simRecColl.find(tpr) == simRecColl.end()) || (simRecColl[tpr].size() == 0) ){
@@ -979,7 +1022,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             }
 
           } //==== END if(SignalMuon)
-        } // END if( Eta_1p6_2p4 && Pt_5 )
+        } // END if( Eta_1p6_2p4 )
 
 
       } // END TrackingParticle Loop
@@ -988,130 +1031,165 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       //==== Fake study
       //=================
 
-      unsigned int trackCollectionSize = 0;
-      trackCollectionSize = trackCollection->size();
-
       //==== loop over (GEMMuon/RecoMuon/...) tracks
-      //std::cout << "Obj = " << label[www] << ", trackCollectionSize = " << trackCollectionSize << std::endl;
-
-      if(label[www]=="gemMuonSel") n_GEMMuon += trackCollectionSize;
-      if(label[www]=="recoMuonSel") n_RecoMuon += trackCollectionSize;
-      if(label[www]=="looseMuonSel") n_LooseMuon += trackCollectionSize;
-      if(label[www]=="mediumMuonSel") n_MediumMuon += trackCollectionSize;
-      if(label[www]=="tightMuonSel") n_TightMuon += trackCollectionSize;
-      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_PullX[www_PullX] += trackCollectionSize;
-      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DX[www_DX] += trackCollectionSize;
-      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_PullY[www_PullY] += trackCollectionSize;
-      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DY[www_DY] += trackCollectionSize;
-      if(label[www].find("Scan") != std::string::npos) n_GEMMuon_DotDir[www_DotDir] += trackCollectionSize;
-
-      for(View<Track>::size_type i=0; i<trackCollectionSize; ++i){
+      for(View<Track>::size_type i=0; i<trackCollection->size(); ++i){
         //std::cout << i << "th trackCollection iterator" << std::endl;
         RefToBase<Track> track(trackCollection, i);
 
-        //==== Check if the track is associated to any gen particle
-        bool isFake = false;
-        if( (recSimColl.find(track) == recSimColl.end()) || (recSimColl[track].size() == 0) ){
-          edm::LogVerbatim("GEMMuonAnalyzer") << "No RecoToSim found for this RecoTrack";
-          isFake = true;
-        }
-        //==== gen particle is found
-        else{
-          std::vector<std::pair<TrackingParticleRef, double> > tp = recSimColl[track];
-          TrackingParticleRef tpr = tp.begin()->first;
-          //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
-          if( (simRecColl.find(tpr) == simRecColl.end())  ||  (simRecColl[tpr].size() == 0)  ) {
-            edm::LogVerbatim("GEMMuonAnalyzer") << "RecoToSim found, but no SimToReco for the best RecoToSim";
-            isFake = true;
-          } 
-          else{
-            std::vector<std::pair<RefToBase<Track>, double> > rt = simRecColl[tpr];
-            RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
-            //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
-
-            //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
-            bool SignalMuon = false;
-            if(tpr->status() !=-99){
-              if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
-                if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
-                  //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
-                }
-              }
-              //std::cout<<"Mother ID = "<<motherid<<std::endl;
-              if( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
-                  ( (tpr->status()==1) ) ) SignalMuon=true;
-            }
-            if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
-              edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched TrackingParticle";
-            }
-            else{
-              isFake = true;
-            }
-
-          }
-        }
-
         bool Eta_1p6_2p4 = fabs(track->eta()) > 1.6 && fabs(track->eta()) < 2.4;
-        if(isFake && Eta_1p6_2p4){
-          bool Pt_5 = track->pt() > 5;
+        bool Pt_5 = track->pt() > 5;
+
+        if( Eta_1p6_2p4 ){
+
+          //==== count reco tracks
           if(label[www]=="gemMuonSel"){
-             if(Pt_5) HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
-             HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
-             if(Pt_5) HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
+            n_GEMMuon++;
+            if( Pt_5 ) n_GEMMuon_ptcut++;
           }
           if(label[www]=="recoMuonSel"){
-            if(Pt_5) HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
-            HitsUnmatchedRecoMuon_Pt->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
+            n_RecoMuon++;
+            if( Pt_5 ) n_RecoMuon_ptcut++;
           }
           if(label[www]=="looseMuonSel"){
-            if(Pt_5) HitsUnmatchedLooseMuon_Eta->Fill(fabs(track->eta()));
-            HitsUnmatchedLooseMuon_Pt->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedLooseMuon_Phi->Fill(track->phi());
+            n_LooseMuon++;
+            if( Pt_5 ) n_LooseMuon_ptcut++;
           }
           if(label[www]=="mediumMuonSel"){
-            if(Pt_5) HitsUnmatchedMediumMuon_Eta->Fill(fabs(track->eta()));
-            HitsUnmatchedMediumMuon_Pt->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedMediumMuon_Phi->Fill(track->phi());
+            n_MediumMuon++;
+            if( Pt_5 ) n_MediumMuon_ptcut++;
           }
           if(label[www]=="tightMuonSel"){
-            if(Pt_5) HitsUnmatchedTightMuon_Eta->Fill(fabs(track->eta()));
-            HitsUnmatchedTightMuon_Pt->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedTightMuon_Phi->Fill(track->phi());
+            n_TightMuon++;
+            if( Pt_5 ) n_TightMuon_ptcut++;
           }
           if(label[www].find("PullXScan") != std::string::npos){
-            double this_cut = PullXValues.at(www_PullX);
-            if(Pt_5) HitsUnmatchedPullX_Eta[this_cut]->Fill(fabs(track->eta()));
-            HitsUnmatchedPullX_Pt[this_cut]->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedPullX_Phi[this_cut]->Fill(track->phi());
+            n_GEMMuon_PullX[www_PullX]++;
+            if( Pt_5 ) n_GEMMuon_ptcut_PullX[www_PullX]++;
           }
           if(label[www].find("DXScan") != std::string::npos){
-            double this_cut = DXValues.at(www_DX);
-            if(Pt_5) HitsUnmatchedDX_Eta[this_cut]->Fill(fabs(track->eta()));
-            HitsUnmatchedDX_Pt[this_cut]->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedDX_Phi[this_cut]->Fill(track->phi());
+            n_GEMMuon_DX[www_DX]++;
+            if( Pt_5 ) n_GEMMuon_ptcut_DX[www_DX]++;
           }
           if(label[www].find("PullYScan") != std::string::npos){
-            double this_cut = PullYValues.at(www_PullY);
-            if(Pt_5) HitsUnmatchedPullY_Eta[this_cut]->Fill(fabs(track->eta()));
-            HitsUnmatchedPullY_Pt[this_cut]->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedPullY_Phi[this_cut]->Fill(track->phi());
+            n_GEMMuon_PullY[www_PullY]++;
+            if( Pt_5 ) n_GEMMuon_ptcut_PullY[www_PullY]++;
           }
           if(label[www].find("DYScan") != std::string::npos){
-            double this_cut = DYValues.at(www_DY);
-            if(Pt_5) HitsUnmatchedDY_Eta[this_cut]->Fill(fabs(track->eta()));
-            HitsUnmatchedDY_Pt[this_cut]->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedDY_Phi[this_cut]->Fill(track->phi());
+            n_GEMMuon_DY[www_DY]++;
+            if( Pt_5 ) n_GEMMuon_ptcut_DY[www_DY]++;
           }
           if(label[www].find("DotDirScan") != std::string::npos){
-            double this_cut = DotDirValues.at(www_DotDir);
-            if(Pt_5) HitsUnmatchedDotDir_Eta[this_cut]->Fill(fabs(track->eta()));
-            HitsUnmatchedDotDir_Pt[this_cut]->Fill(track->pt());
-            if(Pt_5) HitsUnmatchedDotDir_Phi[this_cut]->Fill(track->phi());
+            n_GEMMuon_DotDir[www_DotDir]++;
+            if( Pt_5 ) n_GEMMuon_ptcut_DotDir[www_DotDir]++;
           }
 
-        } //==== END if(isFake)
-      }
+          //==== Check if the track is associated to any gen particle
+          bool isFake = false;
+          if( (recSimColl.find(track) == recSimColl.end()) || (recSimColl[track].size() == 0) ){
+            edm::LogVerbatim("GEMMuonAnalyzer") << "No RecoToSim found for this RecoTrack";
+            isFake = true;
+          }
+          //==== gen particle is found
+          else{
+            std::vector<std::pair<TrackingParticleRef, double> > tp = recSimColl[track];
+            TrackingParticleRef tpr = tp.begin()->first;
+            //std::cout << " recSimColl[track] size = " << tp.size() << std::endl;
+            if( (simRecColl.find(tpr) == simRecColl.end())  ||  (simRecColl[tpr].size() == 0)  ) {
+              edm::LogVerbatim("GEMMuonAnalyzer") << "RecoToSim found, but no SimToReco for the best RecoToSim";
+              isFake = true;
+            } 
+            else{
+              std::vector<std::pair<RefToBase<Track>, double> > rt = simRecColl[tpr];
+              RefToBase<Track> bestrecotrackforeff = rt.begin()->first;
+              //std::cout << " simRecColl[tpr] size = " << simRecColl[tpr].size() << std::endl;
+
+              //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
+              bool SignalMuon = false;
+              if(tpr->status() !=-99){
+                if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+                  if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+                    //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+                  }
+                }
+                //std::cout<<"Mother ID = "<<motherid<<std::endl;
+                if( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                    ( (tpr->status()==1) ) ) SignalMuon=true;
+              }
+              if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
+                edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched TrackingParticle";
+              }
+              else{
+                isFake = true;
+              }
+
+            }
+          }
+
+          if( isFake ){
+            if(label[www]=="gemMuonSel"){
+               if(Pt_5) HitsUnmatchedGEMMuon_Eta->Fill(fabs(track->eta()));
+               HitsUnmatchedGEMMuon_Pt->Fill(track->pt());
+               if(Pt_5) HitsUnmatchedGEMMuon_Phi->Fill(track->phi());
+            }
+            if(label[www]=="recoMuonSel"){
+              if(Pt_5) HitsUnmatchedRecoMuon_Eta->Fill(fabs(track->eta()));
+              HitsUnmatchedRecoMuon_Pt->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedRecoMuon_Phi->Fill(track->phi());
+            }
+            if(label[www]=="looseMuonSel"){
+              if(Pt_5) HitsUnmatchedLooseMuon_Eta->Fill(fabs(track->eta()));
+              HitsUnmatchedLooseMuon_Pt->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedLooseMuon_Phi->Fill(track->phi());
+            }
+            if(label[www]=="mediumMuonSel"){
+              if(Pt_5) HitsUnmatchedMediumMuon_Eta->Fill(fabs(track->eta()));
+              HitsUnmatchedMediumMuon_Pt->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedMediumMuon_Phi->Fill(track->phi());
+            }
+            if(label[www]=="tightMuonSel"){
+              if(Pt_5) HitsUnmatchedTightMuon_Eta->Fill(fabs(track->eta()));
+              HitsUnmatchedTightMuon_Pt->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedTightMuon_Phi->Fill(track->phi());
+            }
+            if(label[www].find("PullXScan") != std::string::npos){
+              double this_cut = PullXValues.at(www_PullX);
+              if(Pt_5) HitsUnmatchedPullX_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsUnmatchedPullX_Pt[this_cut]->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedPullX_Phi[this_cut]->Fill(track->phi());
+            }
+            if(label[www].find("DXScan") != std::string::npos){
+              double this_cut = DXValues.at(www_DX);
+              if(Pt_5) HitsUnmatchedDX_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsUnmatchedDX_Pt[this_cut]->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedDX_Phi[this_cut]->Fill(track->phi());
+            }
+            if(label[www].find("PullYScan") != std::string::npos){
+              double this_cut = PullYValues.at(www_PullY);
+              if(Pt_5) HitsUnmatchedPullY_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsUnmatchedPullY_Pt[this_cut]->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedPullY_Phi[this_cut]->Fill(track->phi());
+            }
+            if(label[www].find("DYScan") != std::string::npos){
+              double this_cut = DYValues.at(www_DY);
+              if(Pt_5) HitsUnmatchedDY_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsUnmatchedDY_Pt[this_cut]->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedDY_Phi[this_cut]->Fill(track->phi());
+            }
+            if(label[www].find("DotDirScan") != std::string::npos){
+              double this_cut = DotDirValues.at(www_DotDir);
+              if(Pt_5) HitsUnmatchedDotDir_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsUnmatchedDotDir_Pt[this_cut]->Fill(track->pt());
+              if(Pt_5) HitsUnmatchedDotDir_Phi[this_cut]->Fill(track->phi());
+            }
+
+          } //==== END if(isFake)
+
+
+        } // ==== END if( Eta_1p6_2p4 )
+
+
+      } // END track loop
+
       if(label[www].find("PullXScan") != std::string::npos) www_PullX++;
       if(label[www].find("DXScan") != std::string::npos) www_DX++;
       if(label[www].find("PullYScan") != std::string::npos) www_PullY++;
@@ -1151,12 +1229,22 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   N_LooseMuon_h->SetBinContent(1, n_LooseMuon);
   N_MediumMuon_h->SetBinContent(1, n_MediumMuon);
   N_TightMuon_h->SetBinContent(1, n_TightMuon);
+  N_GEMMuon_ptcut_h->SetBinContent(1, n_GEMMuon_ptcut);
+  N_RecoMuon_ptcut_h->SetBinContent(1,n_RecoMuon_ptcut);
+  N_LooseMuon_ptcut_h->SetBinContent(1, n_LooseMuon_ptcut);
+  N_MediumMuon_ptcut_h->SetBinContent(1, n_MediumMuon_ptcut);
+  N_TightMuon_ptcut_h->SetBinContent(1, n_TightMuon_ptcut);
 
   N_GEMMuon_h->Write();
   N_RecoMuon_h->Write();
   N_LooseMuon_h->Write();
   N_MediumMuon_h->Write();
   N_TightMuon_h->Write();
+  N_GEMMuon_ptcut_h->Write();
+  N_RecoMuon_ptcut_h->Write();
+  N_LooseMuon_ptcut_h->Write();
+  N_MediumMuon_ptcut_h->Write();
+  N_TightMuon_ptcut_h->Write();
 
   /* gen-reco delta R matching */
   GenMuon_Eta->Write();
@@ -1488,6 +1576,8 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
     N_GEMMuon_PullX_h[aaa]->SetBinContent(1, n_GEMMuon_PullX.at(i));
     N_GEMMuon_PullX_h[aaa]->Write();
+    N_GEMMuon_ptcut_PullX_h[aaa]->SetBinContent(1, n_GEMMuon_ptcut_PullX.at(i));
+    N_GEMMuon_ptcut_PullX_h[aaa]->Write();
   }
   hist_PullXValues->Write();
 
@@ -1516,6 +1606,8 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
     N_GEMMuon_DX_h[aaa]->SetBinContent(1, n_GEMMuon_DX.at(i));
     N_GEMMuon_DX_h[aaa]->Write();
+    N_GEMMuon_ptcut_DX_h[aaa]->SetBinContent(1, n_GEMMuon_ptcut_DX.at(i));
+    N_GEMMuon_ptcut_DX_h[aaa]->Write();
   }
   hist_DXValues->Write();
 
@@ -1544,6 +1636,8 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
     N_GEMMuon_PullY_h[aaa]->SetBinContent(1, n_GEMMuon_PullY.at(i));
     N_GEMMuon_PullY_h[aaa]->Write();
+    N_GEMMuon_ptcut_PullY_h[aaa]->SetBinContent(1, n_GEMMuon_ptcut_PullY.at(i));
+    N_GEMMuon_ptcut_PullY_h[aaa]->Write();
   }
   hist_PullYValues->Write();
 
@@ -1572,6 +1666,8 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
     N_GEMMuon_DY_h[aaa]->SetBinContent(1, n_GEMMuon_DY.at(i));
     N_GEMMuon_DY_h[aaa]->Write();
+    N_GEMMuon_ptcut_DY_h[aaa]->SetBinContent(1, n_GEMMuon_ptcut_DY.at(i));
+    N_GEMMuon_ptcut_DY_h[aaa]->Write();
   }
   hist_DYValues->Write();
 
@@ -1600,8 +1696,13 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
     N_GEMMuon_DotDir_h[aaa]->SetBinContent(1, n_GEMMuon_DotDir.at(i));
     N_GEMMuon_DotDir_h[aaa]->Write();
+    N_GEMMuon_ptcut_DotDir_h[aaa]->SetBinContent(1, n_GEMMuon_ptcut_DotDir.at(i));
+    N_GEMMuon_ptcut_DotDir_h[aaa]->Write();
   }
   hist_DotDirValues->Write();
+
+  histoFile->cd();
+
 }
 
 FreeTrajectoryState

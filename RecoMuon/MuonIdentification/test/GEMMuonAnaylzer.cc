@@ -126,6 +126,7 @@ public:
   std::vector<std::string> associators;
   //std::vector<edm::InputTag> label;
   std::vector<std::string> label;
+  bool doMatchingStudy;
   std::vector<double> PullXValues, DXValues, PullYValues, DYValues, DotDirValues;
 
   //Histos for plotting
@@ -212,11 +213,14 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
 
   //label = iConfig.getParameter< std::vector<edm::InputTag> >("label");
   label = iConfig.getParameter< std::vector<std::string> >("label");
-  PullXValues = iConfig.getParameter< std::vector<double> >("PullXValues");
-  DXValues = iConfig.getParameter< std::vector<double> >("DXValues");
-  PullYValues = iConfig.getParameter< std::vector<double> >("PullYValues");
-  DYValues = iConfig.getParameter< std::vector<double> >("DYValues");
-  DotDirValues = iConfig.getParameter< std::vector<double> >("DotDirValues");
+  doMatchingStudy = iConfig.getParameter< bool >("doMatchingStudy");
+  if(doMatchingStudy){
+    PullXValues = iConfig.getParameter< std::vector<double> >("PullXValues");
+    DXValues = iConfig.getParameter< std::vector<double> >("DXValues");
+    PullYValues = iConfig.getParameter< std::vector<double> >("PullYValues");
+    DYValues = iConfig.getParameter< std::vector<double> >("DYValues");
+    DotDirValues = iConfig.getParameter< std::vector<double> >("DotDirValues");
+  }
   edm::InputTag genParticlesTag ("genParticles");
   genParticlesToken_ = consumes<reco::GenParticleCollection>(genParticlesTag);
   edm::InputTag trackingParticlesTag ("mix","MergedTrackTruth");

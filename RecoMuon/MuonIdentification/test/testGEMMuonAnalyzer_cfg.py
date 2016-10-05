@@ -725,6 +725,7 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   UseDeltaR = cms.bool(False),
   doGeometryStudy = cms.bool(False),
 
+  doMatchingStudy = cms.bool(True),
   PullXValues = cms.vdouble(0, 0.1, 0.5, 1.0, 2.0, 3.0),
   DXValues = cms.vdouble(0, 0.5, 1.0, 2.0, 3.0, 4.0),
   PullYValues = cms.vdouble(0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 10., 20.),

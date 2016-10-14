@@ -503,6 +503,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   if(doGeometryStudy){
 
+    edm::LogVerbatim("GEMMuonAnalyzer") << "########### Geometry Study ###########";
+
     //==== GEMRecHit study
 
     for(auto thisRecHit = gemRecHitCollection->begin(); thisRecHit != gemRecHitCollection->end(); ++thisRecHit) {
@@ -510,8 +512,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       auto roll = gemGeom->etaPartition(id);
       auto RecHitLP = thisRecHit->localPosition();
       auto RecHitGP = roll->toGlobal(RecHitLP);
-      //std::cout << "rechit station = " << id.station() << std::endl;
-      //std::cout << "Rechit id = " << id << " => (" << RecHitGP.x() << ", " << RecHitGP.y() << ", " << RecHitGP.z() << ")" << std::endl;
+      edm::LogVerbatim("GEMMuonAnalyzer") << "rechit station = " << id.station() << std::endl;
+      edm::LogVerbatim("GEMMuonAnalyzer") << "Rechit id = " << id << " => (" << RecHitGP.x() << ", " << RecHitGP.y() << ", " << RecHitGP.z() << ")" << std::endl;
       if( id.station() == 1 ){
         GEMRecHit_GE11_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
         GEMRecHit_GE11_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
@@ -542,10 +544,10 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       auto segLP = gems->localPosition();
       auto segGP = chamb->toGlobal(segLP);
       auto rechits = gems->specificRecHits();
-      //std::cout << "gemseg station = " << id.station() << std::endl;
-      //std::cout << "# of rechits used in this Segment = " << rechits.size() << std::endl;
+      edm::LogVerbatim("GEMMuonAnalyzer") << "gemseg station = " << id.station() << std::endl;
+      edm::LogVerbatim("GEMMuonAnalyzer") << "# of rechits used in this Segment = " << rechits.size() << std::endl;
       //for(auto rechit = rechits.begin(); rechit != rechits.end(); ++rechit){
-      //  std::cout << "  " << rechit->gemId() << "(" << segGP.x() << ", " << segGP.y() << ", " << segGP.z() << ")" << std::endl;
+      //  edm::LogVerbatim("GEMMuonAnalyzer") "  " << rechit->gemId() << "(" << segGP.x() << ", " << segGP.y() << ", " << segGP.z() << ")" << std::endl;
       //}
       if( id.station() == 1 ){
         GEMSegment_GE11_LocalPosition_scattered->Fill(segLP.x(), segLP.y());

@@ -61,7 +61,7 @@ void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   Handle<TrackCollection > generalTracks;
   ev.getByToken(generalTracksToken_,generalTracks);
 
-  std::auto_ptr<std::vector<Muon> > muons( new std::vector<Muon> ); 
+  std::unique_ptr<std::vector<Muon> > muons( new std::vector<Muon> ); 
 
   int TrackNumber = 0;
   for(std::vector<Track>::const_iterator thisTrack = generalTracks->begin(); thisTrack != generalTracks->end(); ++thisTrack, ++TrackNumber){
@@ -99,7 +99,7 @@ void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   
   // put collection in event
 
-  ev.put(muons);
+  ev.put(std::move(muons));
   delete ThisshProp;
 }
 

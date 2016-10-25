@@ -100,7 +100,7 @@ void GEMMuonTrackCollProducer::produce(edm::Event& iEvent, const edm::EventSetup
   using namespace reco;
   using namespace edm;
   
-  std::auto_ptr<reco::TrackCollection> selectedTracks(new reco::TrackCollection);
+  std::unique_ptr<reco::TrackCollection> selectedTracks(new reco::TrackCollection);
  
   if(MuonObj=="MatchingStudy"){
 
@@ -174,7 +174,7 @@ void GEMMuonTrackCollProducer::produce(edm::Event& iEvent, const edm::EventSetup
       //selectedTrackExtras->push_back( *newExtra );
     }
   }
-  iEvent.put(selectedTracks);
+  iEvent.put(std::move(selectedTracks));
 
 }
 

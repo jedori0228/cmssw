@@ -121,6 +121,7 @@ public:
   bool UseAssociators;
   bool UseDeltaR;
   bool doGeometryStudy;
+  std::string SampleProcess;
   const TrackAssociatorByChi2Impl* associatorByChi2;
 
   std::vector<std::string> associators;
@@ -203,12 +204,11 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   UseAssociators = iConfig.getParameter< bool >("UseAssociators");
   UseDeltaR = iConfig.getParameter< bool >("UseDeltaR");
   doGeometryStudy = iConfig.getParameter< bool >("doGeometryStudy");
+  SampleProcess = iConfig.getParameter< std::string >("SampleProcess");
 
   FakeRatePtCut   = iConfig.getParameter<double>("FakeRatePtCut");
   MatchingWindowDelR   = iConfig.getParameter<double>("MatchingWindowDelR");
 
-  //Associator for chi2: getting parameters
-  UseAssociators = iConfig.getParameter< bool >("UseAssociators");
   associators = iConfig.getParameter< std::vector<std::string> >("associators");
 
   //label = iConfig.getParameter< std::vector<edm::InputTag> >("label");
@@ -888,6 +888,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
   if(UseAssociators) {
 
+    edm::LogVerbatim("GEMMuonAnalyzer") << std::endl << "==== Associator ====";
+ 
     unsigned int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0, www_DotDir = 0;
     for (unsigned int www=0;www<label.size();www++){
 
@@ -925,19 +927,37 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if( Eta_1p6_2p4 ){
           bool SignalMuon = false;
 
-          int motherId(0), grandmaId(0), greatgrandmaId(0);
-          if( tp->genParticles().size()>0 && (*tp->genParticle_begin())->numberOfMothers()>0 ) {
-            motherId = abs( (*tp->genParticle_begin())->mother()->pdgId() );
-            if( (*tp->genParticle_begin())->mother()->numberOfMothers()>0 ) {
-              grandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->pdgId() );
-              if( (*tp->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
-                greatgrandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+          //====  Z->MuMu sample
+          if(SampleProcess == "ZMM"){
+            int motherId(0), grandmaId(0), greatgrandmaId(0);
+            if( tp->genParticles().size()>0 && (*tp->genParticle_begin())->numberOfMothers()>0 ) {
+              motherId = abs( (*tp->genParticle_begin())->mother()->pdgId() );
+              if( (*tp->genParticle_begin())->mother()->numberOfMothers()>0 ) {
+                grandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->pdgId() );
+                if( (*tp->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
+                  greatgrandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+                }
               }
             }
+            // Is it a signal muon? 
+            SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
+                         (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
           }
-          // Is it a signal muon? 
-          SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
-                       (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
+          //==== MuonGun sample
+          else{
+            if(tp->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+              //int motherid=-1;
+              if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
+                if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
+                  //motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+                }
+              }
+              //std::cout<<"Mother ID = "<<motherid<<std::endl;
+
+              if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                   ( (tp->status()==1) )      )    SignalMuon=true;
+            }
+          }
 
           if(SignalMuon){
             //std::cout
@@ -1121,19 +1141,37 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
               bool SignalMuon = false;
 
-              int motherId(0), grandmaId(0), greatgrandmaId(0);
-              if( tpr->genParticles().size()>0 && (*tpr->genParticle_begin())->numberOfMothers()>0 ) {
-                motherId = abs( (*tpr->genParticle_begin())->mother()->pdgId() );
-                if( (*tpr->genParticle_begin())->mother()->numberOfMothers()>0 ) {
-                  grandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->pdgId() );
-                  if( (*tpr->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
-                    greatgrandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+              //====  Z->MuMu sample
+              if(SampleProcess == "ZMM"){
+                int motherId(0), grandmaId(0), greatgrandmaId(0);
+                if( tpr->genParticles().size()>0 && (*tpr->genParticle_begin())->numberOfMothers()>0 ) {
+                  motherId = abs( (*tpr->genParticle_begin())->mother()->pdgId() );
+                  if( (*tpr->genParticle_begin())->mother()->numberOfMothers()>0 ) {
+                    grandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->pdgId() );
+                    if( (*tpr->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
+                      greatgrandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+                    }
                   }
                 }
+                // Is it a signal muon? 
+                SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
+                             (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
               }
-              // Is it a signal muon? 
-              SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
-                           (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
+              //==== MuonGun sample
+              else{
+                if(tpr->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+                  //int motherid=-1;
+                  if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+                    if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+                      //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+                    }
+                  }
+                  //std::cout<<"Mother ID = "<<motherid<<std::endl;
+
+                  if ( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                       ( (tpr->status()==1) )      )    SignalMuon=true;
+                }
+              }
 
               if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
                 edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched TrackingParticle";

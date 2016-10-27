@@ -29,7 +29,6 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.categories.append("GEMMuonAnalyzer")
 process.MessageLogger.categories.append("GEMMuonAnalyzer_Matching")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
-process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
@@ -142,6 +141,7 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   UseAssociators = cms.bool(True),
   UseDeltaR = cms.bool(False),
   doGeometryStudy = cms.bool(False),
+  SampleProcess = cms.string('MuonGun'),
 
   doMatchingStudy = cms.bool(False),
   associators = cms.vstring('gemMuonAssociatorByHits', 'recoMuonAssociatorByHits', 'looseMuonAssociatorByHits', 'mediumMuonAssociatorByHits', 'tightMuonAssociatorByHits'),

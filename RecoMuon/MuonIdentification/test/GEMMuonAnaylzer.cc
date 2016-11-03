@@ -121,6 +121,7 @@ public:
   bool UseAssociators;
   bool UseDeltaR;
   bool doGeometryStudy;
+  std::string SampleProcess;
   const TrackAssociatorByChi2Impl* associatorByChi2;
 
   std::vector<std::string> associators;
@@ -139,33 +140,54 @@ public:
   int n_GEMMuon, n_RecoMuon, n_LooseMuon, n_MediumMuon, n_TightMuon;
   int n_GEMMuon_ptcut, n_RecoMuon_ptcut, n_LooseMuon_ptcut, n_MediumMuon_ptcut, n_TightMuon_ptcut;
 
-  TH1F *GenMuon_Eta; TH1F *GenMuon_Pt; TH1F *GenMuon_Phi;
-  TH1F *MatchedRecoMuon_Eta; TH1F *MatchedRecoMuon_Pt; TH1F *MatchedRecoMuon_Phi;
-  TH1F *MatchedRecoMuon_not_GEMMuon_Eta; TH1F *MatchedRecoMuon_not_GEMMuon_Pt; TH1F *MatchedRecoMuon_not_GEMMuon_Phi;
-  TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta; TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt; TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi;
-  TH1F *MatchedGEMMuon_Eta; TH1F *MatchedGEMMuon_Pt; TH1F *MatchedGEMMuon_Phi;
-  TH1F *MatchedGEMRecHit_Eta; TH1F *MatchedGEMRecHit_Pt; TH1F *MatchedGEMRecHit_Phi;
-  TH1F *MatchedGEMRecHit_GE11_layer1_Eta; TH1F *MatchedGEMRecHit_GE11_layer1_Pt; TH1F *MatchedGEMRecHit_GE11_layer1_Phi;
-  TH1F *MatchedGEMRecHit_GE11_layer2_Eta; TH1F *MatchedGEMRecHit_GE11_layer2_Pt; TH1F *MatchedGEMRecHit_GE11_layer2_Phi;
-  TH1F *MatchedGEMRecHit_GE21_layer1_Eta; TH1F *MatchedGEMRecHit_GE21_layer1_Pt; TH1F *MatchedGEMRecHit_GE21_layer1_Phi;
-  TH1F *MatchedGEMRecHit_GE21_layer2_Eta; TH1F *MatchedGEMRecHit_GE21_layer2_Pt; TH1F *MatchedGEMRecHit_GE21_layer2_Phi;
-  TH1F *MatchedGEMRecHit_GE11_two_Eta; TH1F *MatchedGEMRecHit_GE11_two_Pt; TH1F *MatchedGEMRecHit_GE11_two_Phi;
-  TH1F *MatchedGEMRecHit_GE21_two_Eta; TH1F *MatchedGEMRecHit_GE21_two_Pt; TH1F *MatchedGEMRecHit_GE21_two_Phi;
+  //=============
+  //==== DeltaR
+  //=============
+  
+  TH1F *GenMuon_Eta, *GenMuon_Pt, *GenMuon_Phi;
+  TH1F *MatchedRecoMuon_Eta, *MatchedRecoMuon_Pt, *MatchedRecoMuon_Phi;
+  TH1F *MatchedRecoMuon_not_GEMMuon_Eta, *MatchedRecoMuon_not_GEMMuon_Pt, *MatchedRecoMuon_not_GEMMuon_Phi;
+  TH1F *MatchedRecoMuon_not_GEMMuon_no_gemseg_Eta, *MatchedRecoMuon_not_GEMMuon_no_gemseg_Pt, *MatchedRecoMuon_not_GEMMuon_no_gemseg_Phi;
+  TH1F *MatchedGEMMuon_Eta, *MatchedGEMMuon_Pt, *MatchedGEMMuon_Phi;
+  TH1F *MatchedGEMRecHit_Eta, *MatchedGEMRecHit_Pt, *MatchedGEMRecHit_Phi;
+  TH1F *MatchedGEMRecHit_GE11_layer1_Eta, *MatchedGEMRecHit_GE11_layer1_Pt, *MatchedGEMRecHit_GE11_layer1_Phi;
+  TH1F *MatchedGEMRecHit_GE11_layer2_Eta, *MatchedGEMRecHit_GE11_layer2_Pt, *MatchedGEMRecHit_GE11_layer2_Phi;
+  TH1F *MatchedGEMRecHit_GE21_layer1_Eta, *MatchedGEMRecHit_GE21_layer1_Pt, *MatchedGEMRecHit_GE21_layer1_Phi;
+  TH1F *MatchedGEMRecHit_GE21_layer2_Eta, *MatchedGEMRecHit_GE21_layer2_Pt, *MatchedGEMRecHit_GE21_layer2_Phi;
+  TH1F *MatchedGEMRecHit_GE11_two_Eta, *MatchedGEMRecHit_GE11_two_Pt, *MatchedGEMRecHit_GE11_two_Phi;
+  TH1F *MatchedGEMRecHit_GE21_two_Eta, *MatchedGEMRecHit_GE21_two_Pt, *MatchedGEMRecHit_GE21_two_Phi;
   TH1I *MatchedClusteredGEMRecHit_GE11_dBunchX; TH1I *MatchedClusteredGEMRecHit_GE21_dBunchX;
-  TH1F *MatchedGEMSegment_GE11_Eta; TH1F *MatchedGEMSegment_GE11_Pt; TH1F *MatchedGEMSegment_GE11_Phi;
-  TH1F *MatchedGEMSegment_GE21_Eta; TH1F *MatchedGEMSegment_GE21_Pt; TH1F *MatchedGEMSegment_GE21_Phi;
-  TH1F *MatchedGEMSegment_Eta; TH1F *MatchedGEMSegment_Pt; TH1F *MatchedGEMSegment_Phi;
-  TH1F *TPMuon_Eta; TH1F *TPMuon_Pt; TH1F *TPMuon_Phi;
-  TH1F *HitsMatchedGEMMuon_Eta; TH1F *HitsMatchedGEMMuon_Pt; TH1F *HitsMatchedGEMMuon_Phi;
-  TH1F *HitsUnmatchedGEMMuon_Eta; TH1F* HitsUnmatchedGEMMuon_Pt; TH1F* HitsUnmatchedGEMMuon_Phi;
-  TH1F *HitsMatchedRecoMuon_Eta; TH1F *HitsMatchedRecoMuon_Pt; TH1F *HitsMatchedRecoMuon_Phi;
-  TH1F *HitsUnmatchedRecoMuon_Eta; TH1F* HitsUnmatchedRecoMuon_Pt; TH1F* HitsUnmatchedRecoMuon_Phi;
-  TH1F *HitsMatchedLooseMuon_Eta; TH1F *HitsMatchedLooseMuon_Pt; TH1F *HitsMatchedLooseMuon_Phi;
-  TH1F *HitsUnmatchedLooseMuon_Eta; TH1F* HitsUnmatchedLooseMuon_Pt; TH1F* HitsUnmatchedLooseMuon_Phi;
-  TH1F *HitsMatchedMediumMuon_Eta; TH1F *HitsMatchedMediumMuon_Pt; TH1F *HitsMatchedMediumMuon_Phi;
-  TH1F *HitsUnmatchedMediumMuon_Eta; TH1F* HitsUnmatchedMediumMuon_Pt; TH1F* HitsUnmatchedMediumMuon_Phi;
-  TH1F *HitsMatchedTightMuon_Eta; TH1F *HitsMatchedTightMuon_Pt; TH1F *HitsMatchedTightMuon_Phi;
-  TH1F *HitsUnmatchedTightMuon_Eta; TH1F* HitsUnmatchedTightMuon_Pt; TH1F* HitsUnmatchedTightMuon_Phi;
+  TH1F *MatchedGEMSegment_GE11_Eta, *MatchedGEMSegment_GE11_Pt, *MatchedGEMSegment_GE11_Phi;
+  TH1F *MatchedGEMSegment_GE21_Eta, *MatchedGEMSegment_GE21_Pt, *MatchedGEMSegment_GE21_Phi;
+  TH1F *MatchedGEMSegment_Eta, *MatchedGEMSegment_Pt, *MatchedGEMSegment_Phi;
+
+  //==========================
+  //==== Association by hits
+  //==========================
+
+  //==== Tracking Paraticle (Eff denominator)
+  TH1F *TPMuon_Eta, *TPMuon_Pt, *TPMuon_Phi;
+  //==== Reco Tracks (Fake denominator)
+  TH1F *HitsGEMMuon_Eta, *HitsGEMMuon_Pt, *HitsGEMMuon_Phi;
+  TH1F *HitsRecoMuon_Eta, *HitsRecoMuon_Pt, *HitsRecoMuon_Phi;
+  TH1F *HitsLooseMuon_Eta, *HitsLooseMuon_Pt, *HitsLooseMuon_Phi;
+  TH1F *HitsMediumMuon_Eta, *HitsMediumMuon_Pt, *HitsMediumMuon_Phi;
+  TH1F *HitsTightMuon_Eta, *HitsTightMuon_Pt, *HitsTightMuon_Phi;
+  //==== Eff/Fake numerator
+  TH1F *HitsMatchedGEMMuon_Eta, *HitsMatchedGEMMuon_Pt, *HitsMatchedGEMMuon_Phi;
+  TH1F *HitsUnmatchedGEMMuon_Eta, *HitsUnmatchedGEMMuon_Pt, *HitsUnmatchedGEMMuon_Phi;
+  TH1F *HitsMatchedRecoMuon_Eta, *HitsMatchedRecoMuon_Pt, *HitsMatchedRecoMuon_Phi;
+  TH1F *HitsUnmatchedRecoMuon_Eta, *HitsUnmatchedRecoMuon_Pt, *HitsUnmatchedRecoMuon_Phi;
+  TH1F *HitsMatchedLooseMuon_Eta, *HitsMatchedLooseMuon_Pt, *HitsMatchedLooseMuon_Phi;
+  TH1F *HitsUnmatchedLooseMuon_Eta, *HitsUnmatchedLooseMuon_Pt, *HitsUnmatchedLooseMuon_Phi;
+  TH1F *HitsMatchedMediumMuon_Eta, *HitsMatchedMediumMuon_Pt, *HitsMatchedMediumMuon_Phi;
+  TH1F *HitsUnmatchedMediumMuon_Eta, *HitsUnmatchedMediumMuon_Pt, *HitsUnmatchedMediumMuon_Phi;
+  TH1F *HitsMatchedTightMuon_Eta, *HitsMatchedTightMuon_Pt, *HitsMatchedTightMuon_Phi;
+  TH1F *HitsUnmatchedTightMuon_Eta, *HitsUnmatchedTightMuon_Pt, *HitsUnmatchedTightMuon_Phi;
+
+  //===============
+  //==== Geometry
+  //===============
 
   TH2F *GEMRecHit_GE11_GlobalPosition_scattered, *GEMSegment_GE11_GlobalPosition_scattered;
   TH2F *GEMRecHit_GE21_GlobalPosition_scattered, *GEMSegment_GE21_GlobalPosition_scattered;
@@ -174,25 +196,34 @@ public:
   TH2F *GEMRecHit_GE11_odd_XZplane, *GEMRecHit_GE11_even_XZplane; 
   TH2F *GEMRecHit_GE21_odd_XZplane, *GEMRecHit_GE21_even_XZplane;
 
+  //=====================
+  //==== Matching study
+  //=====================
+  
   std::vector<int> n_GEMMuon_PullX, n_GEMMuon_ptcut_PullX;
   std::map< double, TH1F* > N_GEMMuon_PullX_h, N_GEMMuon_ptcut_PullX_h;
-  std::map< double, TH1F* > HitsMatchedPullX_Eta, HitsMatchedPullX_Pt, HitsMatchedPullX_Phi,
+  std::map< double, TH1F* > HitsPullX_Eta, HitsPullX_Pt, HitsPullX_Phi,
+                            HitsMatchedPullX_Eta, HitsMatchedPullX_Pt, HitsMatchedPullX_Phi,
                             HitsUnmatchedPullX_Eta, HitsUnmatchedPullX_Pt, HitsUnmatchedPullX_Phi;
   std::vector<int> n_GEMMuon_DX, n_GEMMuon_ptcut_DX;
   std::map< double, TH1F* > N_GEMMuon_DX_h, N_GEMMuon_ptcut_DX_h;
-  std::map< double, TH1F* > HitsMatchedDX_Eta, HitsMatchedDX_Pt, HitsMatchedDX_Phi,
+  std::map< double, TH1F* > HitsDX_Eta, HitsDX_Pt, HitsDX_Phi,
+                            HitsMatchedDX_Eta, HitsMatchedDX_Pt, HitsMatchedDX_Phi,
                             HitsUnmatchedDX_Eta, HitsUnmatchedDX_Pt, HitsUnmatchedDX_Phi;
   std::vector<int> n_GEMMuon_PullY, n_GEMMuon_ptcut_PullY;
   std::map< double, TH1F* > N_GEMMuon_PullY_h, N_GEMMuon_ptcut_PullY_h;
-  std::map< double, TH1F* > HitsMatchedPullY_Eta, HitsMatchedPullY_Pt, HitsMatchedPullY_Phi,
+  std::map< double, TH1F* > HitsPullY_Eta, HitsPullY_Pt, HitsPullY_Phi,
+                            HitsMatchedPullY_Eta, HitsMatchedPullY_Pt, HitsMatchedPullY_Phi,
                             HitsUnmatchedPullY_Eta, HitsUnmatchedPullY_Pt, HitsUnmatchedPullY_Phi;
   std::vector<int> n_GEMMuon_DY, n_GEMMuon_ptcut_DY;
   std::map< double, TH1F* > N_GEMMuon_DY_h, N_GEMMuon_ptcut_DY_h;
-  std::map< double, TH1F* > HitsMatchedDY_Eta, HitsMatchedDY_Pt, HitsMatchedDY_Phi,
+  std::map< double, TH1F* > HitsDY_Eta, HitsDY_Pt, HitsDY_Phi,
+                            HitsMatchedDY_Eta, HitsMatchedDY_Pt, HitsMatchedDY_Phi,
                             HitsUnmatchedDY_Eta, HitsUnmatchedDY_Pt, HitsUnmatchedDY_Phi;
   std::vector<int> n_GEMMuon_DotDir, n_GEMMuon_ptcut_DotDir;
   std::map< double, TH1F* > N_GEMMuon_DotDir_h, N_GEMMuon_ptcut_DotDir_h;
-  std::map< double, TH1F* > HitsMatchedDotDir_Eta, HitsMatchedDotDir_Pt, HitsMatchedDotDir_Phi,
+  std::map< double, TH1F* > HitsDotDir_Eta, HitsDotDir_Pt, HitsDotDir_Phi,
+                            HitsMatchedDotDir_Eta, HitsMatchedDotDir_Pt, HitsMatchedDotDir_Phi,
                             HitsUnmatchedDotDir_Eta, HitsUnmatchedDotDir_Pt, HitsUnmatchedDotDir_Phi;
 
 };
@@ -203,12 +234,11 @@ GEMMuonAnalyzer::GEMMuonAnalyzer(const edm::ParameterSet& iConfig)
   UseAssociators = iConfig.getParameter< bool >("UseAssociators");
   UseDeltaR = iConfig.getParameter< bool >("UseDeltaR");
   doGeometryStudy = iConfig.getParameter< bool >("doGeometryStudy");
+  SampleProcess = iConfig.getParameter< std::string >("SampleProcess");
 
   FakeRatePtCut   = iConfig.getParameter<double>("FakeRatePtCut");
   MatchingWindowDelR   = iConfig.getParameter<double>("MatchingWindowDelR");
 
-  //Associator for chi2: getting parameters
-  UseAssociators = iConfig.getParameter< bool >("UseAssociators");
   associators = iConfig.getParameter< std::vector<std::string> >("associators");
 
   //label = iConfig.getParameter< std::vector<edm::InputTag> >("label");
@@ -359,9 +389,31 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   MatchedGEMSegment_Eta = new TH1F("MatchedGEMSegment_Eta", "Muon #eta", n_eta_bin, eta_bin );
   MatchedGEMSegment_Pt =  new TH1F("MatchedGEMSegment_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   MatchedGEMSegment_Phi = new TH1F("MatchedGEMSegment_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
+
+  //==========================
+  //==== Association by hits
+  //==========================
+
   TPMuon_Eta = new TH1F("TPMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   TPMuon_Pt = new TH1F("TPMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   TPMuon_Phi = new TH1F("TPMuon_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi() );
+
+  HitsGEMMuon_Eta = new TH1F("HitsGEMMuon_Eta", "GEMMuon #eta", n_eta_bin, eta_bin );
+  HitsGEMMuon_Pt  = new TH1F("HitsGEMMuon_Pt", "GENMuon p_{T}", n_pt_bin, pt_bin );
+  HitsGEMMuon_Phi = new TH1F("HitsGEMMuon_Phi", "GEMMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
+  HitsRecoMuon_Eta = new TH1F("HitsRecoMuon_Eta", "RecoMuon #eta", n_eta_bin, eta_bin );
+  HitsRecoMuon_Pt  = new TH1F("HitsRecoMuon_Pt", "RecoMuon p_{T}", n_pt_bin, pt_bin );
+  HitsRecoMuon_Phi = new TH1F("HitsRecoMuon_Phi", "RecoMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
+  HitsLooseMuon_Eta = new TH1F("HitsLooseMuon_Eta", "LooseMuon #eta", n_eta_bin, eta_bin );
+  HitsLooseMuon_Pt  = new TH1F("HitsLooseMuon_Pt", "LooseMuon p_{T}", n_pt_bin, pt_bin );
+  HitsLooseMuon_Phi = new TH1F("HitsLooseMuon_Phi", "LooseMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
+  HitsMediumMuon_Eta = new TH1F("HitsMediumMuon_Eta", "MediumMuon #eta", n_eta_bin, eta_bin );
+  HitsMediumMuon_Pt  = new TH1F("HitsMediumMuon_Pt", "MediumMuon p_{T}", n_pt_bin, pt_bin );
+  HitsMediumMuon_Phi = new TH1F("HitsMediumMuon_Phi", "MediumMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
+  HitsTightMuon_Eta = new TH1F("HitsTightMuon_Eta", "TightMuon #eta", n_eta_bin, eta_bin );
+  HitsTightMuon_Pt  = new TH1F("HitsTightMuon_Pt", "TightMuon p_{T}", n_pt_bin, pt_bin );
+  HitsTightMuon_Phi = new TH1F("HitsTightMuon_Phi", "TightMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
+
   HitsMatchedGEMMuon_Eta = new TH1F("HitsMatchedGEMMuon_Eta", "GEMMuon #eta", n_eta_bin, eta_bin );
   HitsMatchedGEMMuon_Pt  = new TH1F("HitsMatchedGEMMuon_Pt", "GENMuon p_{T}", n_pt_bin, pt_bin );
   HitsMatchedGEMMuon_Phi = new TH1F("HitsMatchedGEMMuon_Phi", "GEMMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
@@ -393,6 +445,10 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   HitsUnmatchedTightMuon_Pt  = new TH1F("HitsUnmatchedTightMuon_Pt", "TightMuon p_{T}", n_pt_bin, pt_bin );
   HitsUnmatchedTightMuon_Phi = new TH1F("HitsUnmatchedTightMuon_Phi", "TightMuon #phi", 36, -TMath::Pi(), TMath::Pi() );
 
+  //================
+  //===== Geometry
+  //================
+
   GEMRecHit_GE11_GlobalPosition_scattered = new TH2F("GEMRecHit_GE11_GlobalPosition_scattered", "GEMRecHit GE11 GlobalPosition", 800, -400., 400., 800, -400., 400.);
   GEMSegment_GE11_GlobalPosition_scattered = new TH2F("GEMSegment_GE11_GlobalPosition_scattered", "GEMSegment GE11 GlobalPosition", 800, -400., 400., 800, -400., 400.);
   GEMRecHit_GE21_GlobalPosition_scattered = new TH2F("GEMRecHit_GE21_GlobalPosition_scattered", "GEMRecHit GE21 GlobalPosition", 800, -400., 400., 800, -400., 400.);
@@ -406,9 +462,16 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   GEMRecHit_GE21_odd_XZplane = new TH2F("GEMRecHit_GE21_odd_XZplane", "GEMRecHit GE21 Odd XZ-plane",    20*10, 790., 810., 800, -400., 400.);
   GEMRecHit_GE21_even_XZplane = new TH2F("GEMRecHit_GE21_even_XZplane", "GEMRecHit GE21 Even XZ-plane", 20*10, 790., 810., 800, -400., 400.);
 
+  //=====================
+  //==== Matching study
+  //=====================
+
   for(unsigned int i=0; i<PullXValues.size(); i++){
     double aaa = PullXValues.at(i);
     TString saaa = "_"+DoubleToString(aaa);
+    HitsPullX_Eta[aaa] = new TH1F("HitsPullX_Eta"+saaa, "PullX #eta", n_eta_bin, eta_bin );
+    HitsPullX_Pt[aaa]  = new TH1F("HitsPullX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsPullX_Phi[aaa] = new TH1F("HitsPullX_Phi"+saaa, "PullX #phi", 36, -TMath::Pi(), TMath::Pi() );
     HitsMatchedPullX_Eta[aaa] = new TH1F("HitsMatchedPullX_Eta"+saaa, "PullX #eta", n_eta_bin, eta_bin );
     HitsMatchedPullX_Pt[aaa]  = new TH1F("HitsMatchedPullX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsMatchedPullX_Phi[aaa] = new TH1F("HitsMatchedPullX_Phi"+saaa, "PullX #phi", 36, -TMath::Pi(), TMath::Pi() );
@@ -421,6 +484,9 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   for(unsigned int i=0; i<DXValues.size(); i++){
     double aaa = DXValues.at(i);
     TString saaa = "_"+DoubleToString(aaa);
+    HitsDX_Eta[aaa] = new TH1F("HitsDX_Eta"+saaa, "DX #eta", n_eta_bin, eta_bin );
+    HitsDX_Pt[aaa]  = new TH1F("HitsDX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsDX_Phi[aaa] = new TH1F("HitsDX_Phi"+saaa, "DX #phi", 36, -TMath::Pi(), TMath::Pi() );
     HitsMatchedDX_Eta[aaa] = new TH1F("HitsMatchedDX_Eta"+saaa, "DX #eta", n_eta_bin, eta_bin );
     HitsMatchedDX_Pt[aaa]  = new TH1F("HitsMatchedDX_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsMatchedDX_Phi[aaa] = new TH1F("HitsMatchedDX_Phi"+saaa, "DX #phi", 36, -TMath::Pi(), TMath::Pi() );
@@ -433,6 +499,9 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   for(unsigned int i=0; i<PullYValues.size(); i++){
     double aaa = PullYValues.at(i);
     TString saaa = "_"+DoubleToString(aaa);
+    HitsPullY_Eta[aaa] = new TH1F("HitsPullY_Eta"+saaa, "PullY #eta", n_eta_bin, eta_bin );
+    HitsPullY_Pt[aaa]  = new TH1F("HitsPullY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsPullY_Phi[aaa] = new TH1F("HitsPullY_Phi"+saaa, "PullY #phi", 36, -TMath::Pi(), TMath::Pi() );
     HitsMatchedPullY_Eta[aaa] = new TH1F("HitsMatchedPullY_Eta"+saaa, "PullY #eta", n_eta_bin, eta_bin );
     HitsMatchedPullY_Pt[aaa]  = new TH1F("HitsMatchedPullY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsMatchedPullY_Phi[aaa] = new TH1F("HitsMatchedPullY_Phi"+saaa, "PullY #phi", 36, -TMath::Pi(), TMath::Pi() );
@@ -445,6 +514,9 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   for(unsigned int i=0; i<DYValues.size(); i++){
     double aaa = DYValues.at(i);
     TString saaa = "_"+DoubleToString(aaa);
+    HitsDY_Eta[aaa] = new TH1F("HitsDY_Eta"+saaa, "DY #eta", n_eta_bin, eta_bin );
+    HitsDY_Pt[aaa]  = new TH1F("HitsDY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsDY_Phi[aaa] = new TH1F("HitsDY_Phi"+saaa, "DY #phi", 36, -TMath::Pi(), TMath::Pi() );
     HitsMatchedDY_Eta[aaa] = new TH1F("HitsMatchedDY_Eta"+saaa, "DY #eta", n_eta_bin, eta_bin );
     HitsMatchedDY_Pt[aaa]  = new TH1F("HitsMatchedDY_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsMatchedDY_Phi[aaa] = new TH1F("HitsMatchedDY_Phi"+saaa, "DY #phi", 36, -TMath::Pi(), TMath::Pi() );
@@ -457,6 +529,9 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   for(unsigned int i=0; i<DotDirValues.size(); i++){
     double aaa = DotDirValues.at(i);
     TString saaa = "_"+DoubleToString(aaa);
+    HitsDotDir_Eta[aaa] = new TH1F("HitsDotDir_Eta"+saaa, "DotDir #eta", n_eta_bin, eta_bin );
+    HitsDotDir_Pt[aaa]  = new TH1F("HitsDotDir_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
+    HitsDotDir_Phi[aaa] = new TH1F("HitsDotDir_Phi"+saaa, "DotDir #phi", 36, -TMath::Pi(), TMath::Pi() );
     HitsMatchedDotDir_Eta[aaa] = new TH1F("HitsMatchedDotDir_Eta"+saaa, "DotDir #eta", n_eta_bin, eta_bin );
     HitsMatchedDotDir_Pt[aaa]  = new TH1F("HitsMatchedDotDir_Pt"+saaa, "GENMuon p_{T}", n_pt_bin, pt_bin );
     HitsMatchedDotDir_Phi[aaa] = new TH1F("HitsMatchedDotDir_Phi"+saaa, "DotDir #phi", 36, -TMath::Pi(), TMath::Pi() );
@@ -888,6 +963,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
   if(UseAssociators) {
 
+    edm::LogVerbatim("GEMMuonAnalyzer") << std::endl << "==== Associator ====";
+ 
     unsigned int www_PullX = 0, www_DX = 0, www_PullY = 0, www_DY = 0, www_DotDir = 0;
     for (unsigned int www=0;www<label.size();www++){
 
@@ -925,19 +1002,37 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if( Eta_1p6_2p4 ){
           bool SignalMuon = false;
 
-          int motherId(0), grandmaId(0), greatgrandmaId(0);
-          if( tp->genParticles().size()>0 && (*tp->genParticle_begin())->numberOfMothers()>0 ) {
-            motherId = abs( (*tp->genParticle_begin())->mother()->pdgId() );
-            if( (*tp->genParticle_begin())->mother()->numberOfMothers()>0 ) {
-              grandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->pdgId() );
-              if( (*tp->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
-                greatgrandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+          //====  Z->MuMu sample
+          if(SampleProcess == "ZMM"){
+            int motherId(0), grandmaId(0), greatgrandmaId(0);
+            if( tp->genParticles().size()>0 && (*tp->genParticle_begin())->numberOfMothers()>0 ) {
+              motherId = abs( (*tp->genParticle_begin())->mother()->pdgId() );
+              if( (*tp->genParticle_begin())->mother()->numberOfMothers()>0 ) {
+                grandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->pdgId() );
+                if( (*tp->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
+                  greatgrandmaId = abs( (*tp->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+                }
               }
             }
+            // Is it a signal muon? 
+            SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
+                         (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
           }
-          // Is it a signal muon? 
-          SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
-                       (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
+          //==== MuonGun sample
+          else{
+            if(tp->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+              //int motherid=-1;
+              if ((*tp->genParticle_begin())->numberOfMothers()>0)  {
+                if ((*tp->genParticle_begin())->mother()->numberOfMothers()>0){
+                  //motherid=(*tp->genParticle_begin())->mother()->mother()->pdgId();
+                }
+              }
+              //std::cout<<"Mother ID = "<<motherid<<std::endl;
+
+              if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                   ( (tp->status()==1) )      )    SignalMuon=true;
+            }
+          }
 
           if(SignalMuon){
             //std::cout
@@ -1059,43 +1154,98 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           //==== count reco tracks
           if(label[www]=="gemMuonSel"){
             n_GEMMuon++;
-            if( Pt_5 ) n_GEMMuon_ptcut++;
+            HitsGEMMuon_Pt->Fill(track->pt());
+            if( Pt_5 ){
+              n_GEMMuon_ptcut++;
+              HitsGEMMuon_Eta->Fill(fabs(track->eta()));
+              HitsGEMMuon_Phi->Fill(track->phi());
+            }
           }
           if(label[www]=="recoMuonSel"){
             n_RecoMuon++;
-            if( Pt_5 ) n_RecoMuon_ptcut++;
+            HitsRecoMuon_Pt->Fill(track->pt());
+            if( Pt_5 ){
+              n_RecoMuon_ptcut++;
+              HitsRecoMuon_Eta->Fill(fabs(track->eta()));
+              HitsRecoMuon_Phi->Fill(track->phi());
+            }
           }
           if(label[www]=="looseMuonSel"){
             n_LooseMuon++;
-            if( Pt_5 ) n_LooseMuon_ptcut++;
+            HitsLooseMuon_Pt->Fill(track->pt());
+            if( Pt_5 ){
+              n_LooseMuon_ptcut++;
+              HitsLooseMuon_Eta->Fill(fabs(track->eta()));
+              HitsLooseMuon_Phi->Fill(track->phi());
+            }
           }
           if(label[www]=="mediumMuonSel"){
             n_MediumMuon++;
-            if( Pt_5 ) n_MediumMuon_ptcut++;
+            HitsMediumMuon_Pt->Fill(track->pt());
+            if( Pt_5 ){
+              n_MediumMuon_ptcut++;
+              HitsMediumMuon_Eta->Fill(fabs(track->eta()));
+              HitsMediumMuon_Phi->Fill(track->phi());
+            }
           }
           if(label[www]=="tightMuonSel"){
             n_TightMuon++;
-            if( Pt_5 ) n_TightMuon_ptcut++;
+            HitsTightMuon_Pt->Fill(track->pt());
+            if( Pt_5 ){
+              n_TightMuon_ptcut++;
+              HitsTightMuon_Eta->Fill(fabs(track->eta()));
+              HitsTightMuon_Phi->Fill(track->phi());
+            }
           }
           if(label[www].find("PullXScan") != std::string::npos){
+            double this_cut = PullXValues.at(www_PullX);
             n_GEMMuon_PullX[www_PullX]++;
-            if( Pt_5 ) n_GEMMuon_ptcut_PullX[www_PullX]++;
+            HitsPullX_Pt[this_cut]->Fill(track->pt());
+            if( Pt_5 ){
+              n_GEMMuon_ptcut_PullX[www_PullX]++;
+              HitsPullX_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsPullX_Phi[this_cut]->Fill(track->phi());
+            }
           }
           if(label[www].find("DXScan") != std::string::npos){
+            double this_cut = DXValues.at(www_DX);
             n_GEMMuon_DX[www_DX]++;
-            if( Pt_5 ) n_GEMMuon_ptcut_DX[www_DX]++;
+            HitsDX_Pt[this_cut]->Fill(track->pt());
+            if( Pt_5 ){
+              n_GEMMuon_ptcut_DX[www_DX]++;
+              HitsDX_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsDX_Phi[this_cut]->Fill(track->phi());
+            }
           }
           if(label[www].find("PullYScan") != std::string::npos){
+            double this_cut = PullYValues.at(www_PullY);
             n_GEMMuon_PullY[www_PullY]++;
-            if( Pt_5 ) n_GEMMuon_ptcut_PullY[www_PullY]++;
+            HitsPullY_Pt[this_cut]->Fill(track->pt());
+            if( Pt_5 ){
+              n_GEMMuon_ptcut_PullY[www_PullY]++;
+              HitsPullY_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsPullY_Phi[this_cut]->Fill(track->phi());
+            }
           }
           if(label[www].find("DYScan") != std::string::npos){
+            double this_cut = DYValues.at(www_DY);
             n_GEMMuon_DY[www_DY]++;
-            if( Pt_5 ) n_GEMMuon_ptcut_DY[www_DY]++;
+            HitsDY_Pt[this_cut]->Fill(track->pt());
+            if( Pt_5 ){
+              n_GEMMuon_ptcut_DY[www_DY]++;
+              HitsDY_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsDY_Phi[this_cut]->Fill(track->phi());
+            }
           }
           if(label[www].find("DotDirScan") != std::string::npos){
+            double this_cut = DotDirValues.at(www_DotDir);
             n_GEMMuon_DotDir[www_DotDir]++;
-            if( Pt_5 ) n_GEMMuon_ptcut_DotDir[www_DotDir]++;
+            HitsDotDir_Pt[this_cut]->Fill(track->pt());
+            if( Pt_5 ){
+              n_GEMMuon_ptcut_DotDir[www_DotDir]++;
+              HitsDotDir_Eta[this_cut]->Fill(fabs(track->eta()));
+              HitsDotDir_Phi[this_cut]->Fill(track->phi());
+            }
           }
 
           //==== Check if the track is associated to any gen particle
@@ -1121,19 +1271,37 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               //std::cout << "  found matched genparticle => pdgid = " << tpr->pdgId() << std::endl;
               bool SignalMuon = false;
 
-              int motherId(0), grandmaId(0), greatgrandmaId(0);
-              if( tpr->genParticles().size()>0 && (*tpr->genParticle_begin())->numberOfMothers()>0 ) {
-                motherId = abs( (*tpr->genParticle_begin())->mother()->pdgId() );
-                if( (*tpr->genParticle_begin())->mother()->numberOfMothers()>0 ) {
-                  grandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->pdgId() );
-                  if( (*tpr->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
-                    greatgrandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+              //====  Z->MuMu sample
+              if(SampleProcess == "ZMM"){
+                int motherId(0), grandmaId(0), greatgrandmaId(0);
+                if( tpr->genParticles().size()>0 && (*tpr->genParticle_begin())->numberOfMothers()>0 ) {
+                  motherId = abs( (*tpr->genParticle_begin())->mother()->pdgId() );
+                  if( (*tpr->genParticle_begin())->mother()->numberOfMothers()>0 ) {
+                    grandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->pdgId() );
+                    if( (*tpr->genParticle_begin())->mother()->mother()->numberOfMothers()>0 ) {
+                      greatgrandmaId = abs( (*tpr->genParticle_begin())->mother()->mother()->mother()->pdgId() );
+                    }
                   }
                 }
+                // Is it a signal muon? 
+                SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
+                             (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
               }
-              // Is it a signal muon? 
-              SignalMuon = ( grandmaId==23 || greatgrandmaId==23 ||
-                           (motherId==13 && grandmaId==13 && greatgrandmaId==13)   );
+              //==== MuonGun sample
+              else{
+                if(tpr->status() != -99){ // Pythia8 gen status : home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+                  //int motherid=-1;
+                  if ((*tpr->genParticle_begin())->numberOfMothers()>0)  {
+                    if ((*tpr->genParticle_begin())->mother()->numberOfMothers()>0){
+                      //motherid=(*tpr->genParticle_begin())->mother()->mother()->pdgId();
+                    }
+                  }
+                  //std::cout<<"Mother ID = "<<motherid<<std::endl;
+
+                  if ( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
+                       ( (tpr->status()==1) )      )    SignalMuon=true;
+                }
+              }
 
               if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
                 edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched TrackingParticle";
@@ -1266,7 +1434,10 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   N_MediumMuon_ptcut_h->Write();
   N_TightMuon_ptcut_h->Write();
 
-  /* gen-reco delta R matching */
+  //=============
+  //==== DeltaR
+  //=============
+
   GenMuon_Eta->Write();
   GenMuon_Pt->Write();
   GenMuon_Phi->Write();
@@ -1457,13 +1628,18 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   Eff_GEMSegment_Pt->Write();
   Eff_GEMSegment_Phi->Write();
  
-  /* Association by hits */
+  //==========================
+  //==== Association by hits
+  //==========================
 
   TPMuon_Eta->Write();
   TPMuon_Pt->Write();
   TPMuon_Phi->Write();
 
   //==== GEMMuon
+  HitsGEMMuon_Eta->Write();
+  HitsGEMMuon_Pt->Write();
+  HitsGEMMuon_Phi->Write();
   HitsMatchedGEMMuon_Eta->Write();
   HitsMatchedGEMMuon_Pt->Write();
   HitsMatchedGEMMuon_Phi->Write();
@@ -1483,6 +1659,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   HitsUnmatchedGEMMuon_Phi->Write();
 
   //==== RecoMuon
+  HitsRecoMuon_Eta->Write();
+  HitsRecoMuon_Pt->Write();
+  HitsRecoMuon_Phi->Write();
   HitsMatchedRecoMuon_Eta->Write();
   HitsMatchedRecoMuon_Pt->Write();
   HitsMatchedRecoMuon_Phi->Write();
@@ -1502,6 +1681,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   HitsUnmatchedRecoMuon_Phi->Write();
 
   //==== LooseMuon
+  HitsLooseMuon_Eta->Write();
+  HitsLooseMuon_Pt->Write();
+  HitsLooseMuon_Phi->Write();
   HitsMatchedLooseMuon_Eta->Write();
   HitsMatchedLooseMuon_Pt->Write();
   HitsMatchedLooseMuon_Phi->Write();
@@ -1521,6 +1703,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   HitsUnmatchedLooseMuon_Phi->Write();
 
   //==== MediumMuon
+  HitsMediumMuon_Eta->Write();
+  HitsMediumMuon_Pt->Write();
+  HitsMediumMuon_Phi->Write();
   HitsMatchedMediumMuon_Eta->Write();
   HitsMatchedMediumMuon_Pt->Write();
   HitsMatchedMediumMuon_Phi->Write();
@@ -1540,6 +1725,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   HitsUnmatchedMediumMuon_Phi->Write();
 
   //==== TightMuon
+  HitsTightMuon_Eta->Write();
+  HitsTightMuon_Pt->Write();
+  HitsTightMuon_Phi->Write();
   HitsMatchedTightMuon_Eta->Write();
   HitsMatchedTightMuon_Pt->Write();
   HitsMatchedTightMuon_Phi->Write();
@@ -1576,6 +1764,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
     double aaa = PullXValues.at(i);
     hist_PullXValues->SetBinContent(i+1, aaa);   
     TString saaa = DoubleToString(aaa);
+    HitsPullX_Eta[aaa]->Write();
+    HitsPullX_Pt[aaa]->Write();
+    HitsPullX_Phi[aaa]->Write();
     HitsMatchedPullX_Eta[aaa]->Write();
     HitsMatchedPullX_Pt[aaa]->Write();
     HitsMatchedPullX_Phi[aaa]->Write();
@@ -1606,6 +1797,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
     double aaa = DXValues.at(i);
     hist_DXValues->SetBinContent(i+1, aaa);
     TString saaa = DoubleToString(aaa);
+    HitsDX_Eta[aaa]->Write();
+    HitsDX_Pt[aaa]->Write();
+    HitsDX_Phi[aaa]->Write();
     HitsMatchedDX_Eta[aaa]->Write();
     HitsMatchedDX_Pt[aaa]->Write();
     HitsMatchedDX_Phi[aaa]->Write();
@@ -1636,6 +1830,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
     double aaa = PullYValues.at(i);
     hist_PullYValues->SetBinContent(i+1, aaa);
     TString saaa = DoubleToString(aaa);
+    HitsPullY_Eta[aaa]->Write();
+    HitsPullY_Pt[aaa]->Write();
+    HitsPullY_Phi[aaa]->Write();
     HitsMatchedPullY_Eta[aaa]->Write();
     HitsMatchedPullY_Pt[aaa]->Write();
     HitsMatchedPullY_Phi[aaa]->Write();
@@ -1666,6 +1863,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
     double aaa = DYValues.at(i);
     hist_DYValues->SetBinContent(i+1, aaa);
     TString saaa = DoubleToString(aaa);
+    HitsDY_Eta[aaa]->Write();
+    HitsDY_Pt[aaa]->Write();
+    HitsDY_Phi[aaa]->Write();
     HitsMatchedDY_Eta[aaa]->Write();
     HitsMatchedDY_Pt[aaa]->Write();
     HitsMatchedDY_Phi[aaa]->Write();
@@ -1696,6 +1896,9 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
     double aaa = DotDirValues.at(i);
     hist_DotDirValues->SetBinContent(i+1, aaa);
     TString saaa = DoubleToString(aaa);
+    HitsDotDir_Eta[aaa]->Write();
+    HitsDotDir_Pt[aaa]->Write();
+    HitsDotDir_Phi[aaa]->Write();
     HitsMatchedDotDir_Eta[aaa]->Write();
     HitsMatchedDotDir_Pt[aaa]->Write();
     HitsMatchedDotDir_Phi[aaa]->Write();

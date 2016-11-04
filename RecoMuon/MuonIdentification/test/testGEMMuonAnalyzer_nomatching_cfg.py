@@ -1,11 +1,12 @@
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
-#process = cms.Process("GEMMuonAnalyzer", eras.Phase2GReco)
 process = cms.Process("GEMMuonAnalyzer", eras.Phase2C1)
+#process = cms.Process("GEMMuonAnalyzer", eras.Phase2GReco)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tiltedReco_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tilted_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
@@ -29,7 +30,6 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.categories.append("GEMMuonAnalyzer")
 process.MessageLogger.categories.append("GEMMuonAnalyzer_Matching")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
-process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
@@ -142,6 +142,7 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   UseAssociators = cms.bool(True),
   UseDeltaR = cms.bool(False),
   doGeometryStudy = cms.bool(False),
+  SampleProcess = cms.string('ZMM'),
 
   doMatchingStudy = cms.bool(False),
   associators = cms.vstring('gemMuonAssociatorByHits', 'recoMuonAssociatorByHits', 'looseMuonAssociatorByHits', 'mediumMuonAssociatorByHits', 'tightMuonAssociatorByHits'),

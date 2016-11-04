@@ -2,11 +2,11 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 process = cms.Process("GEMMuonAnalyzer", eras.Phase2C1)
-#process = cms.Process("GEMMuonAnalyzerTEST", eras.Phase2C1)
 #process = cms.Process("GEMMuonAnalyzer", eras.Phase2GReco)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tiltedReco_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tilted_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
@@ -23,14 +23,13 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(100)
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.categories.append("GEMMuonAnalyzer")
 process.MessageLogger.categories.append("GEMMuonAnalyzer_Matching")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
-process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
     default = cms.untracked.PSet( limit = cms.untracked.int32(0) ),
@@ -42,13 +41,7 @@ process.MessageLogger.cout = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('file:///somewhere/simevent.root') ##/somewhere/simevent.root" }
     fileNames = cms.untracked.vstring(
-      #'/store/user/jskim/TenMu_Pt_5_100_step3_PU_noGEM/step3_RAW2DIGI_L1Reco_RECO_0.root'
-      #'/store/relval/CMSSW_8_1_0_pre11/RelValZMM_13/GEN-SIM-RECO/PU25ns_81X_mcRun2_asymptotic_v5_2023D1rePU200-v2/00000/00E775FB-4E7F-E611-9C75-0CC47A7C3430.root'
-      '/store/relval/CMSSW_8_1_0_pre10/RelValZMM_13/GEN-SIM-RECO/81X_mcRun2_asymptotic_v5_2023D1-v1/00000/2251A418-9868-E611-B8F6-0CC47A4C8E26.root',
-      #'/store/relval/CMSSW_8_1_0_pre10/RelValZMM_13/GEN-SIM-RECO/81X_mcRun2_asymptotic_v5_2023D1-v1/00000/2AE78E75-8F68-E611-BB9B-0CC47A4D7662.root',
-      #'/store/relval/CMSSW_8_1_0_pre10/RelValZMM_13/GEN-SIM-RECO/81X_mcRun2_asymptotic_v5_2023D1-v1/00000/D84C5920-8E68-E611-BE4E-0025905A60B2.root',
-      #'/store/relval/CMSSW_8_1_0_pre10/RelValZMM_13/GEN-SIM-RECO/81X_mcRun2_asymptotic_v5_2023D1-v1/00000/EE8F5371-8F68-E611-840A-0025905A6068.root',
-      #'file:out_test.root',
+      '/store/relval/CMSSW_8_1_0_pre10/RelValZMM_13/GEN-SIM-RECO/81X_mcRun2_asymptotic_v5_2023D1-v1/00000/2251A418-9868-E611-B8F6-0CC47A4C8E26.root'
     ),
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     skipBadFiles = cms.untracked.bool(True), 
@@ -210,57 +203,13 @@ process.DotDirScan0p99 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
   MinDotDir = cms.double(0.99),
 )
-process.DotDirScan0p98 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.98),
-)
-process.DotDirScan0p97 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.97),
-)
-process.DotDirScan0p96 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.96),
-)
 process.DotDirScan0p95 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
   MinDotDir = cms.double(0.95),
 )
-process.DotDirScan0p94 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.94),
-)
-process.DotDirScan0p93 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.93),
-)
-process.DotDirScan0p92 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.92),
-)
-process.DotDirScan0p91 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.91),
-)
 process.DotDirScan0p90 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
   MinDotDir = cms.double(0.90),
-)
-process.DotDirScan0p89 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.89),
-)
-process.DotDirScan0p88 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.88),
-)
-process.DotDirScan0p87 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.87),
-)
-process.DotDirScan0p86 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MinDotDir = cms.double(0.86),
 )
 process.DotDirScan0p85 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
@@ -574,36 +523,6 @@ process.DotDirScan0p99Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssoci
  stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
  tracksTag = cms.InputTag("DotDirScan0p99"),
 )
-process.DotDirScan0p98Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p98"),
-)
-process.DotDirScan0p97Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p97"),
-)
-process.DotDirScan0p96Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p96"),
-)
 process.DotDirScan0p95Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
  UseTracker = True,
  UseMuon = False,
@@ -614,46 +533,6 @@ process.DotDirScan0p95Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssoci
  stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
  tracksTag = cms.InputTag("DotDirScan0p95"),
 )
-process.DotDirScan0p94Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p94"),
-)
-process.DotDirScan0p93Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p93"),
-)
-process.DotDirScan0p92Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p92"),
-)
-process.DotDirScan0p91Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p91"),
-)
 process.DotDirScan0p90Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
  UseTracker = True,
  UseMuon = False,
@@ -663,46 +542,6 @@ process.DotDirScan0p90Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssoci
  pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
  stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
  tracksTag = cms.InputTag("DotDirScan0p90"),
-)
-process.DotDirScan0p89Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p89"),
-)
-process.DotDirScan0p88Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p88"),
-)
-process.DotDirScan0p87Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p87"),
-)
-process.DotDirScan0p86Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DotDirScan0p86"),
 )
 process.DotDirScan0p85Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
  UseTracker = True,
@@ -724,20 +563,21 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   UseAssociators = cms.bool(True),
   UseDeltaR = cms.bool(False),
   doGeometryStudy = cms.bool(False),
+  SampleProcess = cms.string('ZMM'),
 
   doMatchingStudy = cms.bool(True),
   PullXValues = cms.vdouble(0, 0.1, 0.5, 1.0, 2.0, 3.0),
   DXValues = cms.vdouble(0, 0.5, 1.0, 2.0, 3.0, 4.0),
   PullYValues = cms.vdouble(0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 10., 20.),
   DYValues = cms.vdouble(1.0, 2.0, 3.0, 4.0, 5.0, 10., 20.),
-  DotDirValues = cms.vdouble(0.99, 0.98, 0.97, 0.96, 0.95, 0.94, 0.93, 0.92, 0.91, 0.90, 0.89, 0.88, 0.87, 0.86, 0.85),
+  DotDirValues = cms.vdouble(0.99, 0.95, 0.90, 0.85),
   associators = cms.vstring(
     'gemMuonAsso',
     'PullXScan0Asso', 'PullXScan0p1Asso', 'PullXScan0p5Asso', 'PullXScan1Asso' ,'PullXScan2Asso', 'PullXScan3Asso',
     'DXScan0Asso', 'DXScan0p5Asso', 'DXScan1Asso', 'DXScan2Asso', 'DXScan3Asso', 'DXScan4Asso',
     'PullYScan0p5Asso', 'PullYScan1Asso', 'PullYScan2Asso', 'PullYScan3Asso' ,'PullYScan4Asso', 'PullYScan5Asso', 'PullYScan10Asso', 'PullYScan20Asso',
     'DYScan1Asso', 'DYScan2Asso', 'DYScan3Asso' ,'DYScan4Asso', 'DYScan5Asso', 'DYScan10Asso', 'DYScan20Asso',
-    'DotDirScan0p99Asso', 'DotDirScan0p98Asso', 'DotDirScan0p97Asso', 'DotDirScan0p96Asso', 'DotDirScan0p95Asso', 'DotDirScan0p94Asso', 'DotDirScan0p93Asso', 'DotDirScan0p92Asso', 'DotDirScan0p91Asso', 'DotDirScan0p90Asso', 'DotDirScan0p89Asso', 'DotDirScan0p88Asso', 'DotDirScan0p87Asso', 'DotDirScan0p86Asso', 'DotDirScan0p85Asso',
+    'DotDirScan0p99Asso', 'DotDirScan0p95Asso', 'DotDirScan0p90Asso', 'DotDirScan0p85Asso',
   ),
   label = cms.vstring(
     'gemMuonSel',
@@ -745,7 +585,7 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
     'DXScan0', 'DXScan0p5', 'DXScan1', 'DXScan2', 'DXScan3', 'DXScan4',
     'PullYScan0p5', 'PullYScan1', 'PullYScan2', 'PullYScan3' ,'PullYScan4', 'PullYScan5', 'PullYScan10', 'PullYScan20',
     'DYScan1', 'DYScan2', 'DYScan3' ,'DYScan4', 'DYScan5', 'DYScan10', 'DYScan20',
-    'DotDirScan0p99', 'DotDirScan0p98', 'DotDirScan0p97', 'DotDirScan0p96', 'DotDirScan0p95', 'DotDirScan0p94', 'DotDirScan0p93', 'DotDirScan0p92', 'DotDirScan0p91', 'DotDirScan0p90', 'DotDirScan0p89', 'DotDirScan0p88', 'DotDirScan0p87', 'DotDirScan0p86', 'DotDirScan0p85', 
+    'DotDirScan0p99', 'DotDirScan0p95', 'DotDirScan0p90', 'DotDirScan0p85', 
   ),
 
 )
@@ -781,19 +621,8 @@ process.DYScan5*process.DYScan5Asso*
 process.DYScan10*process.DYScan10Asso*
 process.DYScan20*process.DYScan20Asso*
 process.DotDirScan0p99*process.DotDirScan0p99Asso*
-process.DotDirScan0p98*process.DotDirScan0p98Asso*
-process.DotDirScan0p97*process.DotDirScan0p97Asso*
-process.DotDirScan0p96*process.DotDirScan0p96Asso*
 process.DotDirScan0p95*process.DotDirScan0p95Asso*
-process.DotDirScan0p94*process.DotDirScan0p94Asso*
-process.DotDirScan0p93*process.DotDirScan0p93Asso*
-process.DotDirScan0p92*process.DotDirScan0p92Asso*
-process.DotDirScan0p91*process.DotDirScan0p91Asso*
 process.DotDirScan0p90*process.DotDirScan0p90Asso*
-process.DotDirScan0p89*process.DotDirScan0p89Asso*
-process.DotDirScan0p88*process.DotDirScan0p88Asso*
-process.DotDirScan0p87*process.DotDirScan0p87Asso*
-process.DotDirScan0p86*process.DotDirScan0p86Asso*
 process.DotDirScan0p85*process.DotDirScan0p85Asso*
 process.GEMMuonAnalyzer
 )

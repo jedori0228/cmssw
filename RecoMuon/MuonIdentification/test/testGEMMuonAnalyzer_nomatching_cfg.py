@@ -29,6 +29,7 @@ process.maxEvents = cms.untracked.PSet(
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.categories.append("GEMMuonAnalyzer")
 process.MessageLogger.categories.append("GEMMuonAnalyzer_Matching")
+process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),

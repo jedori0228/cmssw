@@ -135,8 +135,12 @@ public:
 
   double  FakeRatePtCut, MatchingWindowDelR;
 
-  TH1F *Nevents_h, *N_GEMMuon_h, *N_RecoMuon_h, *N_LooseMuon_h, *N_MediumMuon_h, *N_TightMuon_h,
-                   *N_GEMMuon_ptcut_h, *N_RecoMuon_ptcut_h, *N_LooseMuon_ptcut_h, *N_MediumMuon_ptcut_h, *N_TightMuon_ptcut_h;
+  TH1F *Nevents_h,
+       *N_GEMMuon_h, *N_RecoMuon_h, *N_LooseMuon_h, *N_MediumMuon_h, *N_TightMuon_h,
+       *N_GEMMuon_dist_h, *N_RecoMuon_dist_h, *N_LooseMuon_dist_h, *N_MediumMuon_dist_h, *N_TightMuon_dist_h,
+       *N_GEMMuon_ptcut_h, *N_RecoMuon_ptcut_h, *N_LooseMuon_ptcut_h, *N_MediumMuon_ptcut_h, *N_TightMuon_ptcut_h,
+       *N_GEMMuon_ptcut_dist_h, *N_RecoMuon_ptcut_dist_h, *N_LooseMuon_ptcut_dist_h, *N_MediumMuon_ptcut_dist_h, *N_TightMuon_ptcut_dist_h;
+
   int n_GEMMuon, n_RecoMuon, n_LooseMuon, n_MediumMuon, n_TightMuon;
   int n_GEMMuon_ptcut, n_RecoMuon_ptcut, n_LooseMuon_ptcut, n_MediumMuon_ptcut, n_TightMuon_ptcut;
 
@@ -342,6 +346,16 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   N_LooseMuon_ptcut_h = new TH1F("N_LooseMuon_ptcut_h", "Nevents", 1, 0, 1 );
   N_MediumMuon_ptcut_h = new TH1F("N_MediumMuon_ptcut_h", "Nevents", 1, 0, 1 );
   N_TightMuon_ptcut_h = new TH1F("N_TightMuon_ptcut_h", "Nevents", 1, 0, 1 );
+  N_GEMMuon_dist_h = new TH1F("N_GEMMuon_dist_h", "Nevents", 2000, 0, 2000 );
+  N_RecoMuon_dist_h = new TH1F("N_RecoMuon_dist_h", "Nevents", 2000, 0, 2000 );
+  N_LooseMuon_dist_h = new TH1F("N_LooseMuon_dist_h", "Nevents", 2000, 0, 2000 );
+  N_MediumMuon_dist_h = new TH1F("N_MediumMuon_dist_h", "Nevents", 2000, 0, 2000 );
+  N_TightMuon_dist_h = new TH1F("N_TightMuon_dist_h", "Nevents", 2000, 0, 2000 );
+  N_GEMMuon_ptcut_dist_h = new TH1F("N_GEMMuon_ptcut_dist_h", "Nevents", 2000, 0, 2000 );
+  N_RecoMuon_ptcut_dist_h = new TH1F("N_RecoMuon_ptcut_dist_h", "Nevents", 2000, 0, 2000 );
+  N_LooseMuon_ptcut_dist_h = new TH1F("N_LooseMuon_ptcut_dist_h", "Nevents", 2000, 0, 2000 );
+  N_MediumMuon_ptcut_dist_h = new TH1F("N_MediumMuon_ptcut_dist_h", "Nevents", 2000, 0, 2000 );
+  N_TightMuon_ptcut_dist_h = new TH1F("N_TightMuon_ptcut_dist_h", "Nevents", 2000, 0, 2000 );
   GenMuon_Eta = new TH1F("GenMuon_Eta", "Muon #eta", n_eta_bin, eta_bin );
   GenMuon_Pt = new TH1F("GenMuon_Pt", "Muon p_{T}", n_pt_bin, pt_bin );
   GenMuon_Phi = new TH1F("GenMuon_Phi", "Muon #phi", 36, -TMath::Pi(), TMath::Pi());
@@ -1141,6 +1155,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       //==== Fake study
       //=================
 
+      int n_this_tracks = 0, n_this_tracks_ptcut = 0;
+
       //==== loop over (GEMMuon/RecoMuon/...) tracks
       for(View<Track>::size_type i=0; i<trackCollection->size(); ++i){
         //std::cout << i << "th trackCollection iterator" << std::endl;
@@ -1150,6 +1166,9 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         bool Pt_5 = track->pt() > 5;
 
         if( Eta_1p6_2p4 ){
+
+          n_this_tracks++;
+          if( Pt_5 ) n_this_tracks_ptcut++;
 
           //==== count reco tracks
           if(label[www]=="gemMuonSel"){
@@ -1378,6 +1397,30 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
       } // END track loop
 
+      //==== # of track distribution
+
+      if(label[www]=="gemMuonSel"){
+        N_GEMMuon_dist_h->Fill(n_this_tracks);
+        N_GEMMuon_ptcut_dist_h->Fill(n_this_tracks_ptcut);
+      }
+      if(label[www]=="recoMuonSel"){
+        N_RecoMuon_dist_h->Fill(n_this_tracks);
+        N_RecoMuon_ptcut_dist_h->Fill(n_this_tracks_ptcut);
+      }
+      if(label[www]=="looseMuonSel"){
+        N_LooseMuon_dist_h->Fill(n_this_tracks);
+        N_LooseMuon_ptcut_dist_h->Fill(n_this_tracks_ptcut);
+      }
+      if(label[www]=="mediumMuonSel"){
+        N_MediumMuon_dist_h->Fill(n_this_tracks);
+        N_MediumMuon_ptcut_dist_h->Fill(n_this_tracks_ptcut);
+      }
+      if(label[www]=="tightMuonSel"){
+        N_TightMuon_dist_h->Fill(n_this_tracks);
+        N_TightMuon_ptcut_dist_h->Fill(n_this_tracks_ptcut);
+      }
+
+
       if(label[www].find("PullXScan") != std::string::npos) www_PullX++;
       if(label[www].find("DXScan") != std::string::npos) www_DX++;
       if(label[www].find("PullYScan") != std::string::npos) www_PullY++;
@@ -1412,6 +1455,7 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 
   Nevents_h->Write();
 
+  //==== Total # of tracks
   N_GEMMuon_h->SetBinContent(1, n_GEMMuon);
   N_RecoMuon_h->SetBinContent(1,n_RecoMuon);
   N_LooseMuon_h->SetBinContent(1, n_LooseMuon);
@@ -1433,6 +1477,17 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   N_LooseMuon_ptcut_h->Write();
   N_MediumMuon_ptcut_h->Write();
   N_TightMuon_ptcut_h->Write();
+
+  N_GEMMuon_dist_h->Write();
+  N_RecoMuon_dist_h->Write();
+  N_LooseMuon_dist_h->Write();
+  N_MediumMuon_dist_h->Write();
+  N_TightMuon_dist_h->Write();
+  N_GEMMuon_ptcut_dist_h->Write();
+  N_RecoMuon_ptcut_dist_h->Write();
+  N_LooseMuon_ptcut_dist_h->Write();
+  N_MediumMuon_ptcut_dist_h->Write();
+  N_TightMuon_ptcut_dist_h->Write();
 
   //=============
   //==== DeltaR

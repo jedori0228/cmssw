@@ -2,11 +2,10 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 process = cms.Process("GEMMuonAnalyzer", eras.Phase2C1)
-#process = cms.Process("GEMMuonAnalyzerTEST", eras.Phase2C1)
-#process = cms.Process("GEMMuonAnalyzer", eras.Phase2GReco)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tiltedReco_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tilted_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
@@ -20,15 +19,17 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1)
+    input = cms.untracked.int32(1000)
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.categories.append("GEMMuonAnalyzer")
 process.MessageLogger.categories.append("GEMMuonAnalyzer_Matching")
+process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
@@ -41,8 +42,8 @@ process.MessageLogger.cout = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('file:///somewhere/simevent.root') ##/somewhere/simevent.root" }
     fileNames = cms.untracked.vstring(
-      'root://cms-xrd-global.cern.ch//store/relval/CMSSW_8_1_0_pre12/RelValSingleMuPt10Extended/GEN-SIM-RECO/81X_mcRun2_asymptotic_v8_2023D1-v1/00000/10669C6E-0983-E611-A04E-0CC47A4D7644.root'
-      #'root://cms-xrd-global.cern.ch//store/relval/CMSSW_8_1_0_pre12/RelValSingleMuPt10Extended/GEN-SIM-RECO/PU25ns_81X_mcRun2_asymptotic_v8_LPJ5re2023D1PU140-v1/00000/0078E402-9488-E611-A07E-0025905B85D0.root'
+      #'root://cms-xrd-global.cern.ch//store/relval/CMSSW_8_1_0_pre12/RelValSingleMuPt10Extended/GEN-SIM-RECO/81X_mcRun2_asymptotic_v8_2023D1-v1/00000/10669C6E-0983-E611-A04E-0CC47A4D7644.root'
+      '/store/user/jskim/4A6743E4-10A6-E611-ADF8-0025905B85F6.root'
     ),
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     skipBadFiles = cms.untracked.bool(True), 

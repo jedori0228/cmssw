@@ -6,6 +6,7 @@ process = cms.Process("GEMMuonAnalyzer", eras.Phase2C1)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.Geometry.GeometryExtended2023D1Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D1_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tiltedReco_cff')
 #process.load('Configuration.Geometry.GeometryExtended2023tilted_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
@@ -19,15 +20,17 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(2)
+    input = cms.untracked.int32(-1)
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.categories.append("GEMMuonAnalyzer")
 process.MessageLogger.categories.append("GEMMuonAnalyzer_Matching")
+process.MessageLogger.destinations = cms.untracked.vstring("cout","junk")
 process.MessageLogger.debugModules = cms.untracked.vstring("*")
 process.MessageLogger.cout = cms.untracked.PSet(
     threshold = cms.untracked.string("DEBUG"),
@@ -40,7 +43,8 @@ process.MessageLogger.cout = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('file:///somewhere/simevent.root') ##/somewhere/simevent.root" }
     fileNames = cms.untracked.vstring(
-      '/store/user/jskim/TenMu_Pt_5_100_step3_PU_noGEM/step3_RAW2DIGI_L1Reco_RECO_0.root'
+      #'/store/user/jskim/TenMu_Pt_5_100_step3_PU_noGEM/step3_RAW2DIGI_L1Reco_RECO_0.root'
+      '/store/relval/CMSSW_8_1_0_pre16/RelValTenMuExtendedE_0_200/GEN-SIM-RECO/PU25ns_81X_upgrade2023_realistic_v3_2023D1PU200-v1/10000/0064AF1B-AEA8-E611-838C-0CC47A4D7618.root'
     ),
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     skipBadFiles = cms.untracked.bool(True), 

@@ -1046,8 +1046,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               }
               //std::cout<<"Mother ID = "<<motherid<<std::endl;
 
-              if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) )  ||
-                   ( (tp->status()==1) )      )    SignalMuon=true;
+              if ( ( (tp->status()==1) && ( (*tp->genParticle_begin())->numberOfMothers()==0 ) ) ) SignalMuon=true;
             }
           }
 
@@ -1173,7 +1172,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           n_this_tracks++;
           if( Pt_5 ) n_this_tracks_ptcut++;
 
-          //==== count reco tracks
+          //==== denominator distributions
+          //==== count total reco tracks
           if(label[www]=="gemMuonSel"){
             n_GEMMuon++;
             HitsGEMMuon_Pt->Fill(track->pt());
@@ -1320,8 +1320,7 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                   }
                   //std::cout<<"Mother ID = "<<motherid<<std::endl;
 
-                  if ( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) )  ||
-                       ( (tpr->status()==1) )      )    SignalMuon=true;
+                  if ( ( (tpr->status()==1) && ( (*tpr->genParticle_begin())->numberOfMothers()==0 ) ) )  SignalMuon=true;
                 }
               }
 

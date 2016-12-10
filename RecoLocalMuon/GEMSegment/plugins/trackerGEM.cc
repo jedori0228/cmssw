@@ -16,6 +16,7 @@
 #include "TrackPropagation/SteppingHelixPropagator/interface/SteppingHelixPropagator.h"
 #include "TrackPropagation/SteppingHelixPropagator/interface/SteppingHelixStateInfo.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 
 #include "DataFormats/GeometrySurface/interface/LocalError.h"
@@ -38,25 +39,16 @@ trackerGEM::trackerGEM(const edm::ParameterSet& iConfig) {
   gemSegmentsToken_ = consumes<GEMSegmentCollection >(iConfig.getParameter<edm::InputTag>("gemSegmentsToken"));
   generalTracksToken_ = consumes<reco::TrackCollection >(iConfig.getParameter<edm::InputTag>("generalTracksToken"));
 
-  maxPullXGE11_   = iConfig.getParameter<double>("maxPullXGE11");
-  maxDiffXGE11_   = iConfig.getParameter<double>("maxDiffXGE11");
-  maxPullYGE11_   = iConfig.getParameter<double>("maxPullYGE11");
-  maxDiffYGE11_   = iConfig.getParameter<double>("maxDiffYGE11");
-  maxPullXGE21_   = iConfig.getParameter<double>("maxPullXGE21");
-  maxDiffXGE21_   = iConfig.getParameter<double>("maxDiffXGE21");
-  maxPullYGE21_   = iConfig.getParameter<double>("maxPullYGE21");
-  maxDiffYGE21_   = iConfig.getParameter<double>("maxDiffYGE21");
-  maxDiffPhiDirection_ = iConfig.getParameter<double>("maxDiffPhiDirection");
-
   produces<std::vector<reco::Muon> >();
+
 }
 
-trackerGEM::~trackerGEM() {}
+trackerGEM::~trackerGEM() {
+}
 
 void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   using namespace edm;
   using namespace reco;
-  using namespace std;
   
   ESHandle<MagneticField> bField;
   setup.get<IdealMagneticFieldRecord>().get(bField);
@@ -72,34 +64,13 @@ void trackerGEM::produce(edm::Event& ev, const edm::EventSetup& setup) {
   std::auto_ptr<std::vector<Muon> > muons( new std::vector<Muon> ); 
 
   int TrackNumber = 0;
-  for (std::vector<Track>::const_iterator thisTrack = generalTracks->begin();
-       thisTrack != generalTracks->end(); ++thisTrack,++TrackNumber){
+  for(std::vector<Track>::const_iterator thisTrack = generalTracks->begin(); thisTrack != generalTracks->end(); ++thisTrack, ++TrackNumber){
     //Initializing gem plane
     //Remove later
     if (thisTrack->pt() < 1.5) continue;
-    if (std::abs(thisTrack->eta()) < 1.5) continue;
+    if (std::fabs(thisTrack->eta()) < 1.5) continue;
 
-    ++ntracks;
-    edm::LogVerbatim("trackerGEM") << "**********************************************************"<<std::endl;
-    edm::LogVerbatim("trackerGEM") << "trying match to track pt = " << thisTrack->pt()
-    	      << " eta = " << thisTrack->eta()
-    	      << " phi = " << thisTrack->phi()
-    	      <<std::endl;
-     
-    reco::MuonChamberMatch* foundGE11 = findGEMSegment(*thisTrack, *gemSegments, 1, ThisshProp);
-    reco::MuonChamberMatch* foundGE21 = findGEMSegment(*thisTrack, *gemSegments, 3, ThisshProp);
-
-    if (!foundGE11 && !foundGE21) continue;
-    ++nmatch;
-    std::vector<reco::MuonChamberMatch> muonChamberMatches;
-    if (foundGE11){
-      muonChamberMatches.push_back(*foundGE11);
-      ++nmatch_ge11;
-    }
-    if (foundGE21){
-      muonChamberMatches.push_back(*foundGE21);
-      ++nmatch_ge21;
-    }
+    std::vector<reco::MuonChamberMatch> muonChamberMatches = MatchGEM(*thisTrack, *gemSegments, ThisshProp);
 
     TrackRef thisTrackRef(generalTracks,TrackNumber);
     	   
@@ -181,54 +152,29 @@ void trackerGEM::getFromFTS(const FreeTrajectoryState& fts,
 void trackerGEM::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 {
   iSetup.get<MuonGeometryRecord>().get(gemGeom);
-  ntracks = 0; nmatch = 0; nmatch_ge11 = 0; nmatch_ge21 = 0;
 
 }
 void trackerGEM::endJob()
 {
-  std::cout << "ntracks  = "<< ntracks <<std::endl;
-  std::cout << "eff      = "<< nmatch/ntracks <<std::endl;
-  std::cout << "eff ge11 = "<< nmatch_ge11/ntracks <<std::endl;
-  std::cout << "eff ge21 = "<< nmatch_ge21/ntracks <<std::endl;
 }
 
-reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, const GEMSegmentCollection& gemSegments, int station, const SteppingHelixPropagator* shPropagator)
+std::vector<reco::MuonChamberMatch> trackerGEM::MatchGEM(const reco::Track& track, const GEMSegmentCollection& gemSegments, const SteppingHelixPropagator* shPropagator)
 {
-  int SegmentNumber = 0;
-  double ClosestDelR2 = 500.;
-
-  const GEMSegment* matchedGEMSegment = NULL;
+  std::vector<reco::MuonChamberMatch> vchamber;
   
-  for (auto thisSegment = gemSegments.begin(); thisSegment != gemSegments.end(); 
-       ++thisSegment,++SegmentNumber){
-    //GEMDetId id = thisSegment->gemDetId();
-    // should be segment det ID, but not working currently
-    GEMDetId id = thisSegment->specificRecHits()[0].gemId();
+  for(auto thisSegment = gemSegments.begin(); thisSegment != gemSegments.end(); ++thisSegment){
 
-    if (id.station() != station) continue;
+    GEMDetId id = thisSegment->gemDetId();
     float zSign = track.pz() > 0 ? 1.0f : -1.0f;
     if ( zSign * id.region() < 0 ) continue;
-    //cout << "thisSegment->nRecHits() "<< thisSegment->nRecHits()<< endl;
-    //cout << "thisSegment->specificRecHits().size() "<< thisSegment->specificRecHits().size()<< endl;
-    //cout << "id.station() "<< id.station()<< endl;
 
     LocalPoint thisPosition(thisSegment->localPosition());
     LocalVector thisDirection(thisSegment->localDirection());
 
-    auto chamber = gemGeom->chamber(id);
+    auto chamber = gemGeom->superChamber(id);
     GlobalPoint SegPos(chamber->toGlobal(thisPosition));
+    GlobalVector SegDir(chamber->toGlobal(thisDirection));
 
-    edm::LogVerbatim("trackerGEM") <<" segment = "<< id.station()
-    	      <<" chamber = "<< id.chamber()
-    	      <<" roll = "<< id.roll()
-    	      <<" x,y,z = "<< SegPos.x()
-    	      <<", "<< SegPos.y()
-    	      <<", "<< SegPos.z()
-      	      << std::endl;
-    
-    //      if ( zSign * chamber->toGlobal(thisSegment->localPosition()).z() < 0 ) continue;
-    // add in deltaR cut
-      
     const float zValue = SegPos.z();
 
     Plane *plane = new Plane(Surface::PositionType(0,0,zValue),Surface::RotationType());
@@ -277,7 +223,7 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     AlgebraicMatrix thisCov(4,4,0);   
     for (int i = 1; i <=4; i++){
       for (int j = 1; j <=4; j++){
-	thisCov(i,j) = thisSegment->parametersError()(i,j);
+        thisCov(i,j) = thisSegment->parametersError()(i,j);
       }
     }
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -290,86 +236,43 @@ reco::MuonChamberMatch* trackerGEM::findGEMSegment(const reco::Track& track, con
     AlgebraicSymMatrix55 C;  // I couldn't find any other way, so I resort to the brute force
     for(int i=0; i<5; ++i) {
       for(int j=0; j<5; ++j) {
-	C[i][j] = Ctmp[i][j]; 
-
+	      C[i][j] = Ctmp[i][j]; 
       }
     }  
 
-    Double_t sigmax = sqrt(C[3][3]+thisSegment->localPositionError().xx() );      
-    Double_t sigmay = sqrt(C[4][4]+thisSegment->localPositionError().yy() );
+    Double_t sigmax = C[3][3]+thisSegment->localPositionError().xx();
+    Double_t sigmay = C[4][4]+thisSegment->localPositionError().yy();
 
-    bool X_MatchFound = false, Y_MatchFound = false, Dir_MatchFound = false;
-    
-    if (station == 1){
-      if ( (std::abs(thisPosition.x()-r3FinalReco.x()) < (maxPullXGE11_ * sigmax)) &&
-	   (std::abs(thisPosition.x()-r3FinalReco.x()) < maxDiffXGE11_ ) ) X_MatchFound = true;
-      if ( (std::abs(thisPosition.y()-r3FinalReco.y()) < (maxPullYGE11_ * sigmay)) &&
-	   (std::abs(thisPosition.y()-r3FinalReco.y()) < maxDiffYGE11_ ) ) Y_MatchFound = true;
-    }
-    if (station == 3){
-      if ( (std::abs(thisPosition.x()-r3FinalReco.x()) < (maxPullXGE21_ * sigmax)) &&
-	   (std::abs(thisPosition.x()-r3FinalReco.x()) < maxDiffXGE21_ ) ) X_MatchFound = true;
-      if ( (std::abs(thisPosition.y()-r3FinalReco.y()) < (maxPullYGE21_ * sigmay)) &&
-	   (std::abs(thisPosition.y()-r3FinalReco.y()) < maxDiffYGE21_ ) ) Y_MatchFound = true;
-    }
-    double segLocalPhi = thisDirection.phi();
-    //-M_PI/2;
-    //if (segLocalPhi < 0) segLocalPhi += M_PI;
-    
-    if (std::abs(reco::deltaPhi(p3FinalReco.phi(),segLocalPhi))  < maxDiffPhiDirection_) Dir_MatchFound = true;
+    double DelX   = std::abs(thisPosition.x()-r3FinalReco.x());
+    double DelY   = std::abs(thisPosition.y()-r3FinalReco.y());
+    //double DelPhi = std::abs( p3FinalReco.phi() - thisDirection.phi() );
+    double DotDir = p3FinalReco.unit().dot( thisDirection.unit() );
 
-    edm::LogVerbatim("trackerGEM") <<" station = "<< station
-				   <<" track phi = "<< p3FinalReco.phi() 
-				   <<" seg phi = "<< segLocalPhi
-				   <<" deltaPhi = "<< reco::deltaPhi(p3FinalReco.phi(),segLocalPhi)
-				   << std::endl;
+    reco::MuonChamberMatch matchedChamber;;
+    matchedChamber.id = thisSegment->specificRecHits()[0].gemId();
+    //==== save DX and DY
+    matchedChamber.x = DelX;
+    matchedChamber.y = DelY;
+    //==== save PullX and PullY
+    matchedChamber.xErr = DelX/sigmax;
+    matchedChamber.yErr = DelY/sigmay;
+    //==== save DelPhi
+    matchedChamber.dXdZ = DotDir;
 
-    edm::LogVerbatim("trackerGEM") <<" deltaX = "<< thisPosition.x()-r3FinalReco.x()
-				   <<" deltaX/sigma = "<< (thisPosition.x()-r3FinalReco.x())/sigmax
-				   << std::endl;
-    edm::LogVerbatim("trackerGEM") <<" deltaY = "<< thisPosition.y()-r3FinalReco.y()
-				   <<" deltaY/sigma = "<< (thisPosition.y()-r3FinalReco.y())/sigmay
-				   << std::endl;
+    //std::cout << "=============================================================================================================" << std::endl;
+    //std::cout << "Track Position : eta = "<< r3FinalReco_glob.eta() << ", phi = " << r3FinalReco_glob.phi() << std::endl;
+    //std::cout << "Segment Position : eta = "<< SegPos.eta() << ", phi = " << SegPos.phi() << std::endl;
+    //std::cout << "Track Direction : x = "<< p3FinalReco.unit().x() << ", y = " << p3FinalReco.unit().y() << ", z = " << p3FinalReco.unit().z() << std::endl;
+    //std::cout << "Segment Direction : x = "<< thisDirection.x() << ", y = " << thisDirection.y() << ", z = " << thisDirection.z() << std::endl;
+    //std::cout << "=> DotDir = " << DotDir << std::endl;
 
-    for (auto rechit :thisSegment->specificRecHits()){
-      GEMDetId rechitid = rechit.gemId();
-      //auto rechitroll = gemGeom->etaPartition(rechitid); 
-      edm::LogVerbatim("trackerGEM") <<" rec hit = "<< rechitid.station()
-    		<<" chamber = "<< rechitid.chamber()
-    		<<" roll = "<< rechitid.roll()
-    		<<" x,y,z = "<< rechit.localPosition().x()
-    		<<", "<< rechit.localPosition().y()
-    		<<", "<< rechit.localPosition().z()
-    		<<" layer = "<< rechitid.layer()
-    		<< std::endl;
+    vchamber.push_back(matchedChamber);
 
-    }
-      
-    //Check for a Match, and if there is a match, check the delR from the segment, keeping only the closest in MuonCandidate
-    if (X_MatchFound && Y_MatchFound && Dir_MatchFound) {
-      GlobalPoint TkPos(r3FinalReco_globv.x(),r3FinalReco_globv.y(),r3FinalReco_globv.z());
-      double thisDelR2 = reco::deltaR2(SegPos,TkPos);
-      if (thisDelR2 < ClosestDelR2){
-	ClosestDelR2 = thisDelR2;
-	matchedGEMSegment = &(*thisSegment);
-      }
-    }
   }
-  if (matchedGEMSegment){
-    reco::MuonChamberMatch* matchedChamber = new reco::MuonChamberMatch();
-    matchedChamber->id = matchedGEMSegment->specificRecHits()[0].gemId();
-    matchedChamber->x = matchedGEMSegment->localPosition().x();
-    matchedChamber->y = matchedGEMSegment->localPosition().y();
-    matchedChamber->dXdZ = matchedGEMSegment->localDirection().z()?matchedGEMSegment->localDirection().x()/matchedGEMSegment->localDirection().z():0;
-    matchedChamber->dYdZ = matchedGEMSegment->localDirection().z()?matchedGEMSegment->localDirection().y()/matchedGEMSegment->localDirection().z():0;
-    matchedChamber->xErr = matchedGEMSegment->localPositionError().xx();
-    matchedChamber->yErr = matchedGEMSegment->localPositionError().yy();
-    // need to recheck errors
-    matchedChamber->dXdZErr = matchedGEMSegment->localDirectionError().xx();
-    matchedChamber->dYdZErr = matchedGEMSegment->localDirectionError().yy();
-    return matchedChamber;
-  }
-   
-  return NULL;
+
+  return vchamber;
+
 }
+
+
 DEFINE_FWK_MODULE(trackerGEM);

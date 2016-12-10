@@ -7,8 +7,11 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
+#process.load('Configuration.Geometry.GeometryExtended2023HGCalMuonReco_cff')
+#process.load('Configuration.Geometry.GeometryExtended2023HGCalMuon_cff')
+process.load('Configuration.Geometry.GeometryExtended2023MuonReco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023Muon_cff')
 process.load('Configuration.Geometry.GeometryExtended2023HGCalMuonReco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023HGCalMuon_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_PostLS1_cff')
 process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
@@ -20,7 +23,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'PH2_1K_FB_V6::All', '')
 
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 #process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
 #process.load('RecoLocalMuon.GEMRecHit.me0RecHits_cfi')
@@ -41,7 +44,8 @@ process.source = cms.Source("PoolSource",
         #'/store/mc/TP2023HGCALDR/DYToMuMu_M-20_TuneZ2star_14TeV-pythia6-tauola/GEN-SIM-RECO/HGCALForMUO_PU140BX25_newsplit_PH2_1K_FB_V6-v2/20000/06E993BA-E531-E511-9803-008CFA0A57E4.root'
         #/GluGluToHToZZTo4m_M-125_14TeV-powheg-pythia6/TP2023HGCALDR-HGCALnewsplit_PU140BX25_newsplitPU140_PH2_1K_FB_V6-v1/GEN-SIM-RECO
         #'file:/afs/cern.ch/user/j/jlee/work/00E21A91-B9F9-E411-9107-00266CFADEC0.root'
-	'file:singleMu2023Muon_reco.root'
+	#'file:singleMu2023Muon_reco.root'
+        'file:out_STA_reco_NoGE21_pT100.root'
     )
 )
 
@@ -64,3 +68,23 @@ process.schedule = cms.Schedule(
     process.endjob_step,
     process.out_step
 )
+
+# Automatic addition of the customisation function from SLHCUpgradeSimulations.Configuration.combinedCustoms
+from SLHCUpgradeSimulations.Configuration.combinedCustoms import cust_2023HGCalMuon
+
+#call to customisation function cust_2023HGCalMuon imported from SLHCUpgradeSimulations.Configuration.combinedCustoms
+process = cust_2023HGCalMuon(process)
+
+# Automatic addition of the customisation function from Configuration.DataProcessing.Utils
+from Configuration.DataProcessing.Utils import addMonitoring
+
+#call to customisation function addMonitoring imported from Configuration.DataProcessing.Utils
+process = addMonitoring(process)
+
+# Automatic addition of the customisation function from Geometry.GEMGeometry.gemGeometryCustoms
+from Geometry.GEMGeometry.gemGeometryCustoms import custom_GE11_8and8partitions_v2
+
+#call to customisation function custom_GE11_8and8partitions_v2 imported from Geometry.GEMGeometry.gemGeometryCustoms
+process = custom_GE11_8and8partitions_v2(process)
+
+# End of customisation functions

@@ -1,5 +1,5 @@
-#ifndef GEMSegment_trackerGEM_h
-#define GEMSegment_trackerGEM_h
+#ifndef MuonIdentification_trackerGEM_h
+#define MuonIdentification_trackerGEM_h
 
 /** \class trackerGEM 
  *
@@ -26,12 +26,17 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include <DataFormats/GEMRecHit/interface/GEMSegmentCollection.h>
-#include <DataFormats/CSCRecHit/interface/CSCSegmentCollection.h>
 
 #include "DataFormats/MuonReco/interface/MuonChamberMatch.h"
 
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+
+#include "TFile.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TTree.h"
+#include "TBranch.h"
 
 class FreeTrajectoryState;
 class MagneticField;
@@ -49,7 +54,7 @@ class trackerGEM : public edm::EDProducer {
   virtual void beginRun(edm::Run const&, edm::EventSetup const&);
   virtual void endJob();
 
-  reco::MuonChamberMatch* findGEMSegment(const reco::Track&, const GEMSegmentCollection&, int station, const SteppingHelixPropagator*);
+  std::vector<reco::MuonChamberMatch> MatchGEM(const reco::Track&, const GEMSegmentCollection&, const SteppingHelixPropagator*);
     
   FreeTrajectoryState getFTS(const GlobalVector& , const GlobalVector& , 
 			     int , const AlgebraicSymMatrix66& ,
@@ -67,13 +72,9 @@ class trackerGEM : public edm::EDProducer {
 
 
   edm::ESHandle<GEMGeometry> gemGeom;
-  double maxPullXGE11_, maxDiffXGE11_, maxPullYGE11_, maxDiffYGE11_,
-    maxPullXGE21_, maxDiffXGE21_, maxPullYGE21_, maxDiffYGE21_,
-    maxDiffPhiDirection_;
   edm::EDGetTokenT<GEMSegmentCollection> gemSegmentsToken_;
   edm::EDGetTokenT<reco::TrackCollection> generalTracksToken_;
 
-  float ntracks, nmatch, nmatch_ge11, nmatch_ge21;
 };
 
 #endif

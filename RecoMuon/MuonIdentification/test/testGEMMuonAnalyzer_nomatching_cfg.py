@@ -24,7 +24,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(10)
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
@@ -71,18 +71,6 @@ process.source = cms.Source("PoolSource",
 
 from CommonTools.RecoAlgos.gemAssociator import *
 process.gemMuonSel = gemmuon.clone()
-process.recoMuonSel = gemmuon.clone(
-  MuonObj = cms.string("RecoMuon")
-)
-process.looseMuonSel = gemmuon.clone(
-  MuonObj = cms.string("LooseMuon")
-)
-process.mediumMuonSel = gemmuon.clone(
-  MuonObj = cms.string("MediumMuon")
-)
-process.tightMuonSel = gemmuon.clone(
-  MuonObj = cms.string("TightMuon")
-)
 
 import SimMuon.MCTruth.MuonAssociatorByHits_cfi
 process.gemMuonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
@@ -94,46 +82,6 @@ process.gemMuonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonA
  pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
  stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
  tracksTag = cms.InputTag("gemMuonSel"),
-)
-process.recoMuonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("recoMuonSel"),
-)
-process.looseMuonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("looseMuonSel"),
-)
-process.mediumMuonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("mediumMuonSel"),
-)
-process.tightMuonAssociatorByHits = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("tightMuonSel"),
 )
 
 process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
@@ -148,17 +96,15 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   SampleProcess = cms.string('MuonGun'),
 
   doMatchingStudy = cms.bool(False),
-  associators = cms.vstring('gemMuonAssociatorByHits', 'recoMuonAssociatorByHits', 'looseMuonAssociatorByHits', 'mediumMuonAssociatorByHits', 'tightMuonAssociatorByHits'),
-
-  label = cms.vstring('gemMuonSel', 'recoMuonSel', 'looseMuonSel', 'mediumMuonSel', 'tightMuonSel'),
+  associators = cms.vstring('gemMuonAssociatorByHits'),
+  label = cms.vstring('gemMuonSel')
 
 )
 
 process.p = cms.Path(
 process.gemMuonSel*process.gemMuonAssociatorByHits
-*process.recoMuonSel*process.looseMuonSel*process.mediumMuonSel*process.tightMuonSel
-*process.recoMuonAssociatorByHits*process.looseMuonAssociatorByHits*process.mediumMuonAssociatorByHits*process.tightMuonAssociatorByHits
-*process.GEMMuonAnalyzer)
+*process.GEMMuonAnalyzer
+)
 
 
 

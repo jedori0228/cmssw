@@ -86,7 +86,9 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   UseAssociators = cms.bool(True),
   UseDeltaR = cms.bool(False),
   doGeometryStudy = cms.bool(False),
-  SampleProcess = cms.string('MuonGun'),
+
+  #SampleProcess = cms.string('MuonGun'),
+  SampleProcess = cms.string('ZMM'),
 
   doMatchingStudy = cms.bool(False),
   associators = cms.vstring('gemMuonAssociatorByHits'),

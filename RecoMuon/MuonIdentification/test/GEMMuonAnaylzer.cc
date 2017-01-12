@@ -517,74 +517,74 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         if(SignalMuon){
 
-					//==== Fill the Denominator
-					//==== Should be filled only once (www=0)
-					if( www == 0 ){
-						if(Pt_5) TPMuon_Eta->Fill(fabs(tp->eta()));
-						TPMuon_Pt->Fill(tp->pt());
-						if(Pt_5) TPMuon_Phi->Fill(tp->phi());
-					}
+          //==== Fill the Denominator
+          //==== Should be filled only once (www=0)
+          if( www == 0 ){
+            if(Pt_5) TPMuon_Eta->Fill(fabs(tp->eta()));
+            TPMuon_Pt->Fill(tp->pt());
+            if(Pt_5) TPMuon_Phi->Fill(tp->phi());
+          }
 
-					if( (simRecColl.find(tpr) == simRecColl.end()) || (simRecColl[tpr].size() == 0) ){
-						edm::LogVerbatim("GEMMuonAnalyzer") << "No SimToReco found for this TrackingParticle";
-					}
-					else{
-						std::vector<std::pair<RefToBase<Track>, double> > rt = simRecColl[tpr];
-						RefToBase<Track> rtr = rt.begin()->first;
-						//std::cout << "This SimToReco :" << std::endl;
-						for(std::vector<std::pair<RefToBase<Track>, double> >::const_iterator itit=rt.begin(); itit!=rt.end(); itit++){
-							//std::cout << "  quality = "<<itit->second<<std::endl;
-						}
-						if( (recSimColl.find(rtr) == recSimColl.end()) || (recSimColl[rtr].size() ==0) ){
-							edm::LogVerbatim("GEMMuonAnalyzer") << "SimToReco found, but no RecoToSim for the best SimToReco";
-						}
-						else{
-							std::vector<std::pair<TrackingParticleRef, double> > tp = recSimColl[rtr];
-							TrackingParticleRef bestTPforEff = tp.begin()->first;
-							if( bestTPforEff == tpr ){
-								edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched RecoTrack";
+          if( (simRecColl.find(tpr) == simRecColl.end()) || (simRecColl[tpr].size() == 0) ){
+            edm::LogVerbatim("GEMMuonAnalyzer") << "No SimToReco found for this TrackingParticle";
+          }
+          else{
+            std::vector<std::pair<RefToBase<Track>, double> > rt = simRecColl[tpr];
+            RefToBase<Track> rtr = rt.begin()->first;
+            //std::cout << "This SimToReco :" << std::endl;
+            for(std::vector<std::pair<RefToBase<Track>, double> >::const_iterator itit=rt.begin(); itit!=rt.end(); itit++){
+              //std::cout << "  quality = "<<itit->second<<std::endl;
+            }
+            if( (recSimColl.find(rtr) == recSimColl.end()) || (recSimColl[rtr].size() ==0) ){
+              edm::LogVerbatim("GEMMuonAnalyzer") << "SimToReco found, but no RecoToSim for the best SimToReco";
+            }
+            else{
+              std::vector<std::pair<TrackingParticleRef, double> > tp = recSimColl[rtr];
+              TrackingParticleRef bestTPforEff = tp.begin()->first;
+              if( bestTPforEff == tpr ){
+                edm::LogVerbatim("GEMMuonAnalyzer") << "Found matched RecoTrack";
 
-								if(label[www]=="gemMuonSel"){
-									n_AssoByHits_matched_GEMmuon++;
-									if(Pt_5) HitsMatchedGEMMuon_Eta->Fill(fabs(tpr->eta()));
-									if(Eta_1p6_2p4) HitsMatchedGEMMuon_Pt->Fill(tpr->pt());
-									if(Pt_5 && Eta_1p6_2p4) HitsMatchedGEMMuon_Phi->Fill(tpr->phi());
-								}
-								if(label[www].find("PullXScan") != std::string::npos){
-									double this_cut = PullXValues.at(www_PullX);
-									if(Pt_5) HitsMatchedPullX_Eta[this_cut]->Fill(fabs(tpr->eta()));
-									if(Eta_1p6_2p4) HitsMatchedPullX_Pt[this_cut]->Fill(tpr->pt());
-									if(Pt_5 && Eta_1p6_2p4) HitsMatchedPullX_Phi[this_cut]->Fill(tpr->phi());
-								}
-								if(label[www].find("DXScan") != std::string::npos){
-									double this_cut = DXValues.at(www_DX);
-									if(Pt_5) HitsMatchedDX_Eta[this_cut]->Fill(fabs(tpr->eta()));
-									if(Eta_1p6_2p4) HitsMatchedDX_Pt[this_cut]->Fill(tpr->pt());
-									if(Pt_5 && Eta_1p6_2p4) HitsMatchedDX_Phi[this_cut]->Fill(tpr->phi());
-								}
-								if(label[www].find("PullYScan") != std::string::npos){
-									double this_cut = PullYValues.at(www_PullY);
-									if(Pt_5) HitsMatchedPullY_Eta[this_cut]->Fill(fabs(tpr->eta()));
-									if(Eta_1p6_2p4) HitsMatchedPullY_Pt[this_cut]->Fill(tpr->pt());
-									if(Pt_5 && Eta_1p6_2p4) HitsMatchedPullY_Phi[this_cut]->Fill(tpr->phi());
-								}
-								if(label[www].find("DYScan") != std::string::npos){
-									double this_cut = DYValues.at(www_DY);
-									if(Pt_5) HitsMatchedDY_Eta[this_cut]->Fill(fabs(tpr->eta()));
-									if(Eta_1p6_2p4) HitsMatchedDY_Pt[this_cut]->Fill(tpr->pt());
-									if(Pt_5 && Eta_1p6_2p4) HitsMatchedDY_Phi[this_cut]->Fill(tpr->phi());
-								}
-								if(label[www].find("DotDirScan") != std::string::npos){
-									double this_cut = DotDirValues.at(www_DotDir);
-									if(Pt_5) HitsMatchedDotDir_Eta[this_cut]->Fill(fabs(tpr->eta()));
-									if(Eta_1p6_2p4) HitsMatchedDotDir_Pt[this_cut]->Fill(tpr->pt());
-									if(Pt_5 && Eta_1p6_2p4) HitsMatchedDotDir_Phi[this_cut]->Fill(tpr->phi());
-								}
+                if(label[www]=="gemMuonSel"){
+                  n_AssoByHits_matched_GEMmuon++;
+                  if(Pt_5) HitsMatchedGEMMuon_Eta->Fill(fabs(tpr->eta()));
+                  if(Eta_1p6_2p4) HitsMatchedGEMMuon_Pt->Fill(tpr->pt());
+                  if(Pt_5 && Eta_1p6_2p4) HitsMatchedGEMMuon_Phi->Fill(tpr->phi());
+                }
+                if(label[www].find("PullXScan") != std::string::npos){
+                  double this_cut = PullXValues.at(www_PullX);
+                  if(Pt_5) HitsMatchedPullX_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                  if(Eta_1p6_2p4) HitsMatchedPullX_Pt[this_cut]->Fill(tpr->pt());
+                  if(Pt_5 && Eta_1p6_2p4) HitsMatchedPullX_Phi[this_cut]->Fill(tpr->phi());
+                }
+                if(label[www].find("DXScan") != std::string::npos){
+                  double this_cut = DXValues.at(www_DX);
+                  if(Pt_5) HitsMatchedDX_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                  if(Eta_1p6_2p4) HitsMatchedDX_Pt[this_cut]->Fill(tpr->pt());
+                  if(Pt_5 && Eta_1p6_2p4) HitsMatchedDX_Phi[this_cut]->Fill(tpr->phi());
+                }
+                if(label[www].find("PullYScan") != std::string::npos){
+                  double this_cut = PullYValues.at(www_PullY);
+                  if(Pt_5) HitsMatchedPullY_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                  if(Eta_1p6_2p4) HitsMatchedPullY_Pt[this_cut]->Fill(tpr->pt());
+                  if(Pt_5 && Eta_1p6_2p4) HitsMatchedPullY_Phi[this_cut]->Fill(tpr->phi());
+                }
+                if(label[www].find("DYScan") != std::string::npos){
+                  double this_cut = DYValues.at(www_DY);
+                  if(Pt_5) HitsMatchedDY_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                  if(Eta_1p6_2p4) HitsMatchedDY_Pt[this_cut]->Fill(tpr->pt());
+                  if(Pt_5 && Eta_1p6_2p4) HitsMatchedDY_Phi[this_cut]->Fill(tpr->phi());
+                }
+                if(label[www].find("DotDirScan") != std::string::npos){
+                  double this_cut = DotDirValues.at(www_DotDir);
+                  if(Pt_5) HitsMatchedDotDir_Eta[this_cut]->Fill(fabs(tpr->eta()));
+                  if(Eta_1p6_2p4) HitsMatchedDotDir_Pt[this_cut]->Fill(tpr->pt());
+                  if(Pt_5 && Eta_1p6_2p4) HitsMatchedDotDir_Phi[this_cut]->Fill(tpr->phi());
+                }
 
 
-							} //==== Matched
-						} //==== Matched
-					} //==== Matched
+              } //==== Matched
+            } //==== Matched
+          } //==== Matched
 
 
 

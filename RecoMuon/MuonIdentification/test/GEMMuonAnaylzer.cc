@@ -521,8 +521,8 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           //==== Should be filled only once (www=0)
           if( www == 0 ){
             if(Pt_5) TPMuon_Eta->Fill(fabs(tp->eta()));
-            TPMuon_Pt->Fill(tp->pt());
-            if(Pt_5) TPMuon_Phi->Fill(tp->phi());
+            if(Eta_1p6_2p4) TPMuon_Pt->Fill(tp->pt());
+            if(Pt_5 && Eta_1p6_2p4) TPMuon_Phi->Fill(tp->phi());
           }
 
           if( (simRecColl.find(tpr) == simRecColl.end()) || (simRecColl[tpr].size() == 0) ){

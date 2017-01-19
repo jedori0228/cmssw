@@ -706,7 +706,10 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               }
             }
 
-            if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && SignalMuon ) {
+            //==== should be muon
+            SignalMuon = SignalMuon && (abs(tpr->pdgId()) == 13);
+
+            if( (bestrecotrackforeff == track ) && SignalMuon ) {
               edm::LogVerbatim("GEMMuonAnalyzer") << "This RecoTrack is matcehd to SIGNAL Muon";
             }
             else{
@@ -714,12 +717,10 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               isFake = true;
             }
 
-            if( (bestrecotrackforeff == track ) && (abs(tpr->pdgId()) == 13) && !SignalMuon ){
-              edm::LogVerbatim("GEMMuonAnalyzer") << "This RecoTrack is matcehd to BKG Muon";
+            if( (bestrecotrackforeff == track ) && !SignalMuon ){
+              edm::LogVerbatim("GEMMuonAnalyzer") << "This RecoTrack is matcehd to BKG";
               isBkg = true;
             }
-
-
 
           }
         }

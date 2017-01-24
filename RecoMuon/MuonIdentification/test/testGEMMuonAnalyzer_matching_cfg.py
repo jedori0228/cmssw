@@ -92,6 +92,10 @@ process.PullXScan3 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
   MaxPullX = cms.double(3.),
 )
+process.PullXScan4 = gemmuon.clone(
+  MuonObj = cms.string("MatchingStudy"),
+  MaxPullX = cms.double(4.),
+)
 
 process.DXScan0 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
@@ -112,10 +116,6 @@ process.DXScan2 = gemmuon.clone(
 process.DXScan3 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
   MaxDX = cms.double(3.),
-)
-process.DXScan4 = gemmuon.clone(
-  MuonObj = cms.string("MatchingStudy"),
-  MaxDX = cms.double(4.),
 )
 
 process.PullYScan0p5 = gemmuon.clone(
@@ -285,6 +285,17 @@ process.PullXScan3Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociator
  stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
  tracksTag = cms.InputTag("PullXScan3"),
 )
+process.PullXScan4Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
+ UseTracker = True,
+ UseMuon = False,
+ useGEMs = cms.bool(True),
+ EfficiencyCut_track = cms.double(0.0),
+ PurityCut_track = cms.double(0.0),
+ pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
+ stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
+ tracksTag = cms.InputTag("PullXScan4"),
+)
+
 
 process.DXScan0Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
  UseTracker = True,
@@ -345,16 +356,6 @@ process.DXScan3Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByH
  pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
  stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
  tracksTag = cms.InputTag("DXScan3"),
-)
-process.DXScan4Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
- UseTracker = True,
- UseMuon = False,
- useGEMs = cms.bool(True),
- EfficiencyCut_track = cms.double(0.0),
- PurityCut_track = cms.double(0.0),
- pixelSimLinkSrc = cms.InputTag("simSiPixelDigis", "Pixel"),
- stripSimLinkSrc = cms.InputTag("simSiStripDigis", "Tracker"),
- tracksTag = cms.InputTag("DXScan4"),
 )
 
 process.PullYScan0p5Asso = SimMuon.MCTruth.MuonAssociatorByHits_cfi.muonAssociatorByHits.clone(
@@ -564,23 +565,23 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
   SampleProcess = cms.string('ZMM'),
 
   doMatchingStudy = cms.bool(True),
-  PullXValues = cms.vdouble(0, 0.1, 0.5, 1.0, 2.0, 3.0),
-  DXValues = cms.vdouble(0, 0.5, 1.0, 2.0, 3.0, 4.0),
+  PullXValues = cms.vdouble(0, 0.1, 0.5, 1.0, 2.0, 3.0, 4.0),
+  DXValues = cms.vdouble(0, 0.5, 1.0, 2.0, 3.0),
   PullYValues = cms.vdouble(0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 10., 20.),
   DYValues = cms.vdouble(1.0, 2.0, 3.0, 4.0, 5.0, 10., 20.),
   DotDirValues = cms.vdouble(0.99, 0.95, 0.90, 0.85),
   associators = cms.vstring(
     'gemMuonAsso',
-    'PullXScan0Asso', 'PullXScan0p1Asso', 'PullXScan0p5Asso', 'PullXScan1Asso' ,'PullXScan2Asso', 'PullXScan3Asso',
-    'DXScan0Asso', 'DXScan0p5Asso', 'DXScan1Asso', 'DXScan2Asso', 'DXScan3Asso', 'DXScan4Asso',
+    'PullXScan0Asso', 'PullXScan0p1Asso', 'PullXScan0p5Asso', 'PullXScan1Asso' ,'PullXScan2Asso', 'PullXScan3Asso', 'PullXScan4Asso',
+    'DXScan0Asso', 'DXScan0p5Asso', 'DXScan1Asso', 'DXScan2Asso', 'DXScan3Asso',
     'PullYScan0p5Asso', 'PullYScan1Asso', 'PullYScan2Asso', 'PullYScan3Asso' ,'PullYScan4Asso', 'PullYScan5Asso', 'PullYScan10Asso', 'PullYScan20Asso',
     'DYScan1Asso', 'DYScan2Asso', 'DYScan3Asso' ,'DYScan4Asso', 'DYScan5Asso', 'DYScan10Asso', 'DYScan20Asso',
     'DotDirScan0p99Asso', 'DotDirScan0p95Asso', 'DotDirScan0p90Asso', 'DotDirScan0p85Asso',
   ),
   label = cms.vstring(
     'gemMuonSel',
-    'PullXScan0', 'PullXScan0p1', 'PullXScan0p5', 'PullXScan1', 'PullXScan2', 'PullXScan3',
-    'DXScan0', 'DXScan0p5', 'DXScan1', 'DXScan2', 'DXScan3', 'DXScan4',
+    'PullXScan0', 'PullXScan0p1', 'PullXScan0p5', 'PullXScan1', 'PullXScan2', 'PullXScan3', 'PullXScan4',
+    'DXScan0', 'DXScan0p5', 'DXScan1', 'DXScan2', 'DXScan3',
     'PullYScan0p5', 'PullYScan1', 'PullYScan2', 'PullYScan3' ,'PullYScan4', 'PullYScan5', 'PullYScan10', 'PullYScan20',
     'DYScan1', 'DYScan2', 'DYScan3' ,'DYScan4', 'DYScan5', 'DYScan10', 'DYScan20',
     'DotDirScan0p99', 'DotDirScan0p95', 'DotDirScan0p90', 'DotDirScan0p85', 
@@ -597,12 +598,12 @@ process.PullXScan0p5*process.PullXScan0p5Asso*
 process.PullXScan1*process.PullXScan1Asso*
 process.PullXScan2*process.PullXScan2Asso*
 process.PullXScan3*process.PullXScan3Asso*
+process.PullXScan4*process.PullXScan4Asso*
 process.DXScan0*process.DXScan0Asso*
 process.DXScan0p5*process.DXScan0p5Asso*
 process.DXScan1*process.DXScan1Asso*
 process.DXScan2*process.DXScan2Asso*
 process.DXScan3*process.DXScan3Asso*
-process.DXScan4*process.DXScan4Asso*
 process.PullYScan0p5*process.PullYScan0p5Asso*
 process.PullYScan1*process.PullYScan1Asso*
 process.PullYScan2*process.PullYScan2Asso*

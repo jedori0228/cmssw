@@ -109,6 +109,10 @@ void GEMMuonTrackCollProducer::produce(edm::Event& iEvent, const edm::EventSetup
 
     for(reco::MuonCollection::const_iterator recomuon=TrackerGEM->begin(); recomuon != TrackerGEM->end(); ++recomuon) {
       bool isGEMMuon = false;
+
+      //==== kinematic cuts for TrackerMuon
+      if( (recomuon->pt() < 0.5) || (recomuon->p() < 5.) ) continue;
+
       for(auto chmatch = recomuon->matches().begin(); chmatch != recomuon->matches().end(); ++chmatch){
 
         Double_t DelX = chmatch->x;

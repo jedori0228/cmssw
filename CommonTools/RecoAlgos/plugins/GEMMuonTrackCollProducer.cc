@@ -61,11 +61,10 @@ int& , AlgebraicSymMatrix66& );
 private:
   virtual void produce(edm::Event&, const edm::EventSetup&) override;
   edm::EDGetTokenT<reco::MuonCollection> RecoMuon_Token;
-  edm::EDGetTokenT<reco::MuonCollection> TrackerGEM_Token;
   edm::EDGetTokenT<reco::VertexCollection> vertex_Token;
   edm::EDGetTokenT <reco::TrackCollection > generalTracksToken_;
   edm::EDGetTokenT<GEMSegmentCollection> GEMSegment_Token;
-  std::string MuonObj, trackTag;
+  std::string MuonObj;
   double MaxPullX, MaxDX, MaxPullY, MaxDY, MinDotDir;
 };
 
@@ -82,8 +81,6 @@ GEMMuonTrackCollProducer::GEMMuonTrackCollProducer(const edm::ParameterSet& pars
   generalTracksToken_ = consumes<reco::TrackCollection>(edm::InputTag("generalTracks"));
   GEMSegment_Token = consumes<GEMSegmentCollection>(edm::InputTag("gemSegments"));
   MuonObj = parset.getParameter< std::string >("MuonObj");
-  trackTag = parset.getParameter< std::string >("trackTag");
-  if(MuonObj == "MatchingStudy") TrackerGEM_Token = consumes<reco::MuonCollection>(edm::InputTag(trackTag));
   MaxPullX = parset.getParameter< double >("MaxPullX");
   MaxDX = parset.getParameter< double >("MaxDX");
   MaxPullY = parset.getParameter< double >("MaxPullY");
@@ -101,52 +98,6 @@ void GEMMuonTrackCollProducer::produce(edm::Event& iEvent, const edm::EventSetup
   using namespace edm;
   
   std::unique_ptr<reco::TrackCollection> selectedTracks(new reco::TrackCollection);
- 
-  if(MuonObj=="MatchingStudy"){
-
-    edm::Handle<reco::MuonCollection> TrackerGEM;
-    iEvent.getByToken(TrackerGEM_Token, TrackerGEM);
-
-    for(reco::MuonCollection::const_iterator recomuon=TrackerGEM->begin(); recomuon != TrackerGEM->end(); ++recomuon) {
-      bool isGEMMuon = false;
-
-      //==== kinematic cuts for TrackerMuon
-      if( (recomuon->pt() < 0.5) || (recomuon->p() < 5.) ) continue;
-
-      for(auto chmatch = recomuon->matches().begin(); chmatch != recomuon->matches().end(); ++chmatch){
-
-        Double_t DelX = chmatch->x;
-        Double_t DelX_over_sigma = chmatch->xErr;
-        Double_t DelY = chmatch->y;
-        Double_t DelY_over_sigma = chmatch->yErr;
-        Double_t DotDir = chmatch->dXdZ;
-
-        //std::cout << "DelX = " << DelX << ", MaxDX = " << MaxDX << std::endl;
-        //std::cout << "PullX = " << DelX_over_sigma << ", MaxPullX = " << MaxPullX << std::endl;
-        //std::cout << "DelY = " << DelY << ", MaxDY = " << MaxDY << std::endl;
-        //std::cout << "PullY = " << DelY_over_sigma << ", MaxPullY = " << MaxPullY << std::endl;
-
-        bool XMatched = (DelX < MaxDX) || (DelX_over_sigma < MaxPullX);
-        bool YMatched = (DelY < MaxDY) || (DelY_over_sigma < MaxPullY);
-        bool DirMatched = DotDir > MinDotDir;
-
-        if(XMatched && YMatched && DirMatched){
-          isGEMMuon = true;
-          break;
-        }
-      } // END match loop
-
-      if(isGEMMuon){
-        if( !recomuon->innerTrack().isNonnull() ) continue;
-        reco::TrackRef trackref = trackref = recomuon->innerTrack();
-        const reco::Track* trk = &(*trackref);
-        selectedTracks->push_back( *trk );        
-      }
-
-    } // TrackerGEM loop
-
-  }
-  else{
 
   edm::Handle<reco::MuonCollection> recoMuons;
   iEvent.getByToken(RecoMuon_Token, recoMuons);
@@ -154,30 +105,69 @@ void GEMMuonTrackCollProducer::produce(edm::Event& iEvent, const edm::EventSetup
   iEvent.getByToken(vertex_Token, vertices);
   reco::Vertex vertex = vertices->at(0);
 
-    for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
+  for(reco::MuonCollection::const_iterator recomuon=recoMuons->begin(); recomuon != recoMuons->end(); ++recomuon) {
 
-      bool pass_obj(false);
-      if(MuonObj=="RecoMuon") pass_obj = true;
-      else if(MuonObj=="GEMMuon") pass_obj = recomuon->isGEMMuon() && recomuon->isTrackerMuon();
-      else if(MuonObj=="LooseMuon") pass_obj = muon::isLooseMuon(*recomuon);
-      else if(MuonObj=="MediumMuon") pass_obj = muon::isMediumMuon(*recomuon);
-      else if(MuonObj=="TightMuon") pass_obj = muon::isTightMuon(*recomuon, vertex);
-      else{}
+    bool pass_obj(false);
 
-      if(!pass_obj) continue;
+    if(MuonObj=="RecoMuon") pass_obj = true;
+    else if(MuonObj=="GEMMuon") pass_obj = recomuon->isGEMMuon() && recomuon->isTrackerMuon();
+    else if(MuonObj=="LooseMuon") pass_obj = muon::isLooseMuon(*recomuon);
+    else if(MuonObj=="MediumMuon") pass_obj = muon::isMediumMuon(*recomuon);
+    else if(MuonObj=="TightMuon") pass_obj = muon::isTightMuon(*recomuon, vertex);
+    else if(MuonObj=="MatchingStudy"){
 
-      if( !recomuon->innerTrack().isNonnull() ) continue;
-      reco::TrackRef trackref = trackref = recomuon->innerTrack();
+      bool isGEMMuon = false;
 
-      const reco::Track* trk = &(*trackref);
-      // pointer to old track:
-      //reco::Track* newTrk = new reco::Track(*trk);
+      for(auto chmatch = recomuon->matches().begin(); chmatch != recomuon->matches().end(); ++chmatch){
 
-      selectedTracks->push_back( *trk );
-      //std::cout << "  track added" << std::endl;
-      //selectedTrackExtras->push_back( *newExtra );
+        if(isGEMMuon) break;
+
+        for(auto segmatch = chmatch->gemMatches.begin(); segmatch != chmatch->gemMatches.end(); ++segmatch){
+
+					Double_t DelX = std::abs( chmatch->x - segmatch->x );
+					Double_t DelX_over_sigma = DelX/std::hypot(segmatch->xErr, chmatch->xErr);
+					Double_t DelY = std::abs( chmatch->y - segmatch->y );
+					Double_t DelY_over_sigma = DelY/std::hypot(segmatch->yErr, chmatch->yErr);
+
+          LocalVector ch_dir( chmatch->dXdZ, chmatch->dYdZ, 1.);
+          LocalVector seg_dir( segmatch->dXdZ, segmatch->dYdZ, 1.);
+
+					Double_t DotDir = ch_dir.dot( seg_dir );
+
+					//std::cout << "DelX = " << DelX << ", MaxDX = " << MaxDX << std::endl;
+					//std::cout << "PullX = " << DelX_over_sigma << ", MaxPullX = " << MaxPullX << std::endl;
+					//std::cout << "DelY = " << DelY << ", MaxDY = " << MaxDY << std::endl;
+					//std::cout << "PullY = " << DelY_over_sigma << ", MaxPullY = " << MaxPullY << std::endl;
+
+					bool XMatched = (DelX < MaxDX) || (DelX_over_sigma < MaxPullX);
+					bool YMatched = (DelY < MaxDY) || (DelY_over_sigma < MaxPullY);
+					bool DirMatched = DotDir > MinDotDir;
+
+					if(XMatched && YMatched && DirMatched){
+						isGEMMuon = true;
+						break;
+					}
+
+				}
+
+      }
+
+      pass_obj = isGEMMuon && recomuon->isTrackerMuon();
+
     }
+    else{}
+
+    if(!pass_obj) continue;
+
+
+    if( !recomuon->innerTrack().isNonnull() ) continue;
+    reco::TrackRef trackref = trackref = recomuon->innerTrack();
+    const reco::Track* trk = &(*trackref);
+    selectedTracks->push_back( *trk );        
+
+
   }
+
   iEvent.put(std::move(selectedTracks));
 
 }

@@ -66,8 +66,6 @@ process.source = cms.Source("PoolSource",
 from CommonTools.RecoAlgos.gemAssociator import *
 process.gemMuonSel = gemmuon.clone()
 
-process.load('RecoMuon.MuonIdentification.trackerGEM_cfi')
-
 process.PullXScan0 = gemmuon.clone(
   MuonObj = cms.string("MatchingStudy"),
   MaxPullX = cms.double(0.),
@@ -590,7 +588,6 @@ process.GEMMuonAnalyzer = cms.EDAnalyzer("GEMMuonAnalyzer",
 )
 
 process.p = cms.Path(
-process.trackerGEM*
 process.gemMuonSel*process.gemMuonAsso*
 process.PullXScan0*process.PullXScan0Asso*
 process.PullXScan0p1*process.PullXScan0p1Asso*

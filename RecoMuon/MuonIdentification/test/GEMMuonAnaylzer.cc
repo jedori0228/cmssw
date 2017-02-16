@@ -127,6 +127,7 @@ public:
   TH2F *GEMRecHit_GE21_LocalPosition_scattered, *GEMSegment_GE21_LocalPosition_scattered;
   TH2F *GEMRecHit_GE11_odd_XZplane, *GEMRecHit_GE11_even_XZplane;
   TH2F *GEMRecHit_GE21_odd_XZplane, *GEMRecHit_GE21_even_XZplane;
+  TH1F *GEMRecHit_GE11_firstClusterStrip, *GEMRecHit_GE21_firstClusterStrip;
 
   TH1F *Nevents_h, *N_GEMMuon_dist_h;
 
@@ -242,6 +243,8 @@ void GEMMuonAnalyzer::beginRun(edm::Run const&, edm::EventSetup const& iSetup) {
   GEMRecHit_GE11_even_XZplane = new TH2F("GEMRecHit_GE11_even_XZplane", "GEMRecHit GE11 Even Chamber XZ-plane", 20*10, 560., 580., 800, -400., 400.);
   GEMRecHit_GE21_odd_XZplane = new TH2F("GEMRecHit_GE21_odd_XZplane", "GEMRecHit GE21 Odd XZ-plane",    20*10, 790., 810., 800, -400., 400.);
   GEMRecHit_GE21_even_XZplane = new TH2F("GEMRecHit_GE21_even_XZplane", "GEMRecHit GE21 Even XZ-plane", 20*10, 790., 810., 800, -400., 400.);
+  GEMRecHit_GE11_firstClusterStrip = new TH1F("GEMRecHit_GE11_firstClusterStrip", "", 2000, 0., 2000.);
+  GEMRecHit_GE21_firstClusterStrip = new TH1F("GEMRecHit_GE21_firstClusterStrip", "", 2000, 0., 2000.);
 
   //==========================
   //==== Association by hits
@@ -384,11 +387,13 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       auto roll = gemGeom->etaPartition(id);
       auto RecHitLP = thisRecHit->localPosition();
       auto RecHitGP = roll->toGlobal(RecHitLP);
+      int fcstrip = thisRecHit->firstClusterStrip();
       edm::LogVerbatim("GEMMuonAnalyzer") << "rechit station = " << id.station() << std::endl;
       edm::LogVerbatim("GEMMuonAnalyzer") << "Rechit id = " << id << " => (" << RecHitGP.x() << ", " << RecHitGP.y() << ", " << RecHitGP.z() << ")" << std::endl;
       if( id.station() == 1 ){
         GEMRecHit_GE11_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
         GEMRecHit_GE11_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
+        GEMRecHit_GE11_firstClusterStrip->Fill(fcstrip);
         if(id.chamber()%2 == 0){
           GEMRecHit_GE11_even_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
         }
@@ -396,9 +401,10 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           GEMRecHit_GE11_odd_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
         }
       }
-      if( id.station() == 3 ){
+      if( id.station() == 2 ){
         GEMRecHit_GE21_LocalPosition_scattered->Fill(RecHitLP.x(), RecHitLP.y());
         GEMRecHit_GE21_GlobalPosition_scattered->Fill(RecHitGP.x(), RecHitGP.y());
+        GEMRecHit_GE21_firstClusterStrip->Fill(fcstrip);
         if(id.chamber()%2 == 0){
           GEMRecHit_GE21_even_XZplane->Fill(RecHitGP.z(), RecHitGP.x());
         }
@@ -425,11 +431,13 @@ GEMMuonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         GEMSegment_GE11_LocalPosition_scattered->Fill(segLP.x(), segLP.y());
         GEMSegment_GE11_GlobalPosition_scattered->Fill(segGP.x(), segGP.y());
       }
-      if( id.station() == 3 ){
+      if( id.station() == 2 ){
         GEMSegment_GE21_LocalPosition_scattered->Fill(segLP.x(), segLP.y());
         GEMSegment_GE21_GlobalPosition_scattered->Fill(segGP.x(), segGP.y());
       }
     }
+
+    return;
 
   }
 
@@ -892,6 +900,8 @@ void GEMMuonAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
   GEMSegment_GE11_LocalPosition_scattered->Write();
   GEMRecHit_GE21_LocalPosition_scattered->Write();
   GEMSegment_GE21_LocalPosition_scattered->Write();
+  GEMRecHit_GE11_firstClusterStrip->Write();
+  GEMRecHit_GE21_firstClusterStrip->Write();
   GEMRecHit_GE11_odd_XZplane->Write();
   GEMRecHit_GE11_even_XZplane->Write();
   GEMRecHit_GE21_odd_XZplane->Write();

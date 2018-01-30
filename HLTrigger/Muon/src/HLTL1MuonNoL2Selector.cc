@@ -89,6 +89,7 @@ void HLTL1MuonNoL2Selector::produce(edm::StreamID, edm::Event& iEvent, const edm
   for (int ibx = muColl->getFirstBX(); ibx <= muColl->getLastBX(); ++ibx) {
     if (centralBxOnly_ && (ibx != 0)) continue;
     for (auto it = muColl->begin(ibx); it != muColl->end(ibx); it++){
+/*
       l1t::MuonRef l1muon(muColl, distance(muColl->begin(muColl->getFirstBX()),it) );
       
       unsigned int quality = it->hwQual();
@@ -100,22 +101,25 @@ void HLTL1MuonNoL2Selector::produce(edm::StreamID, edm::Event& iEvent, const edm
       // Loop over L2's to find whether the L1 fired this L2. 
       bool isTriggeredByL1=false;
       for (auto const & cand : *L2cands) {
-	TrackRef l2muon = cand.get<TrackRef>();    
-	const edm::RefVector<L2MuonTrajectorySeedCollection>& seeds = (*seedMapHandle)[l2muon->seedRef().castTo<edm::Ref<L2MuonTrajectorySeedCollection> >()];
-	for(auto const & seed : seeds){
-	  // Check if the L2 was seeded by a triggered L1, in such case skip the loop. 
-	  if(seed->l1tParticle()==l1muon) {
-	    isTriggeredByL1 = true;
-	    break;
-	  }
-	}
-	if (isTriggeredByL1) break; // if I found a L2 I do not need to loop on the rest.
+        TrackRef l2muon = cand.get<TrackRef>();    
+        const edm::RefVector<L2MuonTrajectorySeedCollection>& seeds = (*seedMapHandle)[l2muon->seedRef().castTo<edm::Ref<L2MuonTrajectorySeedCollection> >()];
+        for(auto const & seed : seeds){
+          // Check if the L2 was seeded by a triggered L1, in such case skip the loop. 
+          if(seed->l1tParticle()==l1muon) {
+            isTriggeredByL1 = true;
+            break;
+          }
+        }
+        if (isTriggeredByL1) break; // if I found a L2 I do not need to loop on the rest.
       }
       // Once we loop on all L2 decide:
       if (!isTriggeredByL1) {
-	output->push_back( ibx, *it);
+        output->push_back( ibx, *it);
       }
+*/
+      output->push_back( ibx, *it);
     }
+    
   } // loop over L1
   
   iEvent.put(std::move(output));

@@ -77,7 +77,8 @@ L1ECALPrefiringWeightProducer::L1ECALPrefiringWeightProducer(const edm::Paramete
 
 
   TFile *  file_prefiringmaps_;
-  std::string fname =  iConfig.getParameter<std::string>( "L1Maps" );
+  edm::FileInPath L1Maps = iConfig.getParameter<edm::FileInPath>( "L1Maps" );
+  std::string fname =  L1Maps.fullPath();
   file_prefiringmaps_ = new TFile(  fname.c_str(),"read" );
   TString mapphotonfullname= "L1prefiring_photonptvseta_"+ dataera_; 
   h_prefmap_photon =(TH2F*) file_prefiringmaps_->Get(mapphotonfullname);
@@ -256,7 +257,7 @@ L1ECALPrefiringWeightProducer::fillDescriptions(edm::ConfigurationDescriptions& 
   
   desc.add<edm::InputTag>("ThePhotons", edm::InputTag("slimmedPhotons"));
   desc.add<edm::InputTag>("TheJets", edm::InputTag("slimmedJets"));
-  desc.add<std::string>("L1Maps", "L1PrefiringMaps_new.root");
+  desc.add<edm::FileInPath>("L1Maps", edm::FileInPath("L1Prefiring/EventWeightProducer/files/L1PrefiringMaps_new.root"));
   desc.add<std::string>("DataEra", "2017BtoF");
   desc.add<bool>("UseJetEMPt", true);
   desc.add<double>("PrefiringRateSystematicUncty",0.2);

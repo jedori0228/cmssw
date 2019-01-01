@@ -257,7 +257,7 @@ L1ECALPrefiringWeightProducer::fillDescriptions(edm::ConfigurationDescriptions& 
   
   desc.add<edm::InputTag>("ThePhotons", edm::InputTag("slimmedPhotons"));
   desc.add<edm::InputTag>("TheJets", edm::InputTag("slimmedJets"));
-  desc.add<edm::FileInPath>("L1Maps", edm::FileInPath("L1Prefiring/EventWeightProducer/files/L1PrefiringMaps_new.root"));
+  desc.add<edm::FileInPath>("L1Maps", edm::FileInPath("SKFlatMaker/SKFlatMaker/data/L1Prefire/L1PrefiringMaps_new.root"));
   desc.add<std::string>("DataEra", "2017BtoF");
   desc.add<bool>("UseJetEMPt", true);
   desc.add<double>("PrefiringRateSystematicUncty",0.2);

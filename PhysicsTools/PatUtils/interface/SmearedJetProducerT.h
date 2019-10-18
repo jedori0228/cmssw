@@ -230,7 +230,7 @@ class SmearedJetProducerT : public edm::stream::EDProducer<> {
                 }
 
                 double jet_resolution = resolution.getResolution({{JME::Binning::JetPt, jet.pt()}, {JME::Binning::JetEta, jet.eta()}, {JME::Binning::Rho, *rho}});
-                double jer_sf = resolution_sf.getScaleFactor({{JME::Binning::JetEta, jet.eta()}}, m_systematic_variation);
+                double jer_sf = resolution_sf.getScaleFactor({{JME::Binning::JetPt, jet.pt()},{JME::Binning::JetEta, jet.eta()}}, m_systematic_variation);
 
                 if (m_debug) {
                     std::cout << "jet:  pt: " << jet.pt() << "  eta: " << jet.eta() << "  phi: " << jet.phi() << "  e: " << jet.energy() << std::endl;
